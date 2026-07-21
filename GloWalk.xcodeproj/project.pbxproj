@@ -6,172 +6,61 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		0FA40C516A6E3A27EF988E92 /* View+GloWalkModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */; };
-		2153B5FBCD756B2958EF8211 /* GloWalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */; };
-		337741E94D35CB7D2FEB24AF /* Color+GloWalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */; };
-		47DAF9C33B750E5CCA4237A7 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA495367C7548D935094854 /* PersistenceController.swift */; };
-		647B3E4F4B669FACE443A19C /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48827DD15AD97706155606D4 /* HUDView.swift */; };
-		6E2C357E77207230CFE6BA84 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAE20CC6453A00228847E9B /* ContentView.swift */; };
-		79677A48B1B16F37D5D05FAA /* UserPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 318277B46F4B6B7E9420B371 /* UserPreferences.swift */; };
-		7EB965BDFBF7EBBE1210427D /* WalkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */; };
-		A3E4011D882FEC406277C9DF /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */; };
-		E0D5B72C9646689FEC8950E2 /* GloWalk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */; };
-		F5CC0821269E1881FABDC9AC /* PathPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF882451A4A45A5244BAE02 /* PathPoint.swift */; };
-/* End PBXBuildFile section */
+/* Begin PBXContainerItemProxy section */
+		C096E5FE300FAE39004D0062 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 411466EFC6A6C3FC63512168 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 86D472BF710F30D8FD703936;
+			remoteInfo = GloWalk;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
-		0EAE20CC6453A00228847E9B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+GloWalkModifiers.swift"; sourceTree = "<group>"; };
-		318277B46F4B6B7E9420B371 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
-		3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkSession.swift; sourceTree = "<group>"; };
-		48827DD15AD97706155606D4 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDView.swift; sourceTree = "<group>"; };
-		575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GloWalkApp.swift; sourceTree = "<group>"; };
-		7DA495367C7548D935094854 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
-		8BF882451A4A45A5244BAE02 /* PathPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathPoint.swift; sourceTree = "<group>"; };
-		B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+GloWalk.swift"; sourceTree = "<group>"; };
-		DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = GloWalk.xcdatamodel; sourceTree = "<group>"; };
+		C096E5FA300FAE39004D0062 /* GloWalkTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GloWalkTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DBC70204636E21131E70C769 /* GloWalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GloWalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C096E5E7300FAC5D004D0062 /* GloWalk */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GloWalk;
+			sourceTree = "<group>";
+		};
+		C096E5FB300FAE39004D0062 /* GloWalkTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GloWalkTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C096E5F7300FAE39004D0062 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXGroup section */
-		0B6E94D74702D335933F7993 /* HUD */ = {
-			isa = PBXGroup;
-			children = (
-				48827DD15AD97706155606D4 /* HUDView.swift */,
-			);
-			path = HUD;
-			sourceTree = "<group>";
-		};
-		0DB3D48D5D0EC803C4AF472F /* Widgets */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Widgets;
-			sourceTree = "<group>";
-		};
 		1B8AB38905F9D52F241F954C /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				DBC70204636E21131E70C769 /* GloWalk.app */,
+				C096E5FA300FAE39004D0062 /* GloWalkTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		1FD3D7C25D2FFAA7AD91802B /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		2B69695BFD27627D6C71F5E6 /* History */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = History;
-			sourceTree = "<group>";
-		};
-		4261EFE86BC39D05DDECAD48 /* Poster */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Poster;
-			sourceTree = "<group>";
-		};
-		56D8F03257B49B71AFB883FB /* GloWalk */ = {
-			isa = PBXGroup;
-			children = (
-				0EAE20CC6453A00228847E9B /* ContentView.swift */,
-				575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */,
-				E735CAC186C3B586C8644943 /* Extensions */,
-				C296E33FDE062B620AF13666 /* Intents */,
-				FF57C603F51DC85D8283F3CE /* Models */,
-				7CDAD9B4FD33A38001A9C2D9 /* Resources */,
-				6CB8DFE3BFA49AA82D111FD3 /* Services */,
-				1FD3D7C25D2FFAA7AD91802B /* ViewModels */,
-				FC31F2F77E6E9577ED111B5B /* Views */,
-			);
-			path = GloWalk;
-			sourceTree = "<group>";
-		};
-		6CB8DFE3BFA49AA82D111FD3 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				7DA495367C7548D935094854 /* PersistenceController.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		6CD80F10E51316A8923011A6 /* Launch */ = {
-			isa = PBXGroup;
-			children = (
-				0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */,
-			);
-			path = Launch;
-			sourceTree = "<group>";
-		};
-		7CDAD9B4FD33A38001A9C2D9 /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		C296E33FDE062B620AF13666 /* Intents */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Intents;
 			sourceTree = "<group>";
 		};
 		E2094CE57C5D1492D53A8585 = {
 			isa = PBXGroup;
 			children = (
-				56D8F03257B49B71AFB883FB /* GloWalk */,
+				C096E5E7300FAC5D004D0062 /* GloWalk */,
+				C096E5FB300FAE39004D0062 /* GloWalkTests */,
 				1B8AB38905F9D52F241F954C /* Products */,
 			);
-			sourceTree = "<group>";
-		};
-		E735CAC186C3B586C8644943 /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */,
-				1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */,
-			);
-			path = Extensions;
-			sourceTree = "<group>";
-		};
-		F3F9ABFA250AA8C36479FC1E /* Settings */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Settings;
-			sourceTree = "<group>";
-		};
-		FC31F2F77E6E9577ED111B5B /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				2B69695BFD27627D6C71F5E6 /* History */,
-				0B6E94D74702D335933F7993 /* HUD */,
-				6CD80F10E51316A8923011A6 /* Launch */,
-				4261EFE86BC39D05DDECAD48 /* Poster */,
-				F3F9ABFA250AA8C36479FC1E /* Settings */,
-				0DB3D48D5D0EC803C4AF472F /* Widgets */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		FF57C603F51DC85D8283F3CE /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				8BF882451A4A45A5244BAE02 /* PathPoint.swift */,
-				318277B46F4B6B7E9420B371 /* UserPreferences.swift */,
-				3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */,
-			);
-			path = Models;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -187,12 +76,38 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				C096E5E7300FAC5D004D0062 /* GloWalk */,
+			);
 			name = GloWalk;
 			packageProductDependencies = (
 			);
 			productName = GloWalk;
 			productReference = DBC70204636E21131E70C769 /* GloWalk.app */;
 			productType = "com.apple.product-type.application";
+		};
+		C096E5F9300FAE39004D0062 /* GloWalkTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C096E600300FAE39004D0062 /* Build configuration list for PBXNativeTarget "GloWalkTests" */;
+			buildPhases = (
+				C096E5F6300FAE39004D0062 /* Sources */,
+				C096E5F7300FAE39004D0062 /* Frameworks */,
+				C096E5F8300FAE39004D0062 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C096E5FF300FAE39004D0062 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				C096E5FB300FAE39004D0062 /* GloWalkTests */,
+			);
+			name = GloWalkTests;
+			packageProductDependencies = (
+			);
+			productName = GloWalkTests;
+			productReference = C096E5FA300FAE39004D0062 /* GloWalkTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -201,7 +116,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
+				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					C096E5F9300FAE39004D0062 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 86D472BF710F30D8FD703936;
+					};
+				};
 			};
 			buildConfigurationList = 1E8261C3CBF1FBF492FAAD76 /* Build configuration list for PBXProject "GloWalk" */;
 			developmentRegion = en;
@@ -218,30 +140,45 @@
 			projectRoot = "";
 			targets = (
 				86D472BF710F30D8FD703936 /* GloWalk */,
+				C096E5F9300FAE39004D0062 /* GloWalkTests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		C096E5F8300FAE39004D0062 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		C096E5F6300FAE39004D0062 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DA6593F28405E64054438174 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				337741E94D35CB7D2FEB24AF /* Color+GloWalk.swift in Sources */,
-				6E2C357E77207230CFE6BA84 /* ContentView.swift in Sources */,
-				E0D5B72C9646689FEC8950E2 /* GloWalk.xcdatamodeld in Sources */,
-				2153B5FBCD756B2958EF8211 /* GloWalkApp.swift in Sources */,
-				647B3E4F4B669FACE443A19C /* HUDView.swift in Sources */,
-				F5CC0821269E1881FABDC9AC /* PathPoint.swift in Sources */,
-				47DAF9C33B750E5CCA4237A7 /* PersistenceController.swift in Sources */,
-				A3E4011D882FEC406277C9DF /* PrivacyConsentView.swift in Sources */,
-				79677A48B1B16F37D5D05FAA /* UserPreferences.swift in Sources */,
-				0FA40C516A6E3A27EF988E92 /* View+GloWalkModifiers.swift in Sources */,
-				7EB965BDFBF7EBBE1210427D /* WalkSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C096E5FF300FAE39004D0062 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 86D472BF710F30D8FD703936 /* GloWalk */;
+			targetProxy = C096E5FE300FAE39004D0062 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		25894E580D3530B39371CDC0 /* Debug */ = {
@@ -414,6 +351,64 @@
 			};
 			name = Release;
 		};
+		C096E601300FAE39004D0062 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YUUWV9L8M8;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.GloWalkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GloWalk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GloWalk";
+			};
+			name = Debug;
+		};
+		C096E602300FAE39004D0062 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YUUWV9L8M8;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.GloWalkTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GloWalk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GloWalk";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		E0D22A0266A8A33175E514B5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -464,20 +459,16 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-/* End XCConfigurationList section */
-
-/* Begin XCVersionGroup section */
-		03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */ = {
-			isa = XCVersionGroup;
-			children = (
-				DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */,
+		C096E600300FAE39004D0062 /* Build configuration list for PBXNativeTarget "GloWalkTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C096E601300FAE39004D0062 /* Debug */,
+				C096E602300FAE39004D0062 /* Release */,
 			);
-			currentVersion = DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */;
-			path = GloWalk.xcdatamodeld;
-			sourceTree = "<group>";
-			versionGroupType = wrapper.xcdatamodel;
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
 		};
-/* End XCVersionGroup section */
+/* End XCConfigurationList section */
 	};
 	rootObject = 411466EFC6A6C3FC63512168 /* Project object */;
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22225" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="NO" userDefinedModelVersionIdentifier="">
+    <entity name="WalkSession" representedClassName="WalkSession" syncable="YES">
+        <attribute name="avgLightLevel" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="endTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="endType" optional="YES" attributeType="String" defaultValueString="interrupted"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="moonPhase" optional="YES" attributeType="String"/>
+        <attribute name="posterImageData" optional="YES" attributeType="Binary"/>
+        <attribute name="startTime" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="totalDistance" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="totalSteps" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="weatherCondition" optional="YES" attributeType="String"/>
+        <relationship name="pathPoints" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="PathPoint" inverseName="session" inverseEntity="PathPoint"/>
+    </entity>
+    <entity name="PathPoint" representedClassName="PathPoint" syncable="YES">
+        <attribute name="ambientLight" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="torchBrightness" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <relationship name="session" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="WalkSession" inverseName="pathPoints" inverseEntity="WalkSession"/>
+    </entity>
+</model>

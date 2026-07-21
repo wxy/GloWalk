@@ -1,0 +1,483 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0FA40C516A6E3A27EF988E92 /* View+GloWalkModifiers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */; };
+		2153B5FBCD756B2958EF8211 /* GloWalkApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */; };
+		337741E94D35CB7D2FEB24AF /* Color+GloWalk.swift in Sources */ = {isa = PBXBuildFile; fileRef = B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */; };
+		47DAF9C33B750E5CCA4237A7 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DA495367C7548D935094854 /* PersistenceController.swift */; };
+		647B3E4F4B669FACE443A19C /* HUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48827DD15AD97706155606D4 /* HUDView.swift */; };
+		6E2C357E77207230CFE6BA84 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAE20CC6453A00228847E9B /* ContentView.swift */; };
+		79677A48B1B16F37D5D05FAA /* UserPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = 318277B46F4B6B7E9420B371 /* UserPreferences.swift */; };
+		7EB965BDFBF7EBBE1210427D /* WalkSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */; };
+		A3E4011D882FEC406277C9DF /* PrivacyConsentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */; };
+		E0D5B72C9646689FEC8950E2 /* GloWalk.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */; };
+		F5CC0821269E1881FABDC9AC /* PathPoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF882451A4A45A5244BAE02 /* PathPoint.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyConsentView.swift; sourceTree = "<group>"; };
+		0EAE20CC6453A00228847E9B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+GloWalkModifiers.swift"; sourceTree = "<group>"; };
+		318277B46F4B6B7E9420B371 /* UserPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPreferences.swift; sourceTree = "<group>"; };
+		3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalkSession.swift; sourceTree = "<group>"; };
+		48827DD15AD97706155606D4 /* HUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDView.swift; sourceTree = "<group>"; };
+		575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GloWalkApp.swift; sourceTree = "<group>"; };
+		7DA495367C7548D935094854 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
+		8BF882451A4A45A5244BAE02 /* PathPoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathPoint.swift; sourceTree = "<group>"; };
+		B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+GloWalk.swift"; sourceTree = "<group>"; };
+		DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = GloWalk.xcdatamodel; sourceTree = "<group>"; };
+		DBC70204636E21131E70C769 /* GloWalk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GloWalk.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0B6E94D74702D335933F7993 /* HUD */ = {
+			isa = PBXGroup;
+			children = (
+				48827DD15AD97706155606D4 /* HUDView.swift */,
+			);
+			path = HUD;
+			sourceTree = "<group>";
+		};
+		0DB3D48D5D0EC803C4AF472F /* Widgets */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Widgets;
+			sourceTree = "<group>";
+		};
+		1B8AB38905F9D52F241F954C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DBC70204636E21131E70C769 /* GloWalk.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1FD3D7C25D2FFAA7AD91802B /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		2B69695BFD27627D6C71F5E6 /* History */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = History;
+			sourceTree = "<group>";
+		};
+		4261EFE86BC39D05DDECAD48 /* Poster */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Poster;
+			sourceTree = "<group>";
+		};
+		56D8F03257B49B71AFB883FB /* GloWalk */ = {
+			isa = PBXGroup;
+			children = (
+				0EAE20CC6453A00228847E9B /* ContentView.swift */,
+				575F8D6FCBF562528AB99C3C /* GloWalkApp.swift */,
+				E735CAC186C3B586C8644943 /* Extensions */,
+				C296E33FDE062B620AF13666 /* Intents */,
+				FF57C603F51DC85D8283F3CE /* Models */,
+				7CDAD9B4FD33A38001A9C2D9 /* Resources */,
+				6CB8DFE3BFA49AA82D111FD3 /* Services */,
+				1FD3D7C25D2FFAA7AD91802B /* ViewModels */,
+				FC31F2F77E6E9577ED111B5B /* Views */,
+			);
+			path = GloWalk;
+			sourceTree = "<group>";
+		};
+		6CB8DFE3BFA49AA82D111FD3 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				7DA495367C7548D935094854 /* PersistenceController.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		6CD80F10E51316A8923011A6 /* Launch */ = {
+			isa = PBXGroup;
+			children = (
+				0C92B57E2947F98E3C155315 /* PrivacyConsentView.swift */,
+			);
+			path = Launch;
+			sourceTree = "<group>";
+		};
+		7CDAD9B4FD33A38001A9C2D9 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C296E33FDE062B620AF13666 /* Intents */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Intents;
+			sourceTree = "<group>";
+		};
+		E2094CE57C5D1492D53A8585 = {
+			isa = PBXGroup;
+			children = (
+				56D8F03257B49B71AFB883FB /* GloWalk */,
+				1B8AB38905F9D52F241F954C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E735CAC186C3B586C8644943 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				B70C2DB1974A37CBCB16072D /* Color+GloWalk.swift */,
+				1C22C612FBAFB89A185469A6 /* View+GloWalkModifiers.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		F3F9ABFA250AA8C36479FC1E /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		FC31F2F77E6E9577ED111B5B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2B69695BFD27627D6C71F5E6 /* History */,
+				0B6E94D74702D335933F7993 /* HUD */,
+				6CD80F10E51316A8923011A6 /* Launch */,
+				4261EFE86BC39D05DDECAD48 /* Poster */,
+				F3F9ABFA250AA8C36479FC1E /* Settings */,
+				0DB3D48D5D0EC803C4AF472F /* Widgets */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		FF57C603F51DC85D8283F3CE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				8BF882451A4A45A5244BAE02 /* PathPoint.swift */,
+				318277B46F4B6B7E9420B371 /* UserPreferences.swift */,
+				3F9F83B48BCB62FA503E8A5C /* WalkSession.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		86D472BF710F30D8FD703936 /* GloWalk */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 766040CB371C2F191FB297E9 /* Build configuration list for PBXNativeTarget "GloWalk" */;
+			buildPhases = (
+				DA6593F28405E64054438174 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GloWalk;
+			packageProductDependencies = (
+			);
+			productName = GloWalk;
+			productReference = DBC70204636E21131E70C769 /* GloWalk.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		411466EFC6A6C3FC63512168 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2660;
+			};
+			buildConfigurationList = 1E8261C3CBF1FBF492FAAD76 /* Build configuration list for PBXProject "GloWalk" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = E2094CE57C5D1492D53A8585;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1B8AB38905F9D52F241F954C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				86D472BF710F30D8FD703936 /* GloWalk */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DA6593F28405E64054438174 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				337741E94D35CB7D2FEB24AF /* Color+GloWalk.swift in Sources */,
+				6E2C357E77207230CFE6BA84 /* ContentView.swift in Sources */,
+				E0D5B72C9646689FEC8950E2 /* GloWalk.xcdatamodeld in Sources */,
+				2153B5FBCD756B2958EF8211 /* GloWalkApp.swift in Sources */,
+				647B3E4F4B669FACE443A19C /* HUDView.swift in Sources */,
+				F5CC0821269E1881FABDC9AC /* PathPoint.swift in Sources */,
+				47DAF9C33B750E5CCA4237A7 /* PersistenceController.swift in Sources */,
+				A3E4011D882FEC406277C9DF /* PrivacyConsentView.swift in Sources */,
+				79677A48B1B16F37D5D05FAA /* UserPreferences.swift in Sources */,
+				0FA40C516A6E3A27EF988E92 /* View+GloWalkModifiers.swift in Sources */,
+				7EB965BDFBF7EBBE1210427D /* WalkSession.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		25894E580D3530B39371CDC0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = YUUWV9L8M8;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_CFBundleName = GloWalk;
+				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A52DE21FEE3B988C28105425 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = YUUWV9L8M8;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_CFBundleName = GloWalk;
+				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		BDADF5B3422AA7276DB00390 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.glowalk;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		E0D22A0266A8A33175E514B5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
+				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.glowalk;
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1E8261C3CBF1FBF492FAAD76 /* Build configuration list for PBXProject "GloWalk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				25894E580D3530B39371CDC0 /* Debug */,
+				A52DE21FEE3B988C28105425 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		766040CB371C2F191FB297E9 /* Build configuration list for PBXNativeTarget "GloWalk" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E0D22A0266A8A33175E514B5 /* Debug */,
+				BDADF5B3422AA7276DB00390 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		03F8EAFD8179D72B3B433F10 /* GloWalk.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */,
+			);
+			currentVersion = DB692BDE20310F08C1590990 /* GloWalk.xcdatamodel */;
+			path = GloWalk.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 411466EFC6A6C3FC63512168 /* Project object */;
+}

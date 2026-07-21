@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gem install *)",
+      "Bash(xcodebuild -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17' build)",
+      "Bash(xcodegen generate *)",
+      "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData/GloWalk-*)"
+    ]
+  }
+}

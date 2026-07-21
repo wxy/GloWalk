@@ -15,8 +15,8 @@ final class SensorManager: ObservableObject {
     private let motionManager = CMMotionManager()
     private let pedometer = CMPedometer()
     private var captureSession: AVCaptureSession?
-    private var occlusionTimer: Timer?
-    private var lastAmbientUpdate: Date = .distantPast
+    private var captureDevice: AVCaptureDevice?
+    private var captureDelegate: AmbientLightDelegate?
 
     // MARK: - Camera Permission
 
@@ -34,23 +34,63 @@ final class SensorManager: ObservableObject {
         startAmbientLightSampling()
         startMotionUpdates()
         startPedometer()
-        startOcclusionDetection()
+        startProximityMonitoring()
     }
 
     func stop() {
+        turnOffTorch()
+        stopProximityMonitoring()
         captureSession?.stopRunning()
         captureSession = nil
         motionManager.stopDeviceMotionUpdates()
         pedometer.stopUpdates()
-        occlusionTimer?.invalidate()
-        occlusionTimer = nil
+    }
+
+    // MARK: - Torch Control
+
+    func setTorchLevel(_ level: Double) {
+        let clamped = min(max(level, 0.0), 1.0)
+        _setTorchDirect(clamped)
+    }
+
+    /// Set torch directly on device (works even when session is interrupted).
+    /// In background, iOS may still kill the torch — this is a best-effort approach.
+    private func _setTorchDirect(_ level: Double) {
+        guard let device = captureDevice ?? AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                                     for: .video, position: .back),
+              device.hasTorch, device.isTorchAvailable else { return }
+        do {
+            try device.lockForConfiguration()
+            if level < 0.01 {
+                device.torchMode = .off
+            } else {
+                try device.setTorchModeOn(level: Float(level))
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("Torch error: \(error)")
+        }
+    }
+
+    private func turnOffTorch() {
+        guard let device = captureDevice, device.hasTorch else { return }
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = .off
+            device.unlockForConfiguration()
+        } catch {
+            print("Torch off error: \(error)")
+        }
     }
 
     // MARK: - Ambient Light (camera frame sampling)
 
     private func startAmbientLightSampling() {
-        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
+        let authStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        print("[GloWalk][Camera] startAmbientLightSampling authStatus=\(authStatus.rawValue) (0=notDetermined 2=denied 3=authorized)")
+        guard authStatus == .authorized else {
             isManualMode = true
+            print("[GloWalk][Camera] NOT authorized, entering manual mode")
             return
         }
 
@@ -64,21 +104,25 @@ final class SensorManager: ObservableObject {
             return
         }
 
+        captureDevice = device
         session.addInput(input)
         let output = AVCaptureVideoDataOutput()
-        output.setSampleBufferDelegate(
-            AmbientLightDelegate { [weak self] level in
-                Task { @MainActor in
-                    self?.ambientLightLevel = level
-                    self?.lastAmbientUpdate = Date()
-                }
-            },
-            queue: DispatchQueue(label: "glowalk.ambient", qos: .utility)
-        )
+        let delegate = AmbientLightDelegate { [weak self] level in
+            Task { @MainActor in
+                self?.ambientLightLevel = level
+            }
+        }
+        captureDelegate = delegate
+        output.setSampleBufferDelegate(delegate,
+            queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
         captureSession = session
-        // startRunning is non-blocking — safe on main actor
-        session.startRunning()
+        print("[GloWalk][Camera] Session configured, starting on background thread...")
+        let sessionToStart = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            sessionToStart.startRunning()
+            print("[GloWalk][Camera] Session startRunning() completed")
+        }
     }
 
     // MARK: - Motion
@@ -108,31 +152,32 @@ final class SensorManager: ObservableObject {
         }
     }
 
-    // MARK: - Occlusion Detection
+    // MARK: - Proximity Detection (occlusion)
 
-    private func startOcclusionDetection() {
-        occlusionTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in self?.checkOcclusion() }
+    private func startProximityMonitoring() {
+        UIDevice.current.isProximityMonitoringEnabled = true
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(proximityChanged),
+            name: UIDevice.proximityStateDidChangeNotification,
+            object: nil
+        )
+        isOccluded = UIDevice.current.proximityState
+        print("[GloWalk][Proximity] initial state: \(isOccluded)")
+    }
+
+    @objc private func proximityChanged() {
+        let state = UIDevice.current.proximityState
+        print("[GloWalk][Proximity] changed to \(state)")
+        Task { @MainActor in
+            self.isOccluded = state
         }
     }
 
-    private func checkOcclusion() {
-        // If ambient light is extremely high (flash reflecting off a near surface)
-        // and hasn't changed significantly in ~10 seconds, likely occluded
-        let level = ambientLightLevel
-        let timeSinceUpdate = Date().timeIntervalSince(lastAmbientUpdate)
-
-        if isManualMode {
-            isOccluded = false
-        } else if level > 0.85 && timeSinceUpdate < 3.0 {
-            isOccluded = true
-        } else if level < 0.05 && timeSinceUpdate < 3.0 {
-            // Extremely dark — probably pointing at empty sky or space
-            // This is a valid scenario, not occlusion
-            isOccluded = false
-        } else {
-            isOccluded = false
-        }
+    private func stopProximityMonitoring() {
+        UIDevice.current.isProximityMonitoringEnabled = false
+        NotificationCenter.default.removeObserver(self,
+            name: UIDevice.proximityStateDidChangeNotification, object: nil)
     }
 }
 
@@ -140,6 +185,7 @@ final class SensorManager: ObservableObject {
 
 private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let onSample: (Double) -> Void
+    private var callCount: Int = 0
     private var lastEmitTime: Date = .distantPast
 
     init(onSample: @escaping (Double) -> Void) {
@@ -149,6 +195,8 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
+        callCount += 1
+        if callCount == 1 { print("[GloWalk][Camera] First frame received! count=\(callCount)") }
         // Throttle to ~2 Hz to avoid flooding the main thread
         let now = Date()
         guard now.timeIntervalSince(lastEmitTime) > 0.5 else { return }
@@ -179,7 +227,6 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         }
 
         guard count > 0 else { return }
-        let avg = total / Double(count)
-        onSample(avg)
+        onSample(total / Double(count))
     }
 }

@@ -5,15 +5,20 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = "0.0km"
-    @Published var estimatedMinutesRemaining: Int = 0
+    @Published var elapsedDistance: String = "0m"
+    @Published var elapsedMinutes: Int = 0
+    @Published var estimatedMinutesRemaining: Int = 90
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
+    @Published var isTorchOccluded: Bool = false
     @Published var moonCard: MoonCardData?
     @Published var weatherCard: WeatherCardData?
     @Published var showArrivalSummary: Bool = false
     @Published var generatedPosterImage: UIImage?
     @Published private(set) var currentWalkSession: WalkSession?
+
+    private var activeWalkSeconds: Double = 0
+    private var lastDistance: Double = 0
 
     let lightEngine = LightEngine()
     let sensorManager = SensorManager()
@@ -44,8 +49,24 @@ final class HUDViewModel: ObservableObject {
 
         locationManager.startRecording(session: currentWalkSession!)
 
-        if let loc = locationManager.currentLocation {
-            Task { await weatherService.fetch(at: loc) }
+        // Weather fetch — retry up to 5 times with 5s intervals
+        Task { [weak self] in
+            for i in 0..<5 {
+                guard let self = self, self.isActive else { return }
+                try? await Task.sleep(nanoseconds: 5_000_000_000)
+                if let loc = self.locationManager.currentLocation {
+                    print("[GloWalk] Weather attempt \(i+1): location available, fetching...")
+                    await self.weatherService.fetch(at: loc)
+                    if let cond = self.weatherService.currentCondition {
+                        print("[GloWalk] Weather fetched: \(cond)")
+                        break
+                    } else {
+                        print("[GloWalk] Weather fetch returned nil")
+                    }
+                } else {
+                    print("[GloWalk] Weather attempt \(i+1): location still nil")
+                }
+            }
         }
 
         startSensorLoop()
@@ -68,9 +89,27 @@ final class HUDViewModel: ObservableObject {
                     weather: self.weatherService.currentCondition,
                     darkAdaptationMinutes: Date().timeIntervalSince(self.sessionStartTime ?? Date()) / 60.0
                 )
-                self.lightEngine.update(sensors: snap)
-                self.brightness = self.lightEngine.targetBrightness
+                // Occlusion detection: turn off torch and flag UI
+                if self.sensorManager.isOccluded && !self.isTorchOccluded {
+                    self.isTorchOccluded = true
+                    self.sensorManager.setTorchLevel(0)
+                } else if !self.sensorManager.isOccluded && self.isTorchOccluded {
+                    self.isTorchOccluded = false
+                }
+                if !self.isTorchOccluded {
+                    self.lightEngine.update(sensors: snap)
+                    self.brightness = self.lightEngine.targetBrightness
+                    self.sensorManager.setTorchLevel(self.brightness)
+                }
                 self.stepCount = self.sensorManager.stepCount
+                let dist = self.locationManager.totalDistance
+
+                // Only count walking time when steps or distance are increasing
+                if self.sensorManager.isWalking || dist > self.lastDistance {
+                    self.activeWalkSeconds += 1
+                }
+                self.lastDistance = dist
+                self.elapsedMinutes = Int(self.activeWalkSeconds / 60)
 
                 let d = self.lightEngine.factorDetails
                 self.moonCard = MoonCardData(
@@ -85,7 +124,11 @@ final class HUDViewModel: ObservableObject {
                 }
 
                 self.updateBatteryEstimate()
-                self.elapsedDistance = String(format: "%.1fkm", self.locationManager.totalDistance / 1000)
+                if dist < 1000 {
+                    self.elapsedDistance = String(format: "%.0fm", dist)
+                } else {
+                    self.elapsedDistance = String(format: "%.1fkm", dist / 1000)
+                }
             }
         }
     }
@@ -136,6 +179,7 @@ final class HUDViewModel: ObservableObject {
     func willResignActive() {
         enteredBackground = true
         lightEngine.enterSafetyFallback()
+        sensorManager.setTorchLevel(1.0)
     }
     func didBecomeActive() {
         enteredBackground = false
@@ -146,11 +190,19 @@ final class HUDViewModel: ObservableObject {
 
     private func updateBatteryEstimate() {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        batteryPercentage = Int(UIDevice.current.batteryLevel * 100)
-        let base = 240.0
-        let bf = 1.0 / max(brightness, 0.1)
-        let bat = Double(batteryPercentage) / 100.0
-        estimatedMinutesRemaining = Int(base * bf * bat)
+        let level = UIDevice.current.batteryLevel
+        if level > 0 {
+            batteryPercentage = Int(level * 100)
+            // Base: ~90 min at 100% brightness on typical iPhone (conservative estimate)
+            // Scale inversely with brightness: 50% bright → 2x runtime
+            let base = 90.0
+            let bf = 1.0 / max(brightness, 0.1)
+            let bat = Double(batteryPercentage) / 100.0
+            estimatedMinutesRemaining = Int(base * bf * bat)
+        } else {
+            batteryPercentage = 100
+            estimatedMinutesRemaining = 90
+        }
     }
 }
 

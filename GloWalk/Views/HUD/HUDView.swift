@@ -38,6 +38,24 @@ struct HUDView: View {
                 }
                 .padding(.bottom, 4)
 
+                // Occlusion warning
+                if viewModel.isTorchOccluded {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                        Text("闪光灯被遮挡，已自动关闭")
+                            .font(.system(size: 11))
+                    }
+                    .foregroundColor(.gloAmber)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gloAmber.opacity(0.1))
+                    )
+                    .padding(.bottom, 4)
+                }
+
                 // Battery bar
                 Rectangle()
                     .fill(Color.gloAmber.opacity(0.3))
@@ -46,10 +64,10 @@ struct HUDView: View {
 
                 // Bottom bar
                 HStack {
-                    Text(String(format: "%.1fkm", viewModel.locationManager.totalDistance / 1000))
+                    Text("🦶\(viewModel.stepCount)步 \(viewModel.elapsedDistance) ⏱\(viewModel.elapsedMinutes)min")
                         .font(.system(size: 12, design: .monospaced))
                     Spacer()
-                    Text("\(viewModel.estimatedMinutesRemaining) min")
+                    Text("🔋\(viewModel.estimatedMinutesRemaining)min")
                         .font(.system(size: 12, design: .monospaced))
                 }
                 .foregroundColor(.gloAmber.opacity(0.6))

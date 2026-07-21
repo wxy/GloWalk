@@ -13,7 +13,7 @@ struct MoonCardView: View {
                     .font(.system(size: 12))
                 Text("\(data.effectPercent)%")
                     .font(.system(size: 10))
-                    .foregroundColor(.gloAmberLight)
+                    .foregroundColor(.gloAmber)
             }
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(
@@ -41,7 +41,7 @@ struct WeatherCardView: View {
                     .font(.system(size: 12))
                 Text(data.effectPercent > 0 ? "+\(data.effectPercent)%" : "\(data.effectPercent)%")
                     .font(.system(size: 10))
-                    .foregroundColor(.gloAmberLight)
+                    .foregroundColor(.gloAmber)
             }
             .padding(.horizontal, 8).padding(.vertical, 4)
             .background(

@@ -77,7 +77,7 @@ final class HUDViewModel: ObservableObject {
                     phaseName: d.moonPhaseName, effectPercent: d.moonEffectPercent,
                     isActive: self.lightEngine.moonFactorActive
                 )
-                if let w = self.weatherService.currentCondition {
+                if self.weatherService.currentCondition != nil {
                     self.weatherCard = WeatherCardData(
                         condition: d.weatherCondition, effectPercent: d.weatherEffectPercent,
                         isActive: self.lightEngine.weatherFactorActive

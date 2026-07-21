@@ -77,8 +77,10 @@ final class SensorManager: ObservableObject {
         )
         session.addOutput(output)
         captureSession = session
-        // startRunning is non-blocking — safe on main actor
-        session.startRunning()
+        let sessionToStart = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            sessionToStart.startRunning()
+        }
     }
 
     // MARK: - Motion

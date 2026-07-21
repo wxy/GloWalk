@@ -1,7 +1,7 @@
 import CoreLocation
 
 @MainActor
-final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published var currentLocation: CLLocation?
     @Published var totalDistance: Double = 0
 

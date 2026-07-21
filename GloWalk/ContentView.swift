@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
@@ -67,7 +68,7 @@ struct CameraPermissionView: View {
                             await MainActor.run { onDecision(true) }
                         }
                     }
-                    .foregroundColor(.gloAmber).fontWeight(.bold)
+                    .foregroundColor(.gloAmber).font(.system(size: 17, weight: .bold))
                 }
             }.padding(32)
         }

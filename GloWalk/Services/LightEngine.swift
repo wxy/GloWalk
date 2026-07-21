@@ -51,7 +51,7 @@ final class LightEngine: ObservableObject {
         }()
 
         let weighted = ambientSignal * wAmbient
-                     + postureScore(pitch: sensors.devicePitch, roll: sensors.deviceRoll) * wPosture
+                     + postureSignal * wPosture
                      + screenSignal * wScreen
                      + (1.0 - adaptSignal) * wDark
                      + (1.0 - moonSignal) * wMoon

@@ -25,6 +25,7 @@
 		C096E67E3010D0CD004D0062 /* Exceptions for "GloWalk" folder in "GloWalk" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				Resources/Taglines.json,
 			);
 			target = 86D472BF710F30D8FD703936 /* GloWalk */;
@@ -350,6 +351,7 @@
 				CODE_SIGN_ENTITLEMENTS = GloWalk/GloWalk.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GloWalk/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
@@ -439,6 +441,7 @@
 				CODE_SIGN_ENTITLEMENTS = GloWalk/GloWalk.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = GloWalk/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";

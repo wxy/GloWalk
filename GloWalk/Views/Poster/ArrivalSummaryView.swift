@@ -16,7 +16,7 @@ struct ArrivalSummaryView: View {
                 VStack(spacing: 16) {
                     ProgressView().tint(.gloGold).scaleEffect(1.5)
                     Text("正在绘制你的夜路足迹...")
-                        .font(.system(size: 14)).foregroundColor(.gloGold.opacity(0.6))
+                        .font(.gloBody(14)).foregroundColor(.gloGold.opacity(0.6))
                 }
             } else if let poster = posterImage {
                 ZStack {
@@ -40,7 +40,7 @@ struct ArrivalSummaryView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 44)
+                        .padding(.bottom, 80)
                     }
                 }
                 .sheet(isPresented: $showShareSheet) { ShareSheet(items: [poster]) }
@@ -58,8 +58,8 @@ struct ArrivalSummaryView: View {
                             border: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Image(systemName: icon).font(.system(size: 15))
-                Text(label).font(.system(size: 10))
+                Image(systemName: icon).font(.gloBody(15))
+                Text(label).font(.gloBody(10))
             }
             .foregroundColor(fg)
             .frame(maxWidth: .infinity).padding(.vertical, 10)

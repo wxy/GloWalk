@@ -18,11 +18,23 @@ struct HistoryListView: View {
                 if sessions.isEmpty {
                     VStack(spacing: 16) {
                         Image(systemName: "moon.stars.fill")
-                            .font(.system(size: 48)).foregroundColor(.gloGold)
+                            .font(.gloBody(48)).foregroundColor(.gloGold)
                         Text("还没有夜路记录")
-                            .foregroundColor(.white)
-                        Text("\u{201C}踽踽独行，脚下有光\u{201D}")
-                            .font(.system(size: 14)).foregroundColor(.white.opacity(0.4))
+                            .font(.gloHeadline(18)).foregroundColor(.white)
+                        VStack(spacing: 8) {
+                            Text("打开 GloWalk 开始一次夜间步行")
+                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
+                            Text("走完后轻点中央圆环熄灭灯笼")
+                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
+                            Text("即可生成你的第一张夜路海报")
+                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
+                        }
+                        Button("开始步行") { showSplash = true }
+                            .font(.gloHeadline(16))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 32).padding(.vertical, 12)
+                            .background(Color.gloGold).cornerRadius(20)
+                            .padding(.top, 8)
                     }
                 } else {
                     List {
@@ -31,24 +43,24 @@ struct HistoryListView: View {
                                 HStack {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(session.wrappedStartTime, style: .date)
-                                        .font(.system(size: 14, weight: .medium)).foregroundColor(.white)
+                                        .font(.gloHeadline(14)).foregroundColor(.white)
                                     + Text("  ")
                                     + Text(session.wrappedStartTime, style: .time)
-                                        .font(.system(size: 14)).foregroundColor(.white.opacity(0.5))
+                                        .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
 
                                     HStack(spacing: 12) {
-                                        Text("🦶\(session.totalSteps)步").font(.system(size: 12))
-                                        Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.system(size: 12))
+                                        Text("🦶\(session.totalSteps)步").font(.gloBody(12))
+                                        Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
                                         if let end = session.endTime {
                                             let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
-                                            Text("⏱\(min)min").font(.system(size: 12))
+                                            Text("⏱\(min)min").font(.gloBody(12))
                                         }
                                     }
                                     .foregroundColor(.white.opacity(0.5))
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12)).foregroundColor(.white.opacity(0.3))
+                                    .font(.gloBody(12)).foregroundColor(.white.opacity(0.3))
                             }
                             }
                             .padding(.vertical, 4)
@@ -93,8 +105,8 @@ struct HistoryPosterView: View {
                         HStack(spacing: 10) {
                             Button(action: { showShareSheet = true }) {
                                 VStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.up").font(.system(size: 15))
-                                    Text("分享").font(.system(size: 10))
+                                    Image(systemName: "square.and.arrow.up").font(.gloBody(15))
+                                    Text("分享").font(.gloBody(10))
                                 }
                                 .foregroundColor(.black).frame(maxWidth: .infinity).padding(.vertical, 10)
                                 .background(Color.gloGold).cornerRadius(10)
@@ -104,16 +116,16 @@ struct HistoryPosterView: View {
                                 UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
                             }) {
                                 VStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.down").font(.system(size: 15))
-                                    Text("保存").font(.system(size: 10))
+                                    Image(systemName: "square.and.arrow.down").font(.gloBody(15))
+                                    Text("保存").font(.gloBody(10))
                                 }
                                 .foregroundColor(.gloGold).frame(maxWidth: .infinity).padding(.vertical, 10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gloGold, lineWidth: 1))
                             }
                             Button(action: { dismiss() }) {
                                 VStack(spacing: 4) {
-                                    Image(systemName: "checkmark").font(.system(size: 15))
-                                    Text("完成").font(.system(size: 10))
+                                    Image(systemName: "checkmark").font(.gloBody(15))
+                                    Text("完成").font(.gloBody(10))
                                 }
                                 .foregroundColor(.white.opacity(0.6)).frame(maxWidth: .infinity).padding(.vertical, 10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.3), lineWidth: 1))

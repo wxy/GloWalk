@@ -63,11 +63,11 @@ struct CameraPermissionView: View {
             Color.gloBlack.ignoresSafeArea()
             VStack(spacing: 24) {
                 Image(systemName: "camera.fill")
-                    .font(.system(size: 48)).foregroundColor(.gloAmber)
+                    .font(.gloBody(48)).foregroundColor(.gloAmber)
                 Text("环境光感知")
-                    .font(.title2).foregroundColor(.white)
+                    .font(.gloHeadline(22)).foregroundColor(.white)
                 Text("GloWalk 用后摄像头感知环境明暗变化\n\n不拍照、不录像、不存储任何画面\n每 5 秒采样一次即丢弃\n\n拒绝后需手动调节亮度")
-                    .font(.system(size: 14)).foregroundColor(.white.opacity(0.7))
+                    .font(.gloBody(14)).foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
                 HStack(spacing: 24) {
                     Button("拒绝") { onDecision(false) }.foregroundColor(.white.opacity(0.5))
@@ -77,7 +77,7 @@ struct CameraPermissionView: View {
                             await MainActor.run { onDecision(true) }
                         }
                     }
-                    .foregroundColor(.gloAmber).font(.system(size: 17, weight: .bold))
+                    .foregroundColor(.gloAmber).font(.gloHeadline(17))
                 }
             }.padding(32)
         }

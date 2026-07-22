@@ -12,17 +12,16 @@ struct SplashView: View {
             Color.gloBlackCard.ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Image(systemName: "flashlight.on.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.gloAmber)
+                Text("🏮")
+                    .font(.system(size: 44))
 
                 Text(tagline.phrase)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.gloHeadline(22))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
                 Text(tagline.explanation)
-                    .font(.system(size: 13))
+                    .font(.gloBody(13))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)

@@ -32,7 +32,7 @@ struct GlowCircleView: View {
 
             // Brightness %
             Text("\(Int(brightness * 100))%")
-                .font(.system(size: 28, weight: .light, design: .rounded))
+                .font(.gloDisplay(22))
                 .foregroundColor(.gloGold)
         }
         .animation(.easeInOut(duration: 0.5), value: brightness)

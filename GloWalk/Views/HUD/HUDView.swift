@@ -24,6 +24,9 @@ struct HUDView: View {
                             .onChanged { v in
                                 let delta = -v.translation.height / 200.0
                                 let new = min(max(viewModel.brightness + delta, 0.1), 1.0)
+                                if abs(new - viewModel.brightness) > 0.05 {
+                                    Haptic.selection()
+                                }
                                 viewModel.setManualBrightness(new)
                             }
                     )
@@ -41,19 +44,28 @@ struct HUDView: View {
                         }
                     }
                     .overlay(alignment: .bottom) {
-                        Text("轻点熄灭")
-                            .font(.system(size: 11))
-                            .foregroundColor(.gloGold.opacity(0.5))
+                        PulsingHint(text: "轻点熄灭")
                             .offset(y: 28)
                     }
+
+                // Constellation path
+                if viewModel.pathPoints.count >= 2 {
+                    ConstellationPathView(
+                        points: viewModel.pathPoints,
+                        heading: viewModel.currentHeading,
+                        isActive: viewModel.isActive
+                    )
+                    .frame(height: 100)
+                    .padding(.horizontal, 32)
+                }
 
                 Spacer()
 
                 // Occlusion warning
                 if viewModel.isTorchOccluded {
                     HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11))
-                        Text("闪光灯被遮挡，已自动关闭").font(.system(size: 11))
+                        Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
+                        Text("闪光灯被遮挡，已自动关闭").font(.gloBody(11))
                     }
                     .foregroundColor(.gloGold)
                     .padding(.vertical, 4).padding(.horizontal, 12)
@@ -83,6 +95,7 @@ struct HUDView: View {
         }
         .fullScreenCover(isPresented: $viewModel.showArrivalSummary) {
             ArrivalSummaryView(viewModel: viewModel)
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
         }
     }
 
@@ -98,6 +111,13 @@ struct HUDView: View {
                 if let weather = viewModel.weatherCard {
                     WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
                 }
+                // GPS status
+                Circle()
+                    .fill(viewModel.gpsActive ? Color.green.opacity(0.6) : Color.red.opacity(0.3))
+                    .frame(width: 5, height: 5)
+                Text("GPS")
+                    .font(.gloBody(10))
+                    .foregroundColor(.white.opacity(0.35))
                 Spacer()
             }
 
@@ -119,7 +139,7 @@ struct HUDView: View {
                     Text("🔋\(viewModel.estimatedMinutesRemaining)min")
                 }
             }
-            .font(.system(size: 12, design: .monospaced))
+            .font(.gloMono(11))
             .foregroundColor(.gloGold.opacity(0.55))
         }
     }
@@ -138,29 +158,29 @@ struct HUDView: View {
                 .onTapGesture { dismissConfirm() }
 
             VStack(spacing: 24) {
-                Image(systemName: "flashlight.off.fill")
-                    .font(.system(size: 32))
-                    .foregroundColor(.gloGold)
+                Text("🏮")
+                    .font(.system(size: 36))
 
                 Text("确认熄灯")
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.gloHeadline(22))
                     .foregroundColor(.gloGold)
 
                 Text("结束本次步行\n自动生成夜路足迹海报")
-                    .font(.system(size: 14))
+                    .font(.gloBody(14))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
 
                 Text("\(countdown) 秒后自动取消")
-                    .font(.system(size: 12))
+                    .font(.gloBody(12))
                     .foregroundColor(.white.opacity(0.25))
 
                 Button(action: {
+                    Haptic.heavy()
                     dismissConfirm()
                     viewModel.endWalkAndNotify()
                 }) {
                     Text("确认熄灯")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.gloHeadline(16))
                         .foregroundColor(.black)
                         .frame(width: 180, height: 48)
                         .background(Color.gloGold)

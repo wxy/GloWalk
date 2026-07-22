@@ -23,6 +23,9 @@ final class PosterGenerator {
             // Semi-transparent tint overlay
             drawMoonOverlay(size: size, ctx: ctx)
 
+            // Constellation path overlay
+            drawConstellationPath(session: session, size: size, ctx: ctx)
+
             // Stats card
             drawStats(session: session, size: size, gold: gold, ctx: ctx)
 
@@ -94,6 +97,76 @@ final class PosterGenerator {
         // No overlay needed — moon blends naturally into night sky
     }
 
+    // MARK: - Constellation Path
+
+    private static func drawConstellationPath(session: WalkSession, size: CGSize,
+                                               ctx: UIGraphicsRendererContext) {
+        let points = session.pathPointsArray
+        guard points.count >= 2 else { return }
+
+        // Map GPS coords to poster coordinates, scaled to fit the middle band
+        let lats = points.map(\.latitude); let lons = points.map(\.longitude)
+        guard let minLat = lats.min(), let maxLat = lats.max(),
+              let minLon = lons.min(), let maxLon = lons.max() else { return }
+        let latRange = max(maxLat - minLat, 0.001)
+        let lonRange = max(maxLon - minLon, 0.001)
+
+        // Draw area: middle 30% of the poster, centered
+        let pathArea = CGRect(x: 100, y: size.height * 0.22,
+                               width: size.width - 200, height: size.height * 0.22)
+
+        func project(_ p: PathPoint) -> CGPoint {
+            let x = pathArea.origin.x + CGFloat((p.longitude - minLon) / lonRange) * pathArea.width
+            let y = pathArea.origin.y + CGFloat((1.0 - (p.latitude - minLat) / latRange)) * pathArea.height
+            return CGPoint(x: x, y: y)
+        }
+
+        // Draw segments colored by light level
+        for i in 1..<points.count {
+            let prev = project(points[i-1])
+            let curr = project(points[i])
+            let avgLight = (points[i-1].ambientLight + points[i].ambientLight) / 2.0
+
+            // Darker ambient light → brighter, thicker line on poster
+            let lineAlpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5) // 0.3(bright) – 0.8(dark)
+            let lineWidth  = CGFloat(2.0 + (1.0 - avgLight) * 4.0) // 2(bright) – 6(dark)
+
+            let path = UIBezierPath()
+            path.move(to: prev); path.addLine(to: curr)
+            path.lineWidth = lineWidth
+            path.lineCapStyle = .round
+
+            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: lineAlpha).setStroke()
+            path.stroke()
+        }
+
+        // Start marker
+        if let first = points.first {
+            let p = project(first)
+            let marker = UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12))
+            UIColor.white.setFill(); marker.fill()
+        }
+        // End marker
+        if let last = points.last {
+            let p = project(last)
+            let star = UIBezierPath()
+            let r: CGFloat = 8
+            for i in 0..<5 {
+                let angle = CGFloat(i) * .pi * 2 / 5 - .pi / 2
+                let x = p.x + cos(angle) * r
+                let y = p.y + sin(angle) * r
+                if i == 0 { star.move(to: CGPoint(x: x, y: y)) }
+                else { star.addLine(to: CGPoint(x: x, y: y)) }
+                let innerAngle = angle + .pi / 5
+                star.addLine(to: CGPoint(x: p.x + cos(innerAngle) * r * 0.4,
+                                          y: p.y + sin(innerAngle) * r * 0.4))
+            }
+            star.close()
+            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1).setFill()
+            star.fill()
+        }
+    }
+
     // MARK: - Header
 
     private static func drawHeader(session: WalkSession, size: CGSize,
@@ -103,23 +176,23 @@ final class PosterGenerator {
         let moonCN = moonPhaseDisplayName(session.wrappedMoonPhase)
 
         drawCenteredText("\(dateStr)  \(moonCN)",
-            font: UIFont.systemFont(ofSize: 30, weight: .medium),
-            color: gold, y: 60, size: size, ctx: ctx)
+            font: wenKaiMedium(56),
+            color: gold, y: 80, size: size, ctx: ctx)
     }
 
     // MARK: - Stats Card
 
     private static func drawStats(session: WalkSession, size: CGSize,
                                    gold: UIColor, ctx: UIGraphicsRendererContext) {
-        let cardY = size.height * 0.5
-        let cardH: CGFloat = 360
+        let cardY = size.height * 0.48
+        let cardH: CGFloat = 600
         let cardRect = CGRect(x: 80, y: cardY, width: size.width - 160, height: cardH)
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
 
         drawCenteredText("\(session.totalSteps) 步",
-            font: UIFont.systemFont(ofSize: 80, weight: .light),
-            color: gold, y: cardY + 40, size: size, ctx: ctx)
+            font: wenKaiLight(160),
+            color: gold, y: cardY + 60, size: size, ctx: ctx)
 
         let dist = session.totalDistance
         let distStr = dist < 1000 ? String(format: "%.0f 米", dist) : String(format: "%.1f 公里", dist/1000)
@@ -127,18 +200,18 @@ final class PosterGenerator {
         if let end = session.endTime {
             detail += "  ·  \(Int(end.timeIntervalSince(session.wrappedStartTime) / 60)) 分钟"
         }
-        drawCenteredText(detail, font: UIFont.systemFont(ofSize: 28),
+        drawCenteredText(detail, font: wenKaiRegular(52),
             color: UIColor.white.withAlphaComponent(0.55),
-            y: cardY + 140, size: size, ctx: ctx)
+            y: cardY + 250, size: size, ctx: ctx)
 
         let t = Tagline.random()
         drawCenteredText("\u{201C}\(t.phrase)\u{201D}",
-            font: UIFont.systemFont(ofSize: 26, weight: .medium),
-            color: gold, y: cardY + 200, size: size, ctx: ctx)
+            font: wenKaiMedium(48),
+            color: gold, y: cardY + 340, size: size, ctx: ctx)
         drawCenteredText(t.explanation,
-            font: UIFont.systemFont(ofSize: 17),
-            color: UIColor.white.withAlphaComponent(0.35),
-            y: cardY + 245, size: size, ctx: ctx)
+            font: wenKaiRegular(38),
+            color: UIColor.white.withAlphaComponent(0.4),
+            y: cardY + 420, size: size, ctx: ctx)
     }
 
     // MARK: - Footer
@@ -146,9 +219,21 @@ final class PosterGenerator {
     private static func drawFooter(session: WalkSession, size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
         drawCenteredText("踽踽独行，脚下有光 — GloWalk",
-            font: UIFont.systemFont(ofSize: 18),
-            color: UIColor.white.withAlphaComponent(0.18),
-            y: size.height - 140, size: size, ctx: ctx)
+            font: wenKaiRegular(36),
+            color: UIColor.white.withAlphaComponent(0.2),
+            y: size.height - 180, size: size, ctx: ctx)
+    }
+
+    // MARK: - WenKai Font Helpers
+
+    private static func wenKaiLight(_ size: CGFloat) -> UIFont {
+        UIFont(name: "LXGW WenKai Light", size: size) ?? UIFont.systemFont(ofSize: size, weight: .light)
+    }
+    private static func wenKaiRegular(_ size: CGFloat) -> UIFont {
+        UIFont(name: "LXGW WenKai", size: size) ?? UIFont.systemFont(ofSize: size)
+    }
+    private static func wenKaiMedium(_ size: CGFloat) -> UIFont {
+        UIFont(name: "LXGW WenKai Medium", size: size) ?? UIFont.systemFont(ofSize: size, weight: .medium)
     }
 
     // MARK: - Helpers
@@ -157,7 +242,7 @@ final class PosterGenerator {
                                           y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext) {
         let p = NSMutableParagraphStyle(); p.alignment = .center
         let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
-        (text as NSString).draw(in: CGRect(x: 40, y: y, width: size.width - 80, height: 180),
+        (text as NSString).draw(in: CGRect(x: 40, y: y, width: size.width - 80, height: 300),
                                 withAttributes: attrs)
     }
 

@@ -36,7 +36,7 @@ struct MoonPhaseHUDView: View {
 
             // Brightness %
             Text("\(Int(brightness * 100))%")
-                .font(.system(size: 28, weight: .light, design: .rounded))
+                .font(.gloDisplay(28))
                 .foregroundColor(.gloGold)
                 .shadow(color: .black.opacity(0.8), radius: 4)
         }

@@ -12,6 +12,9 @@ final class HUDViewModel: ObservableObject {
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
+    @Published var pathPoints: [PathPoint] = []
+    @Published var gpsActive: Bool = false
+    @Published var currentHeading: Double = 0
     @Published var moonCard: MoonCardData?
     @Published var weatherCard: WeatherCardData?
     @Published var showArrivalSummary: Bool = false
@@ -107,6 +110,11 @@ final class HUDViewModel: ObservableObject {
                 }
                 self.lastStepCount = self.stepCount
                 self.lastDistance = dist
+                self.currentHeading = self.locationManager.currentHeading?.trueHeading ?? 0
+                self.gpsActive = self.locationManager.isRecording &&
+                    (self.locationManager.authorizationStatus == .authorizedWhenInUse ||
+                     self.locationManager.authorizationStatus == .authorizedAlways)
+                self.pathPoints = self.currentWalkSession?.pathPointsArray ?? []
                 self.elapsedMinutes = Int(self.activeWalkSeconds / 60)
 
                 let d = self.lightEngine.factorDetails
@@ -117,7 +125,8 @@ final class HUDViewModel: ObservableObject {
                 if self.weatherService.currentCondition != nil {
                     self.weatherCard = WeatherCardData(
                         condition: d.weatherCondition, effectPercent: d.weatherEffectPercent,
-                        isActive: self.lightEngine.weatherFactorActive
+                        isActive: self.lightEngine.weatherFactorActive,
+                        provider: self.weatherService.provider
                     )
                 }
 
@@ -222,4 +231,5 @@ struct WeatherCardData {
     let condition: String
     let effectPercent: Int
     let isActive: Bool
+    let provider: WeatherService.Provider
 }

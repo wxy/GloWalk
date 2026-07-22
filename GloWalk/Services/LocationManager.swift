@@ -3,7 +3,10 @@ import CoreLocation
 @MainActor
 final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published var currentLocation: CLLocation?
+    @Published var currentHeading: CLHeading?
     @Published var totalDistance: Double = 0
+    @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
+    @Published var isRecording: Bool = false
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
@@ -20,12 +23,27 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         currentSession = session
         lastLocation = nil
         totalDistance = 0
+        authorizationStatus = manager.authorizationStatus
+        isRecording = true
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
+        if CLLocationManager.headingAvailable() {
+            manager.startUpdatingHeading()
+        }
     }
 
     func stopRecording() {
         manager.stopUpdatingLocation()
+        manager.stopUpdatingHeading()
+        isRecording = false
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        currentHeading = newHeading
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        authorizationStatus = manager.authorizationStatus
     }
 
     func locationManager(_ manager: CLLocationManager,

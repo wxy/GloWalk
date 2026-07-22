@@ -28,11 +28,11 @@ struct HistoryListView: View {
                                 .foregroundColor(.gloGold.opacity(0.4))
                         }
                         Spacer()
-                        Text("步行记录")
+                        Text(L10n.historyTitle)
                             .font(.gloHeadline(17))
                             .foregroundColor(.gloGold)
                         Spacer()
-                        Button("新步行") { goToSplash() }
+                        Button(L10n.historyNewWalk) { goToSplash() }
                             .font(.gloBody(14))
                             .foregroundColor(.gloGold)
                     }
@@ -89,12 +89,12 @@ struct HistoryListView: View {
         VStack(spacing: 16) {
             Image(systemName: "moon.stars.fill")
                 .font(.system(size: 48)).foregroundColor(.gloGold)
-            Text("还没有夜路记录")
+            Text(L10n.historyEmpty)
                 .font(.gloHeadline(18)).foregroundColor(.white)
             VStack(spacing: 8) {
-                Text("打开 GloWalk 开始一次夜间步行")
-                Text("走完后轻点中央圆环熄灭灯笼")
-                Text("即可生成你的第一张夜路海报")
+                Text(L10n.historyEmptyHint1)
+                Text(L10n.historyEmptyHint2)
+                Text(L10n.historyEmptyHint3)
             }
             .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
 
@@ -103,7 +103,7 @@ struct HistoryListView: View {
                     Label("设置", systemImage: "gearshape")
                         .font(.gloBody(14)).foregroundColor(.gloGold)
                 }
-                Button("开始步行") {
+                Button(L10n.historyStartWalk) {
                     goToSplash()
                 }
                 .font(.gloHeadline(16)).foregroundColor(.black)
@@ -141,16 +141,16 @@ struct HistoryPosterView: View {
                     VStack {
                         Spacer()
                         HStack(spacing: 10) {
-                            HUDButton(icon: "square.and.arrow.up", label: "分享",
+                            HUDButton(icon: "square.and.arrow.up", label: L10n.posterShare,
                                       bg: Color.gloGold, fg: .black) { showShareSheet = true }
                             HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
-                                      label: savedToPhotos ? "已保存" : "保存",
+                                      label: savedToPhotos ? L10n.posterSaved : L10n.posterSave,
                                       bg: .clear, fg: .gloGold, border: true) {
                                 guard let img = posterImage else { return }
                                 UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
                                 savedToPhotos = true; Haptic.medium()
                             }
-                            HUDButton(icon: "checkmark", label: "完成",
+                            HUDButton(icon: "checkmark", label: L10n.posterDone,
                                       bg: .clear, fg: .white.opacity(0.6), border: true) { dismiss() }
                         }
                         .padding(.horizontal, 20).padding(.bottom, 24)

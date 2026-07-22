@@ -33,12 +33,12 @@ struct ArrivalSummaryView: View {
                     VStack {
                         Spacer()
                         HStack(spacing: 10) {
-                            HUDButton(icon: "square.and.arrow.up", label: "分享",
+                            HUDButton(icon: "square.and.arrow.up", label: L10n.posterShare,
                                       bg: Color.gloGold, fg: .black) { showShareSheet = true }
                             HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
-                                      label: savedToPhotos ? "已保存" : "保存",
+                                      label: savedToPhotos ? L10n.posterSaved : L10n.posterSave,
                                       bg: .clear, fg: .gloGold, border: true, action: saveToPhotos)
-                            HUDButton(icon: "checkmark", label: "完成",
+                            HUDButton(icon: "checkmark", label: L10n.posterDone,
                                       bg: .clear, fg: .white.opacity(0.6), border: true) {
                                 viewModel.showArrivalSummary = false
                                 onComplete()
@@ -51,8 +51,8 @@ struct ArrivalSummaryView: View {
                 .sheet(isPresented: $showShareSheet) { ShareSheet(items: [poster]) }
             } else {
                 VStack(spacing: 16) {
-                    Text("海报生成失败").foregroundColor(.white)
-                    Button("关闭") { viewModel.showArrivalSummary = false }.foregroundColor(.gloGold)
+                    Text(L10n.posterGenerateFailed).foregroundColor(.white)
+                    Button(L10n.posterClose) { viewModel.showArrivalSummary = false }.foregroundColor(.gloGold)
                 }
             }
         }

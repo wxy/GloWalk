@@ -2,7 +2,7 @@ import SwiftUI
 
 struct HUDButton: View {
     let icon: String
-    let label: String
+    let label: LocalizedStringKey
     let bg: Color
     let fg: Color
     var border: Bool = false

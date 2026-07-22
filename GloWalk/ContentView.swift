@@ -62,13 +62,13 @@ struct CameraPermissionView: View {
             VStack(spacing: 24) {
                 Image(systemName: "camera.fill")
                     .font(.gloBody(48)).foregroundColor(.gloAmber)
-                Text("环境光感知")
+                Text(L10n.cameraTitle)
                     .font(.gloHeadline(22)).foregroundColor(.white)
-                Text("GloWalk 用后摄像头感知环境明暗变化\n\n不拍照、不录像、不存储任何画面\n每 5 秒采样一次即丢弃\n\n拒绝后需手动调节亮度")
+                Text(L10n.cameraDescription)
                     .font(.gloBody(14)).foregroundColor(.white.opacity(0.7)).multilineTextAlignment(.center)
                 HStack(spacing: 24) {
-                    Button("拒绝") { onDecision(false) }.foregroundColor(.white.opacity(0.5))
-                    Button("允许") {
+                    Button(L10n.cameraDeny) { onDecision(false) }.foregroundColor(.white.opacity(0.5))
+                    Button(L10n.cameraAllow) {
                         Task {
                             _ = await AVCaptureDevice.requestAccess(for: .video)
                             await MainActor.run { onDecision(true) }

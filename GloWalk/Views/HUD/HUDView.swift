@@ -59,7 +59,7 @@ struct HUDView: View {
                         }
                     }
                     .overlay(alignment: .bottom) {
-                        Text("双击熄灭")
+                        Text(L10n.hudDoubleTapToEnd)
                             .font(.gloHeadline(11))
                             .foregroundColor(.gloGold.opacity(0.4))
                             .offset(y: 28)
@@ -80,7 +80,7 @@ struct HUDView: View {
                 if viewModel.isTorchOccluded {
                     HStack(spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
-                        Text("闪光灯被遮挡，已自动关闭").font(.gloBody(11))
+                        Text(L10n.hudOccluded).font(.gloBody(11))
                     }
                     .foregroundColor(.gloGold)
                     .padding(.vertical, 4).padding(.horizontal, 12)
@@ -107,7 +107,7 @@ struct HUDView: View {
                     Color.black.opacity(0.6).ignoresSafeArea()
                     VStack(spacing: 16) {
                         ProgressView().tint(.gloGold).scaleEffect(1.5)
-                        Text(isEndingZeroStep ? "正在结束..." : "正在绘制你的夜路足迹...")
+                        Text(isEndingZeroStep ? L10n.hudEnding : L10n.hudDrawing)
                             .font(.gloBody(14)).foregroundColor(.gloGold.opacity(0.7))
                     }
                 }
@@ -125,55 +125,74 @@ struct HUDView: View {
     // MARK: - Top Status Row
 
     private var topStatusRow: some View {
-        HStack(alignment: .top, spacing: 0) {
-            // Left: Moon
-            VStack(spacing: 2) {
-                if let moon = viewModel.moonCard {
-                    MoonCardView(data: moon) { viewModel.toggleMoonFactor() }
+        VStack(spacing: 2) {
+            // Row 1: Moon | GPS icon | Weather
+            HStack(alignment: .center, spacing: 0) {
+                cellLeft {
+                    if let moon = viewModel.moonCard {
+                        MoonCardView(data: moon) { viewModel.toggleMoonFactor() }
+                    } else { Spacer().frame(height: 22) }
                 }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            // Center: GPS + direction + city
-            VStack(spacing: 1) {
-                HStack(spacing: 3) {
-                    Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-                        .font(.system(size: 10))
-                        .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
-                    if viewModel.gpsActive {
-                        Image(systemName: "location.north.line.fill")
+                cellCenter {
+                    HStack(spacing: 3) {
+                        Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
                             .font(.system(size: 10))
-                            .foregroundColor(.gloGold.opacity(0.5))
-                            .rotationEffect(.degrees(viewModel.currentHeading))
+                            .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
+                        if viewModel.gpsActive {
+                            Image(systemName: "location.north.line.fill")
+                                .font(.system(size: 10))
+                                .foregroundColor(.gloGold.opacity(0.5))
+                                .rotationEffect(.degrees(viewModel.currentHeading))
+                        }
                     }
                 }
-                Text(viewModel.placeName.isEmpty
-                     ? (viewModel.gpsActive ? "GPS" : "GPS 不可用")
-                     : viewModel.placeName)
-                    .font(.gloBody(9))
-                    .foregroundColor(.white.opacity(0.35))
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .center)
-
-            // Right: Weather
-            VStack(spacing: 2) {
-                if let weather = viewModel.weatherCard {
-                    WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
+                cellRight {
+                    if let weather = viewModel.weatherCard {
+                        WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
+                    } else { Spacer().frame(height: 22) }
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .trailing)
+            // Row 2: Lunar date | City | Gregorian date
+            HStack(alignment: .center, spacing: 0) {
+                cellLeft {
+                    Text(viewModel.lunarDateStr)
+                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
+                }
+                cellCenter {
+                    Text(verbatim: viewModel.placeName.isEmpty
+                         ? (viewModel.gpsActive ? "GPS" : "GPS 不可用")
+                         : viewModel.placeName)
+                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.45))
+                        .lineLimit(1)
+                }
+                cellRight {
+                    Text(viewModel.gregorianDateStr)
+                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
+                }
+            }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
+        .padding(.top, 6)
+    }
+
+    private func cellLeft<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        content().frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private func cellCenter<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        content().frame(maxWidth: .infinity, alignment: .center)
+    }
+    private func cellRight<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        content().frame(maxWidth: .infinity, alignment: .trailing)
     }
 
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        HStack(spacing: 0) {
-            Text("🦶\(viewModel.stepCount)步")
+        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+        return HStack(spacing: 0) {
+            Text(zh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
             Text(" · \(viewModel.elapsedDistance)")
-            Text(" · ⏱\(viewModel.elapsedMinutes)min")
+            Text(zh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
                 Text("🔋∞")

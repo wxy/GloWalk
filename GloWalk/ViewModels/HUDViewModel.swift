@@ -16,6 +16,8 @@ final class HUDViewModel: ObservableObject {
     @Published var gpsActive: Bool = false
     @Published var currentHeading: Double = 0
     @Published var placeName: String = ""
+    @Published var lunarDateStr: String = ""
+    @Published var gregorianDateStr: String = ""
     @Published var moonCard: MoonCardData?
     @Published var weatherCard: WeatherCardData?
     @Published var showArrivalSummary: Bool = false
@@ -119,6 +121,8 @@ final class HUDViewModel: ObservableObject {
                     heading: self.currentHeading
                 )
                 self.placeName = self.locationManager.placeName ?? ""
+                self.lunarDateStr = LunarDate.display()
+                self.gregorianDateStr = LunarDate.gregorianShort()
                 self.gpsActive = self.locationManager.isRecording &&
                     (self.locationManager.authorizationStatus == .authorizedWhenInUse ||
                      self.locationManager.authorizationStatus == .authorizedAlways)

@@ -14,7 +14,7 @@ struct PrivacyConsentView: View {
                     .font(.gloBody(48))
                     .foregroundColor(.gloAmber)
 
-                Text("你的隐私")
+                Text(L10n.privacyTitle)
                     .font(.gloHeadline(28))
                     .foregroundColor(.white)
 

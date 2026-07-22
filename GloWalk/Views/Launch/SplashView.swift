@@ -30,7 +30,7 @@ struct SplashView: View {
         .opacity(opacity)
         .onAppear {
             if isQuickLaunch { onComplete(); return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.5)) { opacity = 0 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onComplete() }
             }

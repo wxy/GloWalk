@@ -39,7 +39,7 @@ struct PrivacyConsentView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.gloAmber)
-                        .cornerRadius(12)
+                        .cornerRadius(20)
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 48)

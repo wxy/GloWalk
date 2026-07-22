@@ -15,6 +15,7 @@ final class HUDViewModel: ObservableObject {
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
     @Published var currentHeading: Double = 0
+    @Published var placeName: String = ""
     @Published var moonCard: MoonCardData?
     @Published var weatherCard: WeatherCardData?
     @Published var showArrivalSummary: Bool = false
@@ -32,7 +33,7 @@ final class HUDViewModel: ObservableObject {
     let locationManager = LocationManager()
 
     private var sessionStartTime: Date?
-    private var sensorTimer: Timer?
+    var sensorTimer: Timer?
     private var hasStarted = false
 
     // MARK: - Start Walk
@@ -111,6 +112,13 @@ final class HUDViewModel: ObservableObject {
                 self.lastStepCount = self.stepCount
                 self.lastDistance = dist
                 self.currentHeading = self.locationManager.currentHeading?.trueHeading ?? 0
+                self.locationManager.externalStepCount = self.stepCount
+                // Dead reckoning for indoor / no-GPS
+                self.locationManager.updateDeadReckoning(
+                    stepCount: self.sensorManager.stepCount,
+                    heading: self.currentHeading
+                )
+                self.placeName = self.locationManager.placeName ?? ""
                 self.gpsActive = self.locationManager.isRecording &&
                     (self.locationManager.authorizationStatus == .authorizedWhenInUse ||
                      self.locationManager.authorizationStatus == .authorizedAlways)
@@ -151,10 +159,17 @@ final class HUDViewModel: ObservableObject {
 
         if let s = currentWalkSession {
             s.endTime = Date()
-            s.endType = "completed"
             s.totalSteps = Int64(sensorManager.stepCount)
             s.totalDistance = locationManager.totalDistance
             s.avgLightLevel = sensorManager.ambientLightLevel
+            // Don't save walks with zero steps
+            if sensorManager.stepCount == 0 {
+                PersistenceController.shared.container.viewContext.delete(s)
+                PersistenceController.shared.save()
+                showArrivalSummary = false
+                return
+            }
+            s.endType = "completed"
             PersistenceController.shared.save()
         }
         showArrivalSummary = true

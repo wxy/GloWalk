@@ -5,8 +5,9 @@ final class PosterGenerator {
         case noImage, renderingFailed
     }
 
+    @MainActor
     static func generate(session: WalkSession) async throws -> UIImage {
-        let size = CGSize(width: 1080, height: 1920)
+        let size = UIScreen.main.nativeBounds.size
         let renderer = UIGraphicsImageRenderer(size: size)
         let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
 
@@ -80,17 +81,50 @@ final class PosterGenerator {
                                        ctx: UIGraphicsRendererContext) {
         guard let img = image else { return }
 
-        // Large moon offset toward top-left — only right~2/3 and bottom~2/3 visible
+        // Remove near-black background from NASA image, keeping moon surface details
+        let processedImg = removeBlackBackground(img)
+
         let moonSize: CGFloat = size.height * 0.85
-        let offsetX: CGFloat = -moonSize * 0.35  // 1/3 off left edge
-        let offsetY: CGFloat = -moonSize * 0.35  // 1/3 off top edge
+        let offsetX: CGFloat = -moonSize * 0.35
+        let offsetY: CGFloat = -moonSize * 0.35
         let moonRect = CGRect(x: offsetX, y: offsetY,
                               width: moonSize, height: moonSize)
 
         ctx.cgContext.saveGState()
         ctx.cgContext.setAlpha(0.55)
-        img.draw(in: moonRect)
+        processedImg.draw(in: moonRect)
         ctx.cgContext.restoreGState()
+    }
+
+    /// Makes near-black pixels transparent (space background) while
+    /// preserving the moon's dark surface features (maria).
+    private static func removeBlackBackground(_ image: UIImage) -> UIImage {
+        guard let cgImage = image.cgImage else { return image }
+        let width = cgImage.width, height = cgImage.height
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let bytesPerPixel = 4
+        let bytesPerRow = bytesPerPixel * width
+        var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+
+        guard let ctx = CGContext(data: &pixels, width: width, height: height,
+                                   bitsPerComponent: 8, bytesPerRow: bytesPerRow,
+                                   space: colorSpace,
+                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
+            return image
+        }
+        ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+
+        // Threshold: RGB all < 25 → space black → make transparent
+        // Moon's dark areas are usually > 30-40 in at least one channel
+        for i in stride(from: 0, to: pixels.count, by: 4) {
+            let r = Int(pixels[i]), g = Int(pixels[i+1]), b = Int(pixels[i+2])
+            if r < 25 && g < 25 && b < 25 {
+                pixels[i+3] = 0  // alpha = 0 (transparent)
+            }
+        }
+
+        guard let newCG = ctx.makeImage() else { return image }
+        return UIImage(cgImage: newCG)
     }
 
     private static func drawMoonOverlay(size: CGSize, ctx: UIGraphicsRendererContext) {
@@ -121,22 +155,36 @@ final class PosterGenerator {
             return CGPoint(x: x, y: y)
         }
 
-        // Draw segments colored by light level
-        for i in 1..<points.count {
-            let prev = project(points[i-1])
-            let curr = project(points[i])
-            let avgLight = (points[i-1].ambientLight + points[i].ambientLight) / 2.0
+        // Draw cubic bezier segments — smooth curves, colored by light level
+        for i in 2..<points.count {
+            let p0 = points[i-2], p1 = points[i-1], p2 = points[i]
+            let pt0 = project(p0), pt1 = project(p1), pt2 = project(p2)
+            let avgLight = (p1.ambientLight + p2.ambientLight) / 2.0
 
-            // Darker ambient light → brighter, thicker line on poster
-            let lineAlpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5) // 0.3(bright) – 0.8(dark)
-            let lineWidth  = CGFloat(2.0 + (1.0 - avgLight) * 4.0) // 2(bright) – 6(dark)
+            let lineAlpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
+            let lineWidth  = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
+            let tension: CGFloat = 0.25
+
+            let cp1 = CGPoint(x: pt1.x + (pt2.x - pt0.x) * tension,
+                              y: pt1.y + (pt2.y - pt0.y) * tension)
+            let cp2 = CGPoint(x: pt2.x + (pt1.x - pt2.x) * tension,
+                              y: pt2.y + (pt1.y - pt2.y) * tension)
 
             let path = UIBezierPath()
-            path.move(to: prev); path.addLine(to: curr)
+            path.move(to: pt1)
+            path.addCurve(to: pt2, controlPoint1: cp1, controlPoint2: cp2)
             path.lineWidth = lineWidth
             path.lineCapStyle = .round
 
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: lineAlpha).setStroke()
+            path.stroke()
+        }
+        // First segment (straight line if only 2 points)
+        if points.count == 2 {
+            let prev = project(points[0]), curr = project(points[1])
+            let path = UIBezierPath(); path.move(to: prev); path.addLine(to: curr)
+            path.lineWidth = 3; path.lineCapStyle = .round
+            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.5).setStroke()
             path.stroke()
         }
 
@@ -176,8 +224,8 @@ final class PosterGenerator {
         let moonCN = moonPhaseDisplayName(session.wrappedMoonPhase)
 
         drawCenteredText("\(dateStr)  \(moonCN)",
-            font: wenKaiMedium(56),
-            color: gold, y: 80, size: size, ctx: ctx)
+            font: wenKaiMedium(28),
+            color: gold, y: 60, size: size, ctx: ctx)
     }
 
     // MARK: - Stats Card
@@ -185,14 +233,14 @@ final class PosterGenerator {
     private static func drawStats(session: WalkSession, size: CGSize,
                                    gold: UIColor, ctx: UIGraphicsRendererContext) {
         let cardY = size.height * 0.48
-        let cardH: CGFloat = 600
+        let cardH: CGFloat = 300
         let cardRect = CGRect(x: 80, y: cardY, width: size.width - 160, height: cardH)
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
 
         drawCenteredText("\(session.totalSteps) 步",
-            font: wenKaiLight(160),
-            color: gold, y: cardY + 60, size: size, ctx: ctx)
+            font: wenKaiLight(72),
+            color: gold, y: cardY + 30, size: size, ctx: ctx)
 
         let dist = session.totalDistance
         let distStr = dist < 1000 ? String(format: "%.0f 米", dist) : String(format: "%.1f 公里", dist/1000)
@@ -200,18 +248,18 @@ final class PosterGenerator {
         if let end = session.endTime {
             detail += "  ·  \(Int(end.timeIntervalSince(session.wrappedStartTime) / 60)) 分钟"
         }
-        drawCenteredText(detail, font: wenKaiRegular(52),
+        drawCenteredText(detail, font: wenKaiRegular(26),
             color: UIColor.white.withAlphaComponent(0.55),
-            y: cardY + 250, size: size, ctx: ctx)
+            y: cardY + 120, size: size, ctx: ctx)
 
         let t = Tagline.random()
         drawCenteredText("\u{201C}\(t.phrase)\u{201D}",
-            font: wenKaiMedium(48),
-            color: gold, y: cardY + 340, size: size, ctx: ctx)
+            font: wenKaiMedium(24),
+            color: gold, y: cardY + 170, size: size, ctx: ctx)
         drawCenteredText(t.explanation,
-            font: wenKaiRegular(38),
+            font: wenKaiRegular(18),
             color: UIColor.white.withAlphaComponent(0.4),
-            y: cardY + 420, size: size, ctx: ctx)
+            y: cardY + 210, size: size, ctx: ctx)
     }
 
     // MARK: - Footer
@@ -219,9 +267,9 @@ final class PosterGenerator {
     private static func drawFooter(session: WalkSession, size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
         drawCenteredText("踽踽独行，脚下有光 — GloWalk",
-            font: wenKaiRegular(36),
+            font: wenKaiRegular(16),
             color: UIColor.white.withAlphaComponent(0.2),
-            y: size.height - 180, size: size, ctx: ctx)
+            y: size.height - 30, size: size, ctx: ctx)
     }
 
     // MARK: - WenKai Font Helpers
@@ -242,7 +290,7 @@ final class PosterGenerator {
                                           y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext) {
         let p = NSMutableParagraphStyle(); p.alignment = .center
         let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
-        (text as NSString).draw(in: CGRect(x: 40, y: y, width: size.width - 80, height: 300),
+        (text as NSString).draw(in: CGRect(x: 40, y: y, width: size.width - 80, height: 150),
                                 withAttributes: attrs)
     }
 

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GlowCircleView: View {
     let brightness: Double
+    let isManual: Bool
 
     var body: some View {
         ZStack {
@@ -33,7 +34,7 @@ struct GlowCircleView: View {
             // Brightness %
             Text("\(Int(brightness * 100))%")
                 .font(.gloDisplay(22))
-                .foregroundColor(.gloGold)
+                .foregroundColor(isManual ? .white.opacity(0.8) : .gloGold)
         }
         .animation(.easeInOut(duration: 0.5), value: brightness)
     }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ArrivalSummaryView: View {
     @ObservedObject var viewModel: HUDViewModel
-    @EnvironmentObject var appState: AppState
+    let onComplete: () -> Void
     @State private var posterImage: UIImage?
     @State private var isGenerating = true
     @State private var showShareSheet = false
@@ -23,24 +23,29 @@ struct ArrivalSummaryView: View {
                     Image(uiImage: poster)
                         .resizable().scaledToFill()
                         .ignoresSafeArea()
+                        .gesture(DragGesture(minimumDistance: 40).onEnded { v in
+                            if v.translation.height > 40 || v.translation.width > 40 {
+                                viewModel.showArrivalSummary = false
+                                onComplete()
+                            }
+                        })
 
                     VStack {
                         Spacer()
                         HStack(spacing: 10) {
-                            miniButton("square.and.arrow.up", "分享",
-                                       Color.gloGold, .black) { showShareSheet = true }
-                            miniButton(savedToPhotos ? "checkmark" : "square.and.arrow.down",
-                                       savedToPhotos ? "已保存" : "保存",
-                                       .clear, .gloGold, border: true, action: saveToPhotos)
-                            miniButton("checkmark", "完成",
-                                       .clear, .white.opacity(0.6), border: true) {
+                            HUDButton(icon: "square.and.arrow.up", label: "分享",
+                                      bg: Color.gloGold, fg: .black) { showShareSheet = true }
+                            HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
+                                      label: savedToPhotos ? "已保存" : "保存",
+                                      bg: .clear, fg: .gloGold, border: true, action: saveToPhotos)
+                            HUDButton(icon: "checkmark", label: "完成",
+                                      bg: .clear, fg: .white.opacity(0.6), border: true) {
                                 viewModel.showArrivalSummary = false
-                                appState.resetHUD = true
-                                appState.showHistory = true
+                                onComplete()
                             }
                         }
                         .padding(.horizontal, 20)
-                        .padding(.bottom, 80)
+                        .padding(.bottom, 24)
                     }
                 }
                 .sheet(isPresented: $showShareSheet) { ShareSheet(items: [poster]) }
@@ -52,22 +57,6 @@ struct ArrivalSummaryView: View {
             }
         }
         .task { await generatePoster() }
-    }
-
-    private func miniButton(_ icon: String, _ label: String, _ bg: Color, _ fg: Color,
-                            border: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: icon).font(.gloBody(15))
-                Text(label).font(.gloBody(10))
-            }
-            .foregroundColor(fg)
-            .frame(maxWidth: .infinity).padding(.vertical, 10)
-            .background(bg)
-            .cornerRadius(10)
-            .overlay(border ? RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gloGold, lineWidth: 1) : nil)
-        }
     }
 
     private func generatePoster() async {
@@ -85,5 +74,6 @@ struct ArrivalSummaryView: View {
         guard let image = posterImage else { return }
         UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
         savedToPhotos = true
+        Haptic.medium()
     }
 }

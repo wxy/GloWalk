@@ -6,93 +6,128 @@ struct HistoryListView: View {
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
         animation: .default
     ) private var sessions: FetchedResults<WalkSession>
-
-    @State private var showSplash = false
+    let goToSplash: () -> Void
     @State private var selectedSession: WalkSession?
+    @State private var showSettings = false
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.gloBlackSurface.ignoresSafeArea()
+        ZStack {
+            Color.gloBlackSurface.ignoresSafeArea()
 
-                if sessions.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "moon.stars.fill")
-                            .font(.gloBody(48)).foregroundColor(.gloGold)
-                        Text("还没有夜路记录")
-                            .font(.gloHeadline(18)).foregroundColor(.white)
-                        VStack(spacing: 8) {
-                            Text("打开 GloWalk 开始一次夜间步行")
-                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
-                            Text("走完后轻点中央圆环熄灭灯笼")
-                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
-                            Text("即可生成你的第一张夜路海报")
-                                .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
+            if sessions.isEmpty {
+                emptyState
+                    .gesture(DragGesture(minimumDistance: 60, coordinateSpace: .local)
+                        .onEnded { v in if v.translation.height > 60 { goToSplash() } })
+            } else {
+                VStack(spacing: 0) {
+                    // Header
+                    HStack {
+                        Button(action: { showSettings = true }) {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 16))
+                                .foregroundColor(.gloGold.opacity(0.4))
                         }
-                        Button("开始步行") { showSplash = true }
-                            .font(.gloHeadline(16))
-                            .foregroundColor(.black)
-                            .padding(.horizontal, 32).padding(.vertical, 12)
-                            .background(Color.gloGold).cornerRadius(20)
-                            .padding(.top, 8)
+                        Spacer()
+                        Text("步行记录")
+                            .font(.gloHeadline(17))
+                            .foregroundColor(.gloGold)
+                        Spacer()
+                        Button("新步行") { goToSplash() }
+                            .font(.gloBody(14))
+                            .foregroundColor(.gloGold)
                     }
-                } else {
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+
+                    // List
                     List {
                         ForEach(sessions, id: \.objectID) { session in
                             Button(action: { selectedSession = session }) {
                                 HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(session.wrappedStartTime, style: .date)
-                                        .font(.gloHeadline(14)).foregroundColor(.white)
-                                    + Text("  ")
-                                    + Text(session.wrappedStartTime, style: .time)
-                                        .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
-
-                                    HStack(spacing: 12) {
-                                        Text("🦶\(session.totalSteps)步").font(.gloBody(12))
-                                        Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
-                                        if let end = session.endTime {
-                                            let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
-                                            Text("⏱\(min)min").font(.gloBody(12))
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 6) {
+                                            Text(session.wrappedStartTime, style: .date)
+                                                .font(.gloBody(14)).foregroundColor(.white)
+                                            Text(session.wrappedStartTime, style: .time)
+                                                .font(.gloBody(13)).foregroundColor(.white.opacity(0.4))
                                         }
+                                        HStack(spacing: 10) {
+                                            Text("🦶\(session.totalSteps)步").font(.gloBody(12))
+                                            Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
+                                            if let end = session.endTime {
+                                                let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
+                                                Text("⏱\(min)min").font(.gloBody(12))
+                                            }
+                                        }
+                                        .foregroundColor(.white.opacity(0.4))
                                     }
-                                    .foregroundColor(.white.opacity(0.5))
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 10)).foregroundColor(.white.opacity(0.2))
                                 }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.gloBody(12)).foregroundColor(.white.opacity(0.3))
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 20)
                             }
-                            }
-                            .padding(.vertical, 4)
                             .listRowBackground(Color.gloBlackSurface)
+                            .listRowInsets(EdgeInsets())
                         }
+                        .onDelete(perform: deleteSessions)
                     }
                     .listStyle(.plain)
-                }
-            }
-            .navigationTitle("步行记录")
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("新步行") { showSplash = true }
-                        .foregroundColor(.gloGold)
+                    .refreshable { goToSplash() }
                 }
             }
         }
-        .preferredColorScheme(.dark)
-        .fullScreenCover(isPresented: $showSplash) {
-            ContentView()
-        }
+        .sheet(isPresented: $showSettings) { SettingsView() }
         .fullScreenCover(item: $selectedSession) { session in
             HistoryPosterView(session: session)
         }
     }
+
+    private var emptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "moon.stars.fill")
+                .font(.system(size: 48)).foregroundColor(.gloGold)
+            Text("还没有夜路记录")
+                .font(.gloHeadline(18)).foregroundColor(.white)
+            VStack(spacing: 8) {
+                Text("打开 GloWalk 开始一次夜间步行")
+                Text("走完后轻点中央圆环熄灭灯笼")
+                Text("即可生成你的第一张夜路海报")
+            }
+            .font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
+
+            HStack(spacing: 24) {
+                Button(action: { showSettings = true }) {
+                    Label("设置", systemImage: "gearshape")
+                        .font(.gloBody(14)).foregroundColor(.gloGold)
+                }
+                Button("开始步行") {
+                    goToSplash()
+                }
+                .font(.gloHeadline(16)).foregroundColor(.black)
+                .padding(.horizontal, 28).padding(.vertical, 10)
+                .background(Color.gloGold).cornerRadius(20)
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private func deleteSessions(offsets: IndexSet) {
+        offsets.map { sessions[$0] }.forEach(viewContext.delete)
+        PersistenceController.shared.save()
+    }
 }
+
+// MARK: - History Poster
 
 struct HistoryPosterView: View {
     let session: WalkSession
     @Environment(\.dismiss) private var dismiss
     @State private var posterImage: UIImage?
     @State private var showShareSheet = false
+    @State private var savedToPhotos = false
 
     var body: some View {
         ZStack {
@@ -100,38 +135,25 @@ struct HistoryPosterView: View {
             if let poster = posterImage {
                 ZStack {
                     Image(uiImage: poster).resizable().scaledToFill().ignoresSafeArea()
+                        .gesture(DragGesture(minimumDistance: 40).onEnded { v in
+                            if v.translation.height > 40 || v.translation.width > 40 { dismiss() }
+                        })
                     VStack {
                         Spacer()
                         HStack(spacing: 10) {
-                            Button(action: { showShareSheet = true }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.up").font(.gloBody(15))
-                                    Text("分享").font(.gloBody(10))
-                                }
-                                .foregroundColor(.black).frame(maxWidth: .infinity).padding(.vertical, 10)
-                                .background(Color.gloGold).cornerRadius(10)
-                            }
-                            Button(action: {
+                            HUDButton(icon: "square.and.arrow.up", label: "分享",
+                                      bg: Color.gloGold, fg: .black) { showShareSheet = true }
+                            HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
+                                      label: savedToPhotos ? "已保存" : "保存",
+                                      bg: .clear, fg: .gloGold, border: true) {
                                 guard let img = posterImage else { return }
                                 UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
-                            }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "square.and.arrow.down").font(.gloBody(15))
-                                    Text("保存").font(.gloBody(10))
-                                }
-                                .foregroundColor(.gloGold).frame(maxWidth: .infinity).padding(.vertical, 10)
-                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gloGold, lineWidth: 1))
+                                savedToPhotos = true; Haptic.medium()
                             }
-                            Button(action: { dismiss() }) {
-                                VStack(spacing: 4) {
-                                    Image(systemName: "checkmark").font(.gloBody(15))
-                                    Text("完成").font(.gloBody(10))
-                                }
-                                .foregroundColor(.white.opacity(0.6)).frame(maxWidth: .infinity).padding(.vertical, 10)
-                                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.3), lineWidth: 1))
-                            }
+                            HUDButton(icon: "checkmark", label: "完成",
+                                      bg: .clear, fg: .white.opacity(0.6), border: true) { dismiss() }
                         }
-                        .padding(.horizontal, 20).padding(.bottom, 44)
+                        .padding(.horizontal, 20).padding(.bottom, 24)
                     }
                 }
                 .sheet(isPresented: $showShareSheet) { ShareSheet(items: [poster]) }

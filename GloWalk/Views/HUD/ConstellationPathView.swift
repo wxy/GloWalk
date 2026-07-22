@@ -1,21 +1,31 @@
 import SwiftUI
-import CoreLocation
 
-/// Real-time constellation path with direction arrows and compass.
+/// Real-time constellation path with bezier curves, auto-scroll, and compass.
 struct ConstellationPathView: View {
     let points: [PathPoint]
-    let heading: Double?   // device heading in degrees (0=north, 90=east)
+    let heading: Double
     let isActive: Bool
+
+    @State private var scrollOffset: CGFloat = 1.0 // 1.0 = show end, 0.0 = show start
 
     var body: some View {
         Canvas { ctx, size in
             guard points.count >= 2 else { return }
 
-            let lats = points.map(\.latitude); let lons = points.map(\.longitude)
+            let segmentCount = max(points.count - 1, 1)
+            // Show last ~20 segments at a time, scroll to follow end
+            let windowSize = min(20, segmentCount)
+            let startIdx = max(0, segmentCount - windowSize)
+            let visiblePoints = Array(points[max(0, startIdx - 1)...]) // +1 for control point
+
+            guard visiblePoints.count >= 2 else { return }
+
+            let lats = visiblePoints.map(\.latitude)
+            let lons = visiblePoints.map(\.longitude)
             guard let minLat = lats.min(), let maxLat = lats.max(),
                   let minLon = lons.min(), let maxLon = lons.max() else { return }
-            let latR = max(maxLat - minLat, 0.0001)
-            let lonR = max(maxLon - minLon, 0.0001)
+            let latR = max(maxLat - minLat, 0.00005)
+            let lonR = max(maxLon - minLon, 0.00005)
 
             let inset: CGFloat = 28
             let area = CGRect(x: inset, y: inset,
@@ -27,114 +37,79 @@ struct ConstellationPathView: View {
                         y: area.origin.y + CGFloat(1.0 - (p.latitude - minLat) / latR) * area.height)
             }
 
-            // Draw path segments with arrowheads
-            for i in 1..<points.count {
-                let prev = project(points[i-1])
-                let curr = project(points[i])
-                let avgLight = (points[i-1].ambientLight + points[i].ambientLight) / 2.0
+            // Draw cubic bezier segments for smooth curves
+            for i in 2..<visiblePoints.count {
+                let p0 = visiblePoints[i-2]
+                let p1 = visiblePoints[i-1]
+                let p2 = visiblePoints[i]
 
+                let pt0 = project(p0), pt1 = project(p1), pt2 = project(p2)
+                let avgLight = (p1.ambientLight + p2.ambientLight) / 2.0
                 let alpha = 0.2 + (1.0 - avgLight) * 0.35
                 let width = 1.5 + (1.0 - avgLight) * 2.5
 
+                // Cubic bezier using Catmull-Rom style control points
+                // cp1 is pt1 extended along pt1→pt2 tangent, influenced by pt0
+                // cp2 is pt2 extended along pt2→pt1 tangent, influenced by next point
+                let tension: CGFloat = 0.25
+                let dx1 = pt2.x - pt0.x
+                let dy1 = pt2.y - pt0.y
+                let cp1 = CGPoint(x: pt1.x + dx1 * tension, y: pt1.y + dy1 * tension)
+
+                // For cp2, use reverse vector from pt1→pt2 smoothed
+                let dx2 = pt1.x - pt2.x
+                let dy2 = pt1.y - pt2.y
+                let cp2 = CGPoint(x: pt2.x + dx2 * tension, y: pt2.y + dy2 * tension)
+
                 var path = Path()
-                path.move(to: prev); path.addLine(to: curr)
+                path.move(to: pt1)
+                path.addCurve(to: pt2, control1: cp1, control2: cp2)
+
                 ctx.stroke(path,
                     with: .color(Color.gloGold.opacity(alpha)),
-                    style: StrokeStyle(lineWidth: width, lineCap: .round))
-
-                // Direction arrow at midpoint every 2nd segment
-                if i % 2 == 0 {
-                    let mid = CGPoint(x: (prev.x + curr.x)/2, y: (prev.y + curr.y)/2)
-                    let angle = atan2(curr.y - prev.y, curr.x - prev.x)
-                    drawArrowhead(ctx: &ctx, at: mid, angle: angle,
-                                  color: Color.gloGold.opacity(alpha * 1.3))
-                }
+                    style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start dot
-            if let first = points.first {
+            // Start dot on first visible point
+            if let first = visiblePoints.first {
                 let p = project(first)
                 ctx.fill(Path(ellipseIn: CGRect(x: p.x-3, y: p.y-3, width: 6, height: 6)),
-                         with: .color(.white.opacity(0.6)))
+                         with: .color(.white.opacity(0.5)))
             }
-            // End star
-            if points.count >= 2, let last = points.last {
+            // Current position = lantern
+            if let last = visiblePoints.last {
                 let p = project(last)
-                ctx.fill(starPath(center: p, radius: 5),
-                         with: .color(Color.gloGold.opacity(0.8)))
+                ctx.draw(Text("🏮").font(.system(size: 16)),
+                         at: CGPoint(x: p.x, y: p.y - 10))
             }
 
-            // Compass rose
-            drawCompass(ctx: &ctx, size: size, heading: heading ?? 0)
+            // Compass now shown in top-center bar, not on path
         }
         .opacity(isActive ? 0.7 : 0)
         .animation(.easeInOut(duration: 1.0), value: isActive)
     }
 
-    // MARK: - Arrowhead
-
-    private func drawArrowhead(ctx: inout GraphicsContext, at center: CGPoint,
-                                angle: CGFloat, color: Color) {
-        let len: CGFloat = 5
-        let spread: CGFloat = 0.6
-        var arrow = Path()
-        let tip = CGPoint(x: center.x + cos(angle) * len,
-                          y: center.y + sin(angle) * len)
-        let left = CGPoint(x: center.x + cos(angle + .pi - spread) * len * 0.6,
-                            y: center.y + sin(angle + .pi - spread) * len * 0.6)
-        let right = CGPoint(x: center.x + cos(angle + .pi + spread) * len * 0.6,
-                             y: center.y + sin(angle + .pi + spread) * len * 0.6)
-        arrow.move(to: tip); arrow.addLine(to: left); arrow.addLine(to: right)
-        arrow.closeSubpath()
-        ctx.fill(arrow, with: .color(color))
-    }
-
     // MARK: - Compass
 
     private func drawCompass(ctx: inout GraphicsContext, size: CGSize, heading: Double) {
-        let cx = size.width - 30
-        let cy: CGFloat = 30
-        let r: CGFloat = 18
+        let cx = size.width - 28
+        let cy: CGFloat = 28
+        let r: CGFloat = 16
 
-        // Compass circle
         ctx.stroke(Path(ellipseIn: CGRect(x: cx - r, y: cy - r, width: r*2, height: r*2)),
-                   with: .color(.white.opacity(0.12)), lineWidth: 0.5)
+                   with: .color(.white.opacity(0.1)), lineWidth: 0.5)
 
-        // North pointer (rotates with heading)
         let rad = heading * .pi / 180
-        let nx = cx - sin(rad) * r * 0.7  // project: heading 0=north → point UP on screen
+        let nx = cx - sin(rad) * r * 0.7
         let ny = cy - cos(rad) * r * 0.7
 
         var needle = Path()
         needle.move(to: CGPoint(x: nx, y: ny))
-        needle.addLine(to: CGPoint(x: cx + sin(rad) * 3 + cos(rad) * 4,
-                                     y: cy + cos(rad) * 3 - sin(rad) * 4))
-        needle.addLine(to: CGPoint(x: cx + sin(rad) * 3 - cos(rad) * 4,
-                                     y: cy + cos(rad) * 3 + sin(rad) * 4))
+        needle.addLine(to: CGPoint(x: cx + sin(rad) * 2 + cos(rad) * 3,
+                                     y: cy + cos(rad) * 2 - sin(rad) * 3))
+        needle.addLine(to: CGPoint(x: cx + sin(rad) * 2 - cos(rad) * 3,
+                                     y: cy + cos(rad) * 2 + sin(rad) * 3))
         needle.closeSubpath()
         ctx.fill(needle, with: .color(Color.gloGold.opacity(0.7)))
-
-        // N mark
-        let markSize: CGFloat = 7
-        ctx.draw(Text("N").font(.system(size: 7)).foregroundColor(.white.opacity(0.3)),
-                 at: CGPoint(x: cx, y: cy - r - markSize))
-    }
-
-    // MARK: - Star
-
-    private func starPath(center: CGPoint, radius: CGFloat) -> Path {
-        var p = Path()
-        for i in 0..<5 {
-            let a = CGFloat(i) * .pi * 2 / 5 - .pi / 2
-            let x = center.x + cos(a) * radius
-            let y = center.y + sin(a) * radius
-            if i == 0 { p.move(to: CGPoint(x: x, y: y)) }
-            else { p.addLine(to: CGPoint(x: x, y: y)) }
-            let ia = a + .pi / 5
-            p.addLine(to: CGPoint(x: center.x + cos(ia) * radius * 0.4,
-                                   y: center.y + sin(ia) * radius * 0.4))
-        }
-        p.closeSubpath()
-        return p
     }
 }

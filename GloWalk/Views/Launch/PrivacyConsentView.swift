@@ -11,11 +11,11 @@ struct PrivacyConsentView: View {
                 Spacer()
 
                 Image(systemName: "hand.raised.fill")
-                    .font(.system(size: 48))
+                    .font(.gloBody(48))
                     .foregroundColor(.gloAmber)
 
-                Text("你的隐私")
-                    .font(.title)
+                Text(L10n.privacyTitle)
+                    .font(.gloHeadline(28))
                     .foregroundColor(.white)
 
                 VStack(alignment: .leading, spacing: 16) {
@@ -34,12 +34,12 @@ struct PrivacyConsentView: View {
 
                 Button(action: { hasCompletedOnboarding = true }) {
                     Text("开始使用")
-                        .font(.headline)
+                        .font(.gloHeadline(17))
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.gloAmber)
-                        .cornerRadius(12)
+                        .cornerRadius(20)
                 }
                 .padding(.horizontal, 32)
                 .padding(.bottom, 48)
@@ -53,7 +53,7 @@ struct PrivacyConsentView: View {
                 .foregroundColor(.gloAmber)
                 .frame(width: 24)
             Text(text)
-                .font(.system(size: 14))
+                .font(.gloBody(14))
                 .foregroundColor(.white.opacity(0.8))
         }
     }

@@ -12,17 +12,16 @@ struct SplashView: View {
             Color.gloBlackCard.ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Image(systemName: "flashlight.on.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.gloAmber)
+                Text("🏮")
+                    .font(.system(size: 44))
 
                 Text(tagline.phrase)
-                    .font(.system(size: 22, weight: .medium))
+                    .font(.gloHeadline(22))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
 
                 Text(tagline.explanation)
-                    .font(.system(size: 13))
+                    .font(.gloBody(13))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
@@ -31,7 +30,7 @@ struct SplashView: View {
         .opacity(opacity)
         .onAppear {
             if isQuickLaunch { onComplete(); return }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.5)) { opacity = 0 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onComplete() }
             }

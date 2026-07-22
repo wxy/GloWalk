@@ -1,621 +1,585 @@
 {
-  "sourceLanguage" : "en",
-  "strings" : {
-    " · %@" : {
-
-    },
-    "%@%%" : {
-
-    },
-    "⏱%@min" : {
-
-    },
-    "🏮" : {
-
-    },
-    "📏%@m" : {
-
-    },
-    "🔋%@min" : {
-
-    },
-    "🔋∞" : {
-
-    },
-    "🦶%@步" : {
-
-    },
-    "app.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GloWalk"
+  "sourceLanguage": "en",
+  "strings": {
+    " \u00b7 %@": {},
+    "%@%%": {},
+    "\u23f1%@min": {},
+    "\ud83c\udfee": {},
+    "\ud83d\udccf%@m": {},
+    "\ud83d\udd0b%@min": {},
+    "\ud83d\udd0b\u221e": {},
+    "\ud83e\uddb6%@\u6b65": {},
+    "app.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GloWalk"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "随行路灯"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u968f\u884c\u8def\u706f"
           }
         }
       }
     },
-    "app.tagline" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Walk alone, light beneath your feet"
+    "app.tagline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A solitary step, a lantern aglow"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "踽踽独行，脚下有光"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u8e3d\u8e3d\u72ec\u884c\uff0c\u811a\u4e0b\u6709\u5149"
           }
         }
       }
     },
-    "camera.allow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow"
+    "camera.allow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允许"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5141\u8bb8"
           }
         }
       }
     },
-    "camera.deny" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deny"
+    "camera.deny": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拒绝"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u62d2\u7edd"
           }
         }
       }
     },
-    "camera.description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GloWalk uses the rear camera to sense ambient brightness\n\nNo photos, no video, no storage\nA sample is taken every 5 seconds and discarded\n\nIf denied, manual brightness control will be used"
+    "camera.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GloWalk senses the darkness around you through the rear camera.\n\nNo photos are taken. No video is recorded.\nA glance every few seconds, then forgotten.\n\nYou may also adjust brightness by hand."
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GloWalk 用后摄像头感知环境明暗变化\n\n不拍照、不录像、不存储任何画面\n每 5 秒采样一次即丢弃\n\n拒绝后需手动调节亮度"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GloWalk \u7528\u540e\u6444\u50cf\u5934\u611f\u77e5\u73af\u5883\u660e\u6697\u53d8\u5316\n\n\u4e0d\u62cd\u7167\u3001\u4e0d\u5f55\u50cf\u3001\u4e0d\u5b58\u50a8\u4efb\u4f55\u753b\u9762\n\u6bcf 5 \u79d2\u91c7\u6837\u4e00\u6b21\u5373\u4e22\u5f03\n\n\u62d2\u7edd\u540e\u9700\u624b\u52a8\u8c03\u8282\u4eae\u5ea6"
           }
         }
       }
     },
-    "camera.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ambient Light Sensing"
+    "camera.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ambient Light"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "环境光感知"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u73af\u5883\u5149\u611f\u77e5"
           }
         }
       }
     },
-    "history.empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No walks yet"
+    "history.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No night journeys yet"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "还没有夜路记录"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u8fd8\u6ca1\u6709\u591c\u8def\u8bb0\u5f55"
           }
         }
       }
     },
-    "history.emptyHint1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open GloWalk and start a night walk"
+    "history.emptyHint1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step into the night with GloWalk"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开 GloWalk 开始一次夜间步行"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6253\u5f00 GloWalk \u5f00\u59cb\u4e00\u6b21\u591c\u95f4\u6b65\u884c"
           }
         }
       }
     },
-    "history.emptyHint2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double-tap the center circle to extinguish the lantern"
+    "history.emptyHint2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap the glow to dim the lantern"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "走完后轻点中央圆环熄灭灯笼"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u8d70\u5b8c\u540e\u8f7b\u70b9\u4e2d\u592e\u5706\u73af\u7184\u706d\u706f\u7b3c"
           }
         }
       }
     },
-    "history.emptyHint3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your first night walk poster will be created"
+    "history.emptyHint3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your first journey becomes a keepsake"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "即可生成你的第一张夜路海报"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5373\u53ef\u751f\u6210\u4f60\u7684\u7b2c\u4e00\u5f20\u591c\u8def\u6d77\u62a5"
           }
         }
       }
     },
-    "history.newWalk" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Walk"
+    "history.newWalk": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Journey"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新步行"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u65b0\u6b65\u884c"
           }
         }
       }
     },
-    "history.startWalk" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start Walking"
+    "history.startWalk": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begin Your Walk"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始步行"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5f00\u59cb\u6b65\u884c"
           }
         }
       }
     },
-    "history.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Walk History"
+    "history.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Night Journeys"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "步行记录"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6b65\u884c\u8bb0\u5f55"
           }
         }
       }
     },
-    "hud.doubleTapToEnd" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double-tap to extinguish"
+    "hud.doubleTapToEnd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap to dim"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "双击熄灭"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u53cc\u51fb\u7184\u706d"
           }
         }
       }
     },
-    "hud.drawing" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drawing your night path..."
+    "hud.drawing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weaving your night journey\u2026"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在绘制你的夜路足迹..."
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6b63\u5728\u7ed8\u5236\u4f60\u7684\u591c\u8def\u8db3\u8ff9..."
           }
         }
       }
     },
-    "hud.ending" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ending..."
+    "hud.ending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dimming the lantern\u2026"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在结束..."
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6b63\u5728\u7ed3\u675f..."
           }
         }
       }
     },
-    "hud.gps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS"
+    "hud.gps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS"
           }
         }
       }
     },
-    "hud.gpsUnavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS Unavailable"
+    "hud.gpsUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS Offline"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS 不可用"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GPS \u4e0d\u53ef\u7528"
           }
         }
       }
     },
-    "hud.occluded" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Flash blocked — auto off"
+    "hud.occluded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lantern covered \u2014 light paused"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "闪光灯被遮挡，已自动关闭"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u95ea\u5149\u706f\u88ab\u906e\u6321\uff0c\u5df2\u81ea\u52a8\u5173\u95ed"
           }
         }
       }
     },
-    "hud.steps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "steps"
+    "hud.steps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "steps"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "步"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6b65"
           }
         }
       }
     },
-    "poster.close" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
+    "poster.close": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关闭"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5173\u95ed"
           }
         }
       }
     },
-    "poster.done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done"
+    "poster.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "完成"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5b8c\u6210"
           }
         }
       }
     },
-    "poster.generateFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Poster generation failed"
+    "poster.generateFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not weave your poster"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "海报生成失败"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6d77\u62a5\u751f\u6210\u5931\u8d25"
           }
         }
       }
     },
-    "poster.save" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save"
+    "poster.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保存"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u4fdd\u5b58"
           }
         }
       }
     },
-    "poster.saved" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saved"
+    "poster.saved": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5df2\u4fdd\u5b58"
           }
         }
       }
     },
-    "poster.share" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share"
+    "poster.share": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "分享"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5206\u4eab"
           }
         }
       }
     },
-    "privacy.item1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera only senses ambient light — no photos, no video, no storage"
+    "privacy.item1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera only senses ambient light \u2014 no photos, no video, no storage"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摄像头仅用于感知环境光线，不拍照、不录像、不存储画面"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6444\u50cf\u5934\u4ec5\u7528\u4e8e\u611f\u77e5\u73af\u5883\u5149\u7ebf\uff0c\u4e0d\u62cd\u7167\u3001\u4e0d\u5f55\u50cf\u3001\u4e0d\u5b58\u50a8\u753b\u9762"
           }
         }
       }
     },
-    "privacy.item2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Path data stored only on your device — never uploaded"
+    "privacy.item2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Path data stored only on your device \u2014 never uploaded"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "路径数据只存于你的手机，不会上传到任何服务器"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u8def\u5f84\u6570\u636e\u53ea\u5b58\u4e8e\u4f60\u7684\u624b\u673a\uff0c\u4e0d\u4f1a\u4e0a\u4f20\u5230\u4efb\u4f55\u670d\u52a1\u5668"
           }
         }
       }
     },
-    "privacy.item3" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No ads, no tracking, no third-party SDKs"
+    "privacy.item3": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No ads, no tracking, no third-party SDKs"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有广告、没有追踪、没有第三方 SDK"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u6ca1\u6709\u5e7f\u544a\u3001\u6ca1\u6709\u8ffd\u8e2a\u3001\u6ca1\u6709\u7b2c\u4e09\u65b9 SDK"
           }
         }
       }
     },
-    "privacy.item4" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can revoke any permission at any time in Settings"
+    "privacy.item4": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can revoke any permission at any time in Settings"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你可以随时在设置中关闭任何权限"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u4f60\u53ef\u4ee5\u968f\u65f6\u5728\u8bbe\u7f6e\u4e2d\u5173\u95ed\u4efb\u4f55\u6743\u9650"
           }
         }
       }
     },
-    "privacy.start" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Get Started"
+    "privacy.start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Begin"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开始使用"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u5f00\u59cb\u4f7f\u7528"
           }
         }
       }
     },
-    "privacy.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your Privacy"
+    "privacy.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Privacy"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的隐私"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u4f60\u7684\u9690\u79c1"
           }
         }
       }
     },
-    "settings.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
+    "settings.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "设置"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "\u8bbe\u7f6e"
           }
         }
       }
     },
-    "安全到达" : {
-
-    },
-    "开始使用" : {
-
-    },
-    "数据" : {
-
-    },
-    "权限与隐私" : {
-
-    },
-    "权限管理" : {
-
-    },
-    "正在绘制你的夜路足迹..." : {
-
-    },
-    "照明偏好" : {
-
-    },
-    "版本 1.0 · 随行路灯" : {
-
-    },
-    "起始亮度" : {
-
-    },
-    "踽踽独行，脚下有光" : {
-
-    }
+    "\u5b89\u5168\u5230\u8fbe": {},
+    "\u5f00\u59cb\u4f7f\u7528": {},
+    "\u6570\u636e": {},
+    "\u6743\u9650\u4e0e\u9690\u79c1": {},
+    "\u6743\u9650\u7ba1\u7406": {},
+    "\u6b63\u5728\u7ed8\u5236\u4f60\u7684\u591c\u8def\u8db3\u8ff9...": {},
+    "\u7167\u660e\u504f\u597d": {},
+    "\u7248\u672c 1.0 \u00b7 \u968f\u884c\u8def\u706f": {},
+    "\u8d77\u59cb\u4eae\u5ea6": {},
+    "\u8e3d\u8e3d\u72ec\u884c\uff0c\u811a\u4e0b\u6709\u5149": {}
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

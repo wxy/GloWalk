@@ -15,16 +15,19 @@ struct SplashView: View {
                 Text("🏮")
                     .font(.system(size: 44))
 
-                Text(tagline.phrase)
-                    .font(.gloHeadline(22))
+                Text(tagline.localizedPhrase)
+                    .font(.gloHeadline(20))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+                    .fixedSize(horizontal: false, vertical: true)
 
-                Text(tagline.explanation)
-                    .font(.gloBody(13))
+                Text(tagline.localizedExplanation)
+                    .font(.gloBody(12))
                     .foregroundColor(.white.opacity(0.5))
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+                    .padding(.horizontal, 32)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .opacity(opacity)

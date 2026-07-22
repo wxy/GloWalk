@@ -253,10 +253,10 @@ final class PosterGenerator {
             y: cardY + 120, size: size, ctx: ctx)
 
         let t = Tagline.random()
-        drawCenteredText("\u{201C}\(t.phrase)\u{201D}",
+        drawCenteredText("\u{201C}\(t.localizedPhrase)\u{201D}",
             font: wenKaiMedium(24),
             color: gold, y: cardY + 170, size: size, ctx: ctx)
-        drawCenteredText(t.explanation,
+        drawCenteredText(t.localizedExplanation,
             font: wenKaiRegular(18),
             color: UIColor.white.withAlphaComponent(0.4),
             y: cardY + 210, size: size, ctx: ctx)

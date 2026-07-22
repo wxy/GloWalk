@@ -35,13 +35,13 @@ struct HUDView: View {
                     .onTapGesture(count: 2) {
                         Haptic.heavy()
                         if viewModel.stepCount == 0 {
-                            // Show brief loading, then navigate
                             isEndingZeroStep = true
                             viewModel.sensorManager.stop()
                             viewModel.locationManager.stopRecording()
                             viewModel.sensorTimer?.invalidate()
                             if let s = viewModel.currentWalkSession {
                                 PersistenceController.shared.container.viewContext.delete(s)
+                                PersistenceController.shared.save()
                             }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 goToHistory()

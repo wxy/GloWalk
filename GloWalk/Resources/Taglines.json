@@ -1,34 +1,58 @@
 [
   {
+    "key": "tagline.moon",
     "phrase": "满月夜，借一点月光就够了",
-    "explanation": "月亮的亮度差可达三百倍，GloWalk 据此自动调整手电筒亮度"
+    "phrase_en": "A full moon lends all the light you need",
+    "explanation": "月亮的亮度差可达三百倍，GloWalk 据此自动调整手电筒亮度",
+    "explanation_en": "Moonlight varies three-hundredfold — GloWalk adapts your brightness to match"
   },
   {
+    "key": "tagline.streetlight",
     "phrase": "路灯下有分寸，暗巷里不迟疑",
-    "explanation": "摄像头每 5 秒采样环境光，滞后逻辑防止灯光在临界值反复跳变"
+    "phrase_en": "Measured beneath streetlamps, fearless in the dark",
+    "explanation": "摄像头每 5 秒采样环境光，滞后逻辑防止灯光在临界值反复跳变",
+    "explanation_en": "The camera samples ambient light every few seconds — no flickering at the threshold"
   },
   {
+    "key": "tagline.adaptation",
     "phrase": "走过五分钟，眼睛已经适应了黑暗",
-    "explanation": "暗适应曲线让灯光随步行时长逐步调暗，不知不觉间省下电量"
+    "phrase_en": "After five minutes, your eyes have found the dark",
+    "explanation": "暗适应曲线让灯光随步行时长逐步调暗，不知不觉间省下电量",
+    "explanation_en": "A subtle dimming curve follows your eyes' natural adaptation — saving power without notice"
   },
   {
+    "key": "tagline.rain",
     "phrase": "下雨天的路面，光照上去是不一样的",
-    "explanation": "雨后沥青反光率是干燥时的 2-3 倍——天气影响灯光策略"
+    "phrase_en": "Rain-slick streets catch the light differently",
+    "explanation": "雨后沥青反光率是干燥时的 2-3 倍——天气影响灯光策略",
+    "explanation_en": "Wet asphalt reflects twice as much light — weather shapes the glow"
   },
   {
+    "key": "tagline.pocket",
     "phrase": "放进口袋的光，是浪费也是隐患",
-    "explanation": "每 5 秒检测一次遮挡，被遮挡时自动熄灯"
+    "phrase_en": "A lantern in your pocket serves no one",
+    "explanation": "每 5 秒检测一次遮挡，被遮挡时自动熄灯",
+    "explanation_en": "The proximity sensor watches your pocket — the light rests when covered"
   },
   {
+    "key": "tagline.pupil",
     "phrase": "屏幕越亮，脚下越需要光",
-    "explanation": "瞳孔收缩让你看不清暗处——屏幕亮度反向补偿手电筒亮度"
+    "phrase_en": "The brighter your screen, the darker the path beneath",
+    "explanation": "瞳孔收缩让你看不清暗处——屏幕亮度反向补偿手电筒亮度",
+    "explanation_en": "Your pupils tighten for the screen — GloWalk brightens to compensate"
   },
   {
+    "key": "tagline.battery",
     "phrase": "42 分钟。不是电量，是安心",
-    "explanation": "基于当前亮度、步行速度和环境预判的实时剩余照明时间"
+    "phrase_en": "Forty-two minutes. Not a battery reading — peace of mind",
+    "explanation": "基于当前亮度、步行速度和环境预判的实时剩余照明时间",
+    "explanation_en": "A real-time estimate based on brightness, pace, and your surroundings"
   },
   {
+    "key": "tagline.arrival",
     "phrase": "走完这段夜路，让关心你的人知道",
-    "explanation": "到达后生成一张海报分享给朋友，一张图胜过一句'我到了'"
+    "phrase_en": "Finish your night walk — let someone know you're home",
+    "explanation": "到达后生成一张海报分享给朋友，一张图胜过一句'我到了'",
+    "explanation_en": "A single poster says more than a thousand 'I'm home' texts"
   }
 ]

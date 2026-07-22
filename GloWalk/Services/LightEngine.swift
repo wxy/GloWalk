@@ -10,7 +10,6 @@ final class LightEngine: ObservableObject {
 
     private var manualOffset: Double = 0.0
     private var sessionStartTime: Date?
-    private let postureTimer = PostureTimer()
 
     struct FactorDetails {
         var moonPhaseName: String = ""
@@ -128,18 +127,4 @@ struct SensorSnapshot {
     let moonIllumination: Double
     let weather: String?
     let darkAdaptationMinutes: Double
-}
-
-// MARK: - Posture Hysteresis Timer
-
-private final class PostureTimer {
-    private var nonLightingSince: Date?
-    private let threshold: TimeInterval = 2.0
-
-    func checkPosture(pitch: Double, roll: Double) -> Bool {
-        let ok = pitch >= 30 && pitch <= 60 && abs(roll) <= 15
-        if ok { nonLightingSince = nil; return true }
-        if nonLightingSince == nil { nonLightingSince = Date() }
-        return Date().timeIntervalSince(nonLightingSince!) < threshold
-    }
 }

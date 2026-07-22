@@ -6,6 +6,7 @@ final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
     @Published var elapsedDistance: String = "0m"
+    private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
     @Published var batteryPercentage: Int = 100
@@ -14,11 +15,13 @@ final class HUDViewModel: ObservableObject {
     @Published var moonCard: MoonCardData?
     @Published var weatherCard: WeatherCardData?
     @Published var showArrivalSummary: Bool = false
+    @Published var walkCompleted: Bool = false
     @Published var generatedPosterImage: UIImage?
     @Published private(set) var currentWalkSession: WalkSession?
 
     private var activeWalkSeconds: Double = 0
     private var lastDistance: Double = 0
+    private var lastStepCount: Int = 0
 
     let lightEngine = LightEngine()
     let sensorManager = SensorManager()
@@ -49,22 +52,14 @@ final class HUDViewModel: ObservableObject {
 
         locationManager.startRecording(session: currentWalkSession!)
 
-        // Weather fetch — retry up to 5 times with 5s intervals
+        // Weather fetch — retry up to 3 times with 5s intervals
         Task { [weak self] in
-            for i in 0..<5 {
+            for _ in 0..<3 {
                 guard let self = self, self.isActive else { return }
                 try? await Task.sleep(nanoseconds: 5_000_000_000)
                 if let loc = self.locationManager.currentLocation {
-                    print("[GloWalk] Weather attempt \(i+1): location available, fetching...")
                     await self.weatherService.fetch(at: loc)
-                    if let cond = self.weatherService.currentCondition {
-                        print("[GloWalk] Weather fetched: \(cond)")
-                        break
-                    } else {
-                        print("[GloWalk] Weather fetch returned nil")
-                    }
-                } else {
-                    print("[GloWalk] Weather attempt \(i+1): location still nil")
+                    if self.weatherService.currentCondition != nil { break }
                 }
             }
         }
@@ -104,10 +99,13 @@ final class HUDViewModel: ObservableObject {
                 self.stepCount = self.sensorManager.stepCount
                 let dist = self.locationManager.totalDistance
 
-                // Only count walking time when steps or distance are increasing
-                if self.sensorManager.isWalking || dist > self.lastDistance {
+                // Only count walking time & distance when steps increase (ignore GPS drift)
+                let isActuallyMoving = self.stepCount > self.lastStepCount
+                if isActuallyMoving {
                     self.activeWalkSeconds += 1
+                    self.displayDistance = dist  // only update displayed distance when moving
                 }
+                self.lastStepCount = self.stepCount
                 self.lastDistance = dist
                 self.elapsedMinutes = Int(self.activeWalkSeconds / 60)
 
@@ -124,10 +122,11 @@ final class HUDViewModel: ObservableObject {
                 }
 
                 self.updateBatteryEstimate()
-                if dist < 1000 {
-                    self.elapsedDistance = String(format: "%.0fm", dist)
+                let displayDist = self.displayDistance
+                if displayDist < 1000 {
+                    self.elapsedDistance = String(format: "%.0fm", displayDist)
                 } else {
-                    self.elapsedDistance = String(format: "%.1fkm", dist / 1000)
+                    self.elapsedDistance = String(format: "%.1fkm", displayDist / 1000)
                 }
             }
         }
@@ -190,11 +189,16 @@ final class HUDViewModel: ObservableObject {
 
     private func updateBatteryEstimate() {
         UIDevice.current.isBatteryMonitoringEnabled = true
+        let state = UIDevice.current.batteryState
+        // Charging or full → unlimited
+        if state == .charging || state == .full {
+            batteryPercentage = 100
+            estimatedMinutesRemaining = -1  // -1 means unlimited
+            return
+        }
         let level = UIDevice.current.batteryLevel
         if level > 0 {
             batteryPercentage = Int(level * 100)
-            // Base: ~90 min at 100% brightness on typical iPhone (conservative estimate)
-            // Scale inversely with brightness: 50% bright → 2x runtime
             let base = 90.0
             let bf = 1.0 / max(brightness, 0.1)
             let bat = Double(batteryPercentage) / 100.0

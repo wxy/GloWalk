@@ -1,7 +1,7 @@
 import CoreData
 
 @objc(WalkSession)
-public class WalkSession: NSManagedObject {
+public class WalkSession: NSManagedObject, Identifiable {
     @NSManaged public var id: UUID?
     @NSManaged public var startTime: Date?
     @NSManaged public var endTime: Date?

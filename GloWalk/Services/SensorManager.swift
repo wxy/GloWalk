@@ -86,11 +86,8 @@ final class SensorManager: ObservableObject {
     // MARK: - Ambient Light (camera frame sampling)
 
     private func startAmbientLightSampling() {
-        let authStatus = AVCaptureDevice.authorizationStatus(for: .video)
-        print("[GloWalk][Camera] startAmbientLightSampling authStatus=\(authStatus.rawValue) (0=notDetermined 2=denied 3=authorized)")
-        guard authStatus == .authorized else {
+        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
             isManualMode = true
-            print("[GloWalk][Camera] NOT authorized, entering manual mode")
             return
         }
 
@@ -117,11 +114,9 @@ final class SensorManager: ObservableObject {
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
         captureSession = session
-        print("[GloWalk][Camera] Session configured, starting on background thread...")
         let sessionToStart = session
         DispatchQueue.global(qos: .userInitiated).async {
             sessionToStart.startRunning()
-            print("[GloWalk][Camera] Session startRunning() completed")
         }
     }
 
@@ -163,14 +158,11 @@ final class SensorManager: ObservableObject {
             object: nil
         )
         isOccluded = UIDevice.current.proximityState
-        print("[GloWalk][Proximity] initial state: \(isOccluded)")
     }
 
     @objc private func proximityChanged() {
-        let state = UIDevice.current.proximityState
-        print("[GloWalk][Proximity] changed to \(state)")
         Task { @MainActor in
-            self.isOccluded = state
+            self.isOccluded = UIDevice.current.proximityState
         }
     }
 
@@ -196,7 +188,6 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
         callCount += 1
-        if callCount == 1 { print("[GloWalk][Camera] First frame received! count=\(callCount)") }
         // Throttle to ~2 Hz to avoid flooding the main thread
         let now = Date()
         guard now.timeIntervalSince(lastEmitTime) > 0.5 else { return }

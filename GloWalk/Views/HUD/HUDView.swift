@@ -3,15 +3,21 @@ import SwiftUI
 struct HUDView: View {
     @StateObject private var viewModel = HUDViewModel()
     @EnvironmentObject var appState: AppState
+    @State private var showEndConfirm = false
+    @State private var confirmOpacity: Double = 0
+    @State private var countdown: Int = 5
 
     var body: some View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
 
+            // Small moon phase in top-left
+            MoonCornerView()
+
             VStack(spacing: 0) {
                 Spacer()
 
-                // Central glow
+                // Central glow — tap to end
                 GlowCircleView(brightness: viewModel.brightness)
                     .gesture(
                         DragGesture(minimumDistance: 10)
@@ -21,86 +27,44 @@ struct HUDView: View {
                                 viewModel.setManualBrightness(new)
                             }
                     )
-                    .onTapGesture(count: 2) {
-                        viewModel.endWalkAndNotify()
+                    .onTapGesture {
+                        countdown = 5
+                        withAnimation(.easeIn(duration: 0.2)) { confirmOpacity = 1; showEndConfirm = true }
+                        // Countdown timer
+                        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { t in
+                            countdown -= 1
+                            if countdown <= 0 {
+                                t.invalidate()
+                                withAnimation(.easeOut(duration: 0.4)) { confirmOpacity = 0 }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showEndConfirm = false }
+                            }
+                        }
+                    }
+                    .overlay(alignment: .bottom) {
+                        Text("轻点熄灭")
+                            .font(.system(size: 11))
+                            .foregroundColor(.gloGold.opacity(0.5))
+                            .offset(y: 28)
                     }
 
                 Spacer()
 
-                // Info cards
-                VStack(spacing: 8) {
-                    if let moon = viewModel.moonCard {
-                        MoonCardView(data: moon) { viewModel.toggleMoonFactor() }
-                    }
-                    if let weather = viewModel.weatherCard {
-                        WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
-                    }
-                }
-                .padding(.bottom, 4)
-
                 // Occlusion warning
                 if viewModel.isTorchOccluded {
                     HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
-                        Text("闪光灯被遮挡，已自动关闭")
-                            .font(.system(size: 11))
+                        Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 11))
+                        Text("闪光灯被遮挡，已自动关闭").font(.system(size: 11))
                     }
-                    .foregroundColor(.gloAmber)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.gloAmber.opacity(0.1))
-                    )
+                    .foregroundColor(.gloGold)
+                    .padding(.vertical, 4).padding(.horizontal, 12)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
                     .padding(.bottom, 4)
                 }
 
-                // Battery bar
-                Rectangle()
-                    .fill(Color.gloAmber.opacity(0.3))
-                    .frame(width: UIScreen.main.bounds.width * 0.4, height: 2)
-                    .padding(.bottom, 8)
-
-                // Bottom bar
-                HStack {
-                    Text("🦶\(viewModel.stepCount)步 \(viewModel.elapsedDistance) ⏱\(viewModel.elapsedMinutes)min")
-                        .font(.system(size: 12, design: .monospaced))
-                    Spacer()
-                    Text("🔋\(viewModel.estimatedMinutesRemaining)min")
-                        .font(.system(size: 12, design: .monospaced))
-                }
-                .foregroundColor(.gloAmber.opacity(0.6))
-                .padding(.horizontal, 24)
-                .padding(.bottom, 8)
-
-                // End button
-                Button(action: { viewModel.endWalkAndNotify() }) {
-                    Text("结束并通知")
-                        .font(.system(size: 14))
-                        .foregroundColor(.gloAmber)
-                        .padding(.horizontal, 24).padding(.vertical, 8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gloAmber.opacity(0.4), lineWidth: 1)
-                        )
-                }
-                .padding(.bottom, 8)
-
-                // Navigation row
-                HStack(spacing: 32) {
-                    NavigationLink(destination: EmptyView()) {
-                        Image(systemName: "clock.arrow.circlepath")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gloAmber.opacity(0.4))
-                    }
-                    NavigationLink(destination: EmptyView()) {
-                        Image(systemName: "gearshape")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gloAmber.opacity(0.4))
-                    }
-                }
-                .padding(.bottom, 32)
+                // Bottom info bar — compact integrated row
+                bottomInfoBar
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
             }
         }
         .gloWalkHUD()
@@ -110,6 +74,110 @@ struct HUDView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             viewModel.didBecomeActive()
+        }
+        // Custom end confirmation
+        .overlay {
+            if showEndConfirm {
+                endConfirmOverlay
+            }
+        }
+        .fullScreenCover(isPresented: $viewModel.showArrivalSummary) {
+            ArrivalSummaryView(viewModel: viewModel)
+        }
+    }
+
+    // MARK: - Bottom Info Bar
+
+    private var bottomInfoBar: some View {
+        VStack(spacing: 6) {
+            // Moon / Weather cards
+            HStack(spacing: 8) {
+                if let moon = viewModel.moonCard {
+                    MoonCardView(data: moon) { viewModel.toggleMoonFactor() }
+                }
+                if let weather = viewModel.weatherCard {
+                    WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
+                }
+                Spacer()
+            }
+
+            // Battery bar
+            Rectangle()
+                .fill(Color.gloGold.opacity(0.3))
+                .frame(height: 2)
+                .padding(.trailing, 8)
+
+            // Stats row
+            HStack(spacing: 0) {
+                Text("🦶\(viewModel.stepCount)步")
+                Text(" · \(viewModel.elapsedDistance)")
+                Text(" · ⏱\(viewModel.elapsedMinutes)min")
+                Spacer()
+                if viewModel.estimatedMinutesRemaining < 0 {
+                    Text("🔋∞")
+                } else {
+                    Text("🔋\(viewModel.estimatedMinutesRemaining)min")
+                }
+            }
+            .font(.system(size: 12, design: .monospaced))
+            .foregroundColor(.gloGold.opacity(0.55))
+        }
+    }
+
+    // MARK: - End Confirmation Overlay
+
+    private func dismissConfirm() {
+        countdown = 0
+        withAnimation(.easeOut(duration: 0.3)) { confirmOpacity = 0 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showEndConfirm = false }
+    }
+
+    private var endConfirmOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.5 * confirmOpacity).ignoresSafeArea()
+                .onTapGesture { dismissConfirm() }
+
+            VStack(spacing: 24) {
+                Image(systemName: "flashlight.off.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.gloGold)
+
+                Text("确认熄灯")
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundColor(.gloGold)
+
+                Text("结束本次步行\n自动生成夜路足迹海报")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+
+                Text("\(countdown) 秒后自动取消")
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.25))
+
+                Button(action: {
+                    dismissConfirm()
+                    viewModel.endWalkAndNotify()
+                }) {
+                    Text("确认熄灯")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.black)
+                        .frame(width: 180, height: 48)
+                        .background(Color.gloGold)
+                        .cornerRadius(24)
+                }
+                .padding(.top, 4)
+            }
+            .padding(36)
+            .background(
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(Color(white: 0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24)
+                            .stroke(Color.gloGold.opacity(0.15), lineWidth: 0.5)
+                    )
+            )
+            .opacity(confirmOpacity)
         }
     }
 }

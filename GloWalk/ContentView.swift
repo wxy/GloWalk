@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showSplash = true
     @State private var showCameraPrompt = false
     @State private var cameraDone = false
+    @State private var hudID = UUID()
 
     var body: some View {
         Group {
@@ -17,22 +18,29 @@ struct ContentView: View {
                     cameraDone = true
                     showCameraPrompt = false
                 }
+            } else if appState.showHistory {
+                HistoryListView()
             } else if showSplash {
                 SplashView(isQuickLaunch: appState.isQuickLaunch) {
                     showSplash = false
                 }
             } else {
                 HUDView().environmentObject(appState)
+                    .id(hudID)
+                    .onReceive(appState.$resetHUD) { reset in
+                        if reset {
+                            appState.resetHUD = false
+                            appState.showHistory = true
+                            hudID = UUID()
+                        }
+                    }
             }
         }
         .onAppear {
             if hasCompletedOnboarding {
                 let status = AVCaptureDevice.authorizationStatus(for: .video)
-                if status == .notDetermined {
-                    showCameraPrompt = true
-                } else {
-                    cameraDone = true
-                }
+                if status == .notDetermined { showCameraPrompt = true }
+                else { cameraDone = true }
             }
         }
     }
@@ -41,6 +49,8 @@ struct ContentView: View {
 class AppState: ObservableObject {
     @Published var isWalkActive = false
     @Published var isQuickLaunch = false
+    @Published var resetHUD = false
+    @Published var showHistory = false
 }
 
 // MARK: - Camera Permission Explanation
@@ -60,8 +70,7 @@ struct CameraPermissionView: View {
                     .font(.system(size: 14)).foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
                 HStack(spacing: 24) {
-                    Button("拒绝") { onDecision(false) }
-                        .foregroundColor(.white.opacity(0.5))
+                    Button("拒绝") { onDecision(false) }.foregroundColor(.white.opacity(0.5))
                     Button("允许") {
                         Task {
                             _ = await AVCaptureDevice.requestAccess(for: .video)

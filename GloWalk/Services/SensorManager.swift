@@ -114,7 +114,10 @@ final class SensorManager: ObservableObject {
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
         captureSession = session
-        session.startRunning()
+        nonisolated(unsafe) let s = session
+        DispatchQueue.global(qos: .userInitiated).async {
+            s.startRunning()
+        }
     }
 
     // MARK: - Motion

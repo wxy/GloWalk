@@ -2,13 +2,21 @@ import SwiftUI
 
 struct HistoryListView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @AppStorage("language") private var appLanguage: String = "system"
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
+        predicate: NSPredicate(format: "endType != %@", "abandoned"),
         animation: .default
     ) private var sessions: FetchedResults<WalkSession>
     let goToSplash: () -> Void
     @State private var selectedSession: WalkSession?
     @State private var showSettings = false
+
+    private var isZh: Bool {
+        if appLanguage == "en" { return false }
+        if appLanguage == "zh-Hans" { return true }
+        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+    }
 
     var body: some View {
         ZStack {
@@ -53,11 +61,12 @@ struct HistoryListView: View {
                                                 .font(.gloBody(13)).foregroundColor(.white.opacity(0.4))
                                         }
                                         HStack(spacing: 10) {
-                                            Text("🦶\(session.totalSteps)步").font(.gloBody(12))
+                                            Text(isZh ? "🦶\(session.totalSteps)步" : "🦶\(session.totalSteps) steps")
+                                                .font(.gloBody(12))
                                             Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
                                             if let end = session.endTime {
                                                 let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
-                                                Text("⏱\(min)min").font(.gloBody(12))
+                                                Text(isZh ? "⏱\(min)分钟" : "⏱\(min)min").font(.gloBody(12))
                                             }
                                         }
                                         .foregroundColor(.white.opacity(0.4))
@@ -100,8 +109,11 @@ struct HistoryListView: View {
 
             HStack(spacing: 24) {
                 Button(action: { showSettings = true }) {
-                    Label("设置", systemImage: "gearshape")
-                        .font(.gloBody(14)).foregroundColor(.gloGold)
+                    HStack(spacing: 4) {
+                        Image(systemName: "gearshape")
+                        Text(L10n.settingsTitle)
+                    }
+                    .font(.gloBody(14)).foregroundColor(.gloGold)
                 }
                 Button(L10n.historyStartWalk) {
                     goToSplash()

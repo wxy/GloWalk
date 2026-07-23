@@ -26,7 +26,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Resources/Taglines.json,
 			);
 			target = 86D472BF710F30D8FD703936 /* GloWalk */;
 		};

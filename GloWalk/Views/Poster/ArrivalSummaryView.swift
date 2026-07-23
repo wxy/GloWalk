@@ -15,7 +15,7 @@ struct ArrivalSummaryView: View {
             if isGenerating {
                 VStack(spacing: 16) {
                     ProgressView().tint(.gloGold).scaleEffect(1.5)
-                    Text("正在绘制你的夜路足迹...")
+                    Text(L10n.hudDrawing)
                         .font(.gloBody(14)).foregroundColor(.gloGold.opacity(0.6))
                 }
             } else if let poster = posterImage {

@@ -3,20 +3,28 @@ import SwiftUI
 struct HUDView: View {
     @StateObject private var viewModel = HUDViewModel()
     @EnvironmentObject var appState: AppState
+    @AppStorage("language") private var appLanguage: String = "system"
     let goToHistory: () -> Void
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
 
+    /// Effective language considering user preference + system fallback
+    private var isZh: Bool {
+        if appLanguage == "en" { return false }
+        if appLanguage == "zh-Hans" { return true }
+        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+    }
+
     var body: some View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top status row
+                // Top status row — leave room for notch/Dynamic Island
                 topStatusRow
-                    .padding(.top, 8)
+                    .padding(.top, 48)
 
                 Spacer()
 
@@ -35,13 +43,16 @@ struct HUDView: View {
                     .onTapGesture(count: 2) {
                         Haptic.heavy()
                         if viewModel.stepCount == 0 {
-                            // Show brief loading, then navigate
                             isEndingZeroStep = true
                             viewModel.sensorManager.stop()
                             viewModel.locationManager.stopRecording()
                             viewModel.sensorTimer?.invalidate()
+                            // Mark as abandoned rather than deleting — @FetchRequest may
+                            // have already seen the object; marking ensures filter works
                             if let s = viewModel.currentWalkSession {
-                                PersistenceController.shared.container.viewContext.delete(s)
+                                s.endType = "abandoned"
+                                s.endTime = Date()
+                                PersistenceController.shared.save()
                             }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                                 goToHistory()
@@ -65,7 +76,7 @@ struct HUDView: View {
                             .offset(y: 28)
                     }
 
-                // Constellation path — always reserve space
+                // Constellation path — fixed space, no layout jump
                 ConstellationPathView(
                     points: viewModel.pathPoints,
                     heading: viewModel.currentHeading,
@@ -73,20 +84,20 @@ struct HUDView: View {
                 )
                 .frame(height: 100)
                 .padding(.horizontal, 32)
+                .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
 
                 Spacer()
 
-                // Occlusion warning
-                if viewModel.isTorchOccluded {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
-                        Text(L10n.hudOccluded).font(.gloBody(11))
-                    }
-                    .foregroundColor(.gloGold)
-                    .padding(.vertical, 4).padding(.horizontal, 12)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
-                    .padding(.bottom, 4)
+                // Occlusion warning — fixed height to prevent layout shift
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
+                    Text(L10n.hudOccluded).font(.gloBody(11))
                 }
+                .foregroundColor(.gloGold)
+                .padding(.vertical, 4).padding(.horizontal, 12)
+                .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
+                .padding(.bottom, 4)
+                .opacity(viewModel.isTorchOccluded ? 1 : 0)
 
                 // Bottom bar — flush with screen bottom
                 bottomBar
@@ -124,75 +135,67 @@ struct HUDView: View {
 
     // MARK: - Top Status Row
 
+    /// 3×2 grid: left (moon) | center (GPS) | right (weather)
+    /// Side columns share remaining width equally; center is narrow (icons only).
     private var topStatusRow: some View {
         VStack(spacing: 2) {
-            // Row 1: Moon | GPS icon | Weather
-            HStack(alignment: .center, spacing: 0) {
-                cellLeft {
-                    if let moon = viewModel.moonCard {
-                        MoonCardView(data: moon) { viewModel.toggleMoonFactor() }
-                    } else { Spacer().frame(height: 22) }
-                }
-                cellCenter {
-                    HStack(spacing: 3) {
-                        Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-                            .font(.system(size: 10))
-                            .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
-                        if viewModel.gpsActive {
-                            Image(systemName: "location.north.line.fill")
-                                .font(.system(size: 10))
-                                .foregroundColor(.gloGold.opacity(0.5))
-                                .rotationEffect(.degrees(viewModel.currentHeading))
-                        }
+            // Row 1 — moon card · GPS · weather card
+            HStack(alignment: .center, spacing: 4) {
+                MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                gpsIndicator
+                    .frame(width: 36)
+                WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .frame(height: 24)
+
+            // Row 2 — lunar date · place name · gregorian date
+            HStack(alignment: .center, spacing: 4) {
+                Text(viewModel.lunarDateStr)
+                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Group {
+                    if viewModel.placeName.isEmpty {
+                        Text(viewModel.gpsActive ? L10n.hudGPS : L10n.hudGPSUnavailable)
+                    } else {
+                        Text(verbatim: viewModel.placeName)
                     }
                 }
-                cellRight {
-                    if let weather = viewModel.weatherCard {
-                        WeatherCardView(data: weather) { viewModel.toggleWeatherFactor() }
-                    } else { Spacer().frame(height: 22) }
-                }
+                .font(.gloBody(9)).foregroundColor(.white.opacity(0.45))
+                .lineLimit(1)
+                .frame(width: 70)
+                Text(viewModel.gregorianDateStr)
+                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
+                    .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            // Row 2: Lunar date | City | Gregorian date
-            HStack(alignment: .center, spacing: 0) {
-                cellLeft {
-                    Text(viewModel.lunarDateStr)
-                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                }
-                cellCenter {
-                    Text(verbatim: viewModel.placeName.isEmpty
-                         ? (viewModel.gpsActive ? "GPS" : "GPS 不可用")
-                         : viewModel.placeName)
-                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.45))
-                        .lineLimit(1)
-                }
-                cellRight {
-                    Text(viewModel.gregorianDateStr)
-                        .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                }
-            }
+            .frame(height: 14)
         }
         .padding(.horizontal, 12)
         .padding(.top, 6)
     }
 
-    private func cellLeft<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        content().frame(maxWidth: .infinity, alignment: .leading)
-    }
-    private func cellCenter<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        content().frame(maxWidth: .infinity, alignment: .center)
-    }
-    private func cellRight<C: View>(@ViewBuilder _ content: () -> C) -> some View {
-        content().frame(maxWidth: .infinity, alignment: .trailing)
+    private var gpsIndicator: some View {
+        HStack(spacing: 3) {
+            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
+                .font(.system(size: 10))
+                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
+            if viewModel.gpsActive {
+                Image(systemName: "location.north.line.fill")
+                    .font(.system(size: 10))
+                    .foregroundColor(.gloGold.opacity(0.5))
+                    .rotationEffect(.degrees(viewModel.currentHeading))
+            }
+        }
     }
 
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        let zh = Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
-        return HStack(spacing: 0) {
-            Text(zh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
+        HStack(spacing: 0) {
+            Text(isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
             Text(" · \(viewModel.elapsedDistance)")
-            Text(zh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
+            Text(isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
                 Text("🔋∞")
@@ -207,10 +210,10 @@ struct HUDView: View {
             }
         }
         .font(.gloMono(11))
-        .foregroundColor(.gloGold.opacity(0.55))
+        .foregroundColor(.gloGold.opacity(0.55 * viewModel.uiBrightnessBoost))
         .padding(.horizontal, 20)
-        .padding(.bottom, 2)
+        .padding(.bottom, 28)
         .padding(.top, 6)
-        .background(Color.gloBlack)
+        .background(Color.black.opacity(0.6))
     }
 }

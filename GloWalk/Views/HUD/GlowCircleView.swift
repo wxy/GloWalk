@@ -4,38 +4,72 @@ struct GlowCircleView: View {
     let brightness: Double
     let isManual: Bool
 
+    @State private var breathe: Double = 0
+
+    private var warmth: Double { brightness }
+
     var body: some View {
         ZStack {
-            // Farthest glow — very wide, very faint
-            Circle()
-                .fill(Color.gloGold.opacity(0.04 * brightness))
-                .frame(width: 240, height: 240)
-                .blur(radius: 40)
+            // Layer 1: Ambient light field — radial glow
+            RadialGradient(
+                colors: [
+                    Color.gloTorchCore.opacity(0.08 * warmth),
+                    Color.gloGold.opacity(0.03 * warmth),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 15,
+                endRadius: 120
+            )
+            .frame(width: 240, height: 240)
 
-            // Outer glow ring
-            Circle()
-                .fill(Color.gloGold.opacity(0.08 * brightness))
-                .frame(width: 160, height: 160)
-                .blur(radius: 20)
+            // Layer 2: Mid glow
+            RadialGradient(
+                colors: [
+                    Color.gloTorchCore.opacity(0.18 * warmth),
+                    Color.gloGold.opacity(0.06 * warmth),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 5,
+                endRadius: 70
+            )
+            .frame(width: 140, height: 140)
 
-            // Dashed ring
+            // Layer 3: Inner bright core
+            RadialGradient(
+                colors: [
+                    Color.gloTorchCore.opacity(0.35 * warmth),
+                    Color.gloGold.opacity(0.12 * warmth),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: 35
+            )
+            .frame(width: 70, height: 70)
+
+            // Layer 4: Subtle guide ring at the edge of visibility
             Circle()
                 .stroke(
-                    Color.gloGold.opacity(0.35 * brightness),
-                    style: StrokeStyle(lineWidth: 2, dash: [4, 8])
+                    Color.gloGold.opacity(0.2 * warmth),
+                    style: StrokeStyle(lineWidth: 1, dash: [3, 10])
                 )
-                .frame(width: 100, height: 100)
+                .frame(width: 90, height: 90)
 
-            // Inner filled circle
-            Circle()
-                .fill(Color.gloGold.opacity(0.18 * brightness))
-                .frame(width: 60, height: 60)
-
-            // Brightness %
+            // Brightness percentage — clean, centered
             Text("\(Int(brightness * 100))%")
                 .font(.gloDisplay(22))
-                .foregroundColor(isManual ? .white.opacity(0.8) : .gloGold)
+                .fontWeight(.light)
+                .foregroundColor(isManual ? .white : Color.gloTorchCore)
+                .shadow(color: (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth), radius: 12, x: 0, y: 0)
         }
-        .animation(.easeInOut(duration: 0.5), value: brightness)
+        .scaleEffect(0.95 + breathe * 0.05)
+        .opacity(0.85 + breathe * 0.15)
+        .onAppear {
+            withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                breathe = 1
+            }
+        }
     }
 }

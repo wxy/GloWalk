@@ -135,83 +135,27 @@ final class PosterGenerator {
 
     private static func drawConstellationPath(session: WalkSession, size: CGSize,
                                                ctx: UIGraphicsRendererContext) {
-        let points = session.pathPointsArray
-        guard points.count >= 2 else { return }
-
-        // Map GPS coords to poster coordinates, scaled to fit the middle band
-        let lats = points.map(\.latitude); let lons = points.map(\.longitude)
-        guard let minLat = lats.min(), let maxLat = lats.max(),
-              let minLon = lons.min(), let maxLon = lons.max() else { return }
-        let latRange = max(maxLat - minLat, 0.001)
-        let lonRange = max(maxLon - minLon, 0.001)
-
-        // Draw area: middle 30% of the poster, centered
         let pathArea = CGRect(x: 100, y: size.height * 0.22,
                                width: size.width - 200, height: size.height * 0.22)
+        guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
+              session.pathPointsArray.count >= 2 else { return }
 
-        func project(_ p: PathPoint) -> CGPoint {
-            let x = pathArea.origin.x + CGFloat((p.longitude - minLon) / lonRange) * pathArea.width
-            let y = pathArea.origin.y + CGFloat((1.0 - (p.latitude - minLat) / latRange)) * pathArea.height
-            return CGPoint(x: x, y: y)
-        }
-
-        // Draw cubic bezier segments — smooth curves, colored by light level
-        for i in 2..<points.count {
-            let p0 = points[i-2], p1 = points[i-1], p2 = points[i]
-            let pt0 = project(p0), pt1 = project(p1), pt2 = project(p2)
-            let avgLight = (p1.ambientLight + p2.ambientLight) / 2.0
-
-            let lineAlpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
-            let lineWidth  = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
-            let tension: CGFloat = 0.25
-
-            let cp1 = CGPoint(x: pt1.x + (pt2.x - pt0.x) * tension,
-                              y: pt1.y + (pt2.y - pt0.y) * tension)
-            let cp2 = CGPoint(x: pt2.x + (pt1.x - pt2.x) * tension,
-                              y: pt2.y + (pt1.y - pt2.y) * tension)
+        projector.forEachSegment { pt1, pt2, _, _, avgLight in
+            let alpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
+            let width = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
 
             let path = UIBezierPath()
-            path.move(to: pt1)
-            path.addCurve(to: pt2, controlPoint1: cp1, controlPoint2: cp2)
-            path.lineWidth = lineWidth
-            path.lineCapStyle = .round
-
-            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: lineAlpha).setStroke()
-            path.stroke()
-        }
-        // First segment (straight line if only 2 points)
-        if points.count == 2 {
-            let prev = project(points[0]), curr = project(points[1])
-            let path = UIBezierPath(); path.move(to: prev); path.addLine(to: curr)
-            path.lineWidth = 3; path.lineCapStyle = .round
-            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.5).setStroke()
+            path.move(to: pt1); path.addLine(to: pt2)
+            path.lineWidth = width; path.lineCapStyle = .round
+            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: alpha).setStroke()
             path.stroke()
         }
 
         // Start marker
-        if let first = points.first {
-            let p = project(first)
-            let marker = UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12))
-            UIColor.white.setFill(); marker.fill()
-        }
-        // End marker
-        if let last = points.last {
-            let p = project(last)
-            let star = UIBezierPath()
-            let r: CGFloat = 8
-            for i in 0..<5 {
-                let angle = CGFloat(i) * .pi * 2 / 5 - .pi / 2
-                let x = p.x + cos(angle) * r
-                let y = p.y + sin(angle) * r
-                if i == 0 { star.move(to: CGPoint(x: x, y: y)) }
-                else { star.addLine(to: CGPoint(x: x, y: y)) }
-                let innerAngle = angle + .pi / 5
-                star.addLine(to: CGPoint(x: p.x + cos(innerAngle) * r * 0.4,
-                                          y: p.y + sin(innerAngle) * r * 0.4))
-            }
-            star.close()
-            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1).setFill()
-            star.fill()
+        if let p = projector.startPoint() {
+            UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12)).fill()
+            UIColor.white.setFill()
+            UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12)).fill()
         }
     }
 
@@ -219,11 +163,13 @@ final class PosterGenerator {
 
     private static func drawHeader(session: WalkSession, size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
-        let formatter = DateFormatter(); formatter.dateFormat = "M月d日"
-        let dateStr = formatter.string(from: session.wrappedStartTime)
-        let moonCN = moonPhaseDisplayName(session.wrappedMoonPhase)
+        let df = DateFormatter()
+        df.dateFormat = L10n.posterDateFormat
+        df.locale = L10n.isZh ? Locale(identifier: "zh-Hans") : Locale(identifier: "en")
+        let dateStr = df.string(from: session.wrappedStartTime)
+        let moonName = L10n.moonPhaseDisplayName(session.wrappedMoonPhase)
 
-        drawCenteredText("\(dateStr)  \(moonCN)",
+        drawCenteredText("\(dateStr)  \(moonName)",
             font: wenKaiMedium(28),
             color: gold, y: 60, size: size, ctx: ctx)
     }
@@ -238,25 +184,27 @@ final class PosterGenerator {
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
 
-        drawCenteredText("\(session.totalSteps) 步",
+        drawCenteredText("\(session.totalSteps)\(L10n.posterStepsUnit)",
             font: wenKaiLight(72),
             color: gold, y: cardY + 30, size: size, ctx: ctx)
 
         let dist = session.totalDistance
-        let distStr = dist < 1000 ? String(format: "%.0f 米", dist) : String(format: "%.1f 公里", dist/1000)
+        let distStr = dist < 1000
+            ? String(format: "%.0f%@", dist, L10n.posterMetersUnit)
+            : String(format: "%.1f%@", dist / 1000, L10n.posterKmUnit)
         var detail = distStr
         if let end = session.endTime {
-            detail += "  ·  \(Int(end.timeIntervalSince(session.wrappedStartTime) / 60)) 分钟"
+            detail += "  ·  \(Int(end.timeIntervalSince(session.wrappedStartTime) / 60))\(L10n.posterMinutesUnit)"
         }
         drawCenteredText(detail, font: wenKaiRegular(26),
             color: UIColor.white.withAlphaComponent(0.55),
             y: cardY + 120, size: size, ctx: ctx)
 
         let t = Tagline.random()
-        drawCenteredText("\u{201C}\(t.phrase)\u{201D}",
+        drawCenteredText("\u{201C}\(t.localizedPhrase)\u{201D}",
             font: wenKaiMedium(24),
             color: gold, y: cardY + 170, size: size, ctx: ctx)
-        drawCenteredText(t.explanation,
+        drawCenteredText(t.localizedExplanation,
             font: wenKaiRegular(18),
             color: UIColor.white.withAlphaComponent(0.4),
             y: cardY + 210, size: size, ctx: ctx)
@@ -266,7 +214,7 @@ final class PosterGenerator {
 
     private static func drawFooter(session: WalkSession, size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
-        drawCenteredText("踽踽独行，脚下有光 — GloWalk",
+        drawCenteredText(L10n.posterFooter,
             font: wenKaiRegular(16),
             color: UIColor.white.withAlphaComponent(0.2),
             y: size.height - 30, size: size, ctx: ctx)
@@ -294,13 +242,4 @@ final class PosterGenerator {
                                 withAttributes: attrs)
     }
 
-    private static func moonPhaseDisplayName(_ phase: String) -> String {
-        switch phase {
-        case "new_moon": return "新月"; case "waxing_crescent": return "蛾眉月"
-        case "first_quarter": return "上弦月"; case "waxing_gibbous": return "盈凸月"
-        case "full_moon": return "满月"; case "waning_gibbous": return "亏凸月"
-        case "last_quarter": return "下弦月"; case "waning_crescent": return "残月"
-        default: return ""
-        }
-    }
 }

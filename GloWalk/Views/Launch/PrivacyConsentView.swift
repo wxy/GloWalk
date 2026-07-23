@@ -19,21 +19,17 @@ struct PrivacyConsentView: View {
                     .foregroundColor(.white)
 
                 VStack(alignment: .leading, spacing: 16) {
-                    privacyItem("camera.fill",
-                        "摄像头仅用于感知环境光线，不拍照、不录像、不存储画面")
-                    privacyItem("location.fill",
-                        "路径数据只存于你的手机，不会上传到任何服务器")
-                    privacyItem("eye.slash.fill",
-                        "没有广告、没有追踪、没有第三方 SDK")
-                    privacyItem("hand.raised.fill",
-                        "你可以随时在设置中关闭任何权限")
+                    privacyItem("camera.fill", L10n.privacyItem1)
+                    privacyItem("location.fill", L10n.privacyItem2)
+                    privacyItem("eye.slash.fill", L10n.privacyItem3)
+                    privacyItem("hand.raised.fill", L10n.privacyItem4)
                 }
                 .padding(.horizontal, 32)
 
                 Spacer()
 
                 Button(action: { hasCompletedOnboarding = true }) {
-                    Text("开始使用")
+                    Text(L10n.privacyStart)
                         .font(.gloHeadline(17))
                         .foregroundColor(.black)
                         .frame(maxWidth: .infinity)
@@ -47,7 +43,7 @@ struct PrivacyConsentView: View {
         }
     }
 
-    private func privacyItem(_ icon: String, _ text: String) -> some View {
+    private func privacyItem(_ icon: String, _ text: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .foregroundColor(.gloAmber)

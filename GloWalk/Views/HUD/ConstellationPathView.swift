@@ -111,7 +111,7 @@ struct ConstellationPathView: View {
     /// `kind`: 0=owl, 1=fox, 2=cat
     private func drawAnimal(ctx: inout GraphicsContext, at point: CGPoint,
                              angle: CGFloat, kind: Int) {
-        var transform = CGAffineTransform.identity
+        let transform = CGAffineTransform.identity
             .translatedBy(x: point.x, y: point.y)
             .rotated(by: angle)
         let path: Path

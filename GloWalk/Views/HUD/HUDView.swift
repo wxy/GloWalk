@@ -151,10 +151,9 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 3×2 factor grid: 4 auto factors + moon + weather, all toggleable
+    /// 3×2 factor grid: all 6 factors toggleable
     private var topStatusRow: some View {
         VStack(spacing: 3) {
-            // Row 1 — ambient, posture, screen
             HStack(spacing: 4) {
                 ForEach(viewModel.factorCards.prefix(3)) { card in
                     FactorCardView(icon: card.icon, label: card.label,
@@ -163,9 +162,7 @@ struct HUDView: View {
                         viewModel.toggleFactor(id: card.id)
                     }
                 }
-                Spacer()
             }
-            // Row 2 — dark adapt, moon, weather, GPS
             HStack(spacing: 4) {
                 ForEach(viewModel.factorCards.dropFirst(3)) { card in
                     FactorCardView(icon: card.icon, label: card.label,
@@ -176,17 +173,9 @@ struct HUDView: View {
                 }
                 MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
                 WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-                Spacer()
-                gpsIndicator
             }
         }
         .padding(.horizontal, 12)
-    }
-
-    private var gpsIndicator: some View {
-        Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-            .font(.system(size: 10))
-            .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
     }
 
     // MARK: - Bottom Bar
@@ -203,6 +192,10 @@ struct HUDView: View {
                 Text("🔋\(viewModel.estimatedMinutesRemaining)min")
             }
             Spacer()
+            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
+                .font(.system(size: 10))
+                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.6) : .red.opacity(0.35))
+                .padding(.trailing, 6)
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 14))

@@ -76,17 +76,32 @@ final class LightEngine: ObservableObject {
         let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        // Marginal deltas: brightness change if each factor were toggled
-        func delta(neutralWeighted: Double) -> Int {
-            Int(round((base - neutralWeighted / denom) * 100))
+        // Marginal deltas: brightness % change if each factor were toggled.
+        // Each uses its own correct denominator (posture changes it, others don't).
+        func noFactorBrightness(replaceAmbient: Double? = nil,
+                                replacePosture: Double? = nil,
+                                replaceScreen: Double? = nil,
+                                replaceAdapt: Double? = nil,
+                                replaceMoon: Double? = nil,
+                                replaceWeather: Double? = nil) -> Double {
+            let a  = replaceAmbient  ?? ambientSignal
+            let p  = replacePosture  ?? postureSignal
+            let sc = replaceScreen   ?? screenSignal
+            let ad = replaceAdapt    ?? adaptSignal
+            let m  = replaceMoon     ?? moonSignal
+            let w  = replaceWeather  ?? weatherSignal
+            let nw = a * wAmbient + p * wPosture + sc * wScreen
+                   + (1.0 - ad) * wDark + (1.0 - m) * wMoon + (1.0 + w) * wWeather
+            let nd = max(wAmbient + p * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
+            return nw / nd
         }
 
-        let ambDelta  = delta(neutralWeighted: weighted - ambientSignal * wAmbient + 1.0 * wAmbient)
-        let posDelta  = delta(neutralWeighted: weighted - postureSignal * wPosture + 1.0 * wPosture)
-        let scrDelta  = delta(neutralWeighted: weighted - screenSignal * wScreen + 0.0 * wScreen)
-        let darkDelta = delta(neutralWeighted: weighted - (1.0 - adaptSignal) * wDark + 1.0 * wDark)
-        let moonDelta = delta(neutralWeighted: weighted - (1.0 - moonSignal) * wMoon + 1.0 * wMoon)
-        let weathDelta = delta(neutralWeighted: weighted - (1.0 + weatherSignal) * wWeather + 1.0 * wWeather)
+        let ambDelta  = Int(round((base - noFactorBrightness(replaceAmbient: 1.0)) * 100))
+        let posDelta  = Int(round((base - noFactorBrightness(replacePosture: 1.0)) * 100))
+        let scrDelta  = Int(round((base - noFactorBrightness(replaceScreen: 0.0)) * 100))
+        let darkDelta = Int(round((base - noFactorBrightness(replaceAdapt: 0.0)) * 100))
+        let moonDelta = Int(round((base - noFactorBrightness(replaceMoon: 0.0)) * 100))
+        let weathDelta = Int(round((base - noFactorBrightness(replaceWeather: 0.0)) * 100))
 
         updateFactorDetails(sensors: sensors,
                             ambDelta: ambDelta, posDelta: posDelta, scrDelta: scrDelta,

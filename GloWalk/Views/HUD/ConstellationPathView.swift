@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ConstellationPathView: View {
     let points: [PathPoint]
-    let heading: Double
     let isActive: Bool
 
     var body: some View {

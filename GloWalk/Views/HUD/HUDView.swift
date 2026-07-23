@@ -86,7 +86,6 @@ struct HUDView: View {
                 // Constellation path — fixed space, no layout jump
                 ConstellationPathView(
                     points: viewModel.pathPoints,
-                    heading: viewModel.currentHeading,
                     isActive: viewModel.isActive && viewModel.pathPoints.count >= 2
                 )
                 .frame(height: 100)

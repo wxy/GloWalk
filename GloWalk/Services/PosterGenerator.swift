@@ -48,11 +48,6 @@ final class PosterGenerator {
         return img
     }
 
-    /// Convenience: load the moon image for the current moon phase
-    static func currentMoonImage() -> UIImage? {
-        loadMoonImage(phase: MoonPhase.current().phase)
-    }
-
     // MARK: - Sky Background
 
     private static func drawSkyBackground(size: CGSize, ctx: UIGraphicsRendererContext) {

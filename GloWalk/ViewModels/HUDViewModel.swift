@@ -94,120 +94,124 @@ final class HUDViewModel: ObservableObject {
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
         sensorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self, self.isActive else { return }
-            self.sensorTick += 1
-
-            // Cache moon phase — update once per 60 ticks
-            if self.sensorTick - self.lastMoonUpdateTick >= 60 {
-                let moon = MoonPhase.current()
-                self.cachedMoonPhase = (moon.phase, moon.illumination)
-                self.lastMoonUpdateTick = self.sensorTick
+            guard let self = self else { return }
+            MainActor.assumeIsolated {
+                self.tick()
             }
-            let (_, moonIllum) = self.cachedMoonPhase ?? ("full_moon", 0.5)
+        }
+    }
 
-            let snap = SensorSnapshot(
-                ambientLight: self.sensorManager.ambientLightLevel,
-                devicePitch: self.sensorManager.devicePitch,
-                deviceRoll: self.sensorManager.deviceRoll,
-                screenBrightness: UIScreen.main.brightness,
-                isWalking: self.sensorManager.isWalking,
-                moonIllumination: moonIllum,
-                weather: self.weatherService.currentCondition,
-                darkAdaptationMinutes: Date().timeIntervalSince(self.sessionStartTime ?? Date()) / 60.0
-            )
-            // Occlusion detection: turn off torch and flag UI
-            if self.sensorManager.isOccluded && !self.isTorchOccluded {
-                self.isTorchOccluded = true
-                self.sensorManager.setTorchLevel(0)
-            } else if !self.sensorManager.isOccluded && self.isTorchOccluded {
-                self.isTorchOccluded = false
-            }
-            if !self.isTorchOccluded {
-                self.lightEngine.update(sensors: snap)
-                self.brightness = self.lightEngine.targetBrightness
-                self.sensorManager.setTorchLevel(self.brightness)
-            }
-            self.stepCount = self.sensorManager.stepCount
-            let dist = self.locationManager.totalDistance
+    private func tick() {
+        guard isActive else { return }
+        sensorTick += 1
 
-            // Only count walking time & distance when steps increase (ignore GPS drift)
-            let isActuallyMoving = self.stepCount > self.lastStepCount
-            if isActuallyMoving {
-                self.activeWalkSeconds += 1
-                self.displayDistance = dist
-            }
-            self.lastStepCount = self.stepCount
+        // Cache moon phase — update once per 60 ticks
+        if sensorTick - lastMoonUpdateTick >= 60 {
+            let moon = MoonPhase.current()
+            cachedMoonPhase = (moon.phase, moon.illumination)
+            lastMoonUpdateTick = sensorTick
+        }
+        let (_, moonIllum) = cachedMoonPhase ?? ("full_moon", 0.5)
 
-            // Cadence: steps/second over a 3-tick rolling window, smoothed
-            let stepDelta = isActuallyMoving ? 1 : 0
-            self.cadenceDeltas.append(stepDelta)
-            if self.cadenceDeltas.count > 3 { self.cadenceDeltas.removeFirst() }
-            let rawCadence = Double(self.cadenceDeltas.reduce(0, +)) / 3.0
-            self.cadence = self.cadence * 0.7 + rawCadence * 0.3  // exponential smooth
+        let snap = SensorSnapshot(
+            ambientLight: sensorManager.ambientLightLevel,
+            devicePitch: sensorManager.devicePitch,
+            deviceRoll: sensorManager.deviceRoll,
+            screenBrightness: UIScreen.main.brightness,
+            isWalking: sensorManager.isWalking,
+            moonIllumination: moonIllum,
+            weather: weatherService.currentCondition,
+            darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0
+        )
+        if sensorManager.isOccluded && !isTorchOccluded {
+            isTorchOccluded = true
+            sensorManager.setTorchLevel(0)
+        } else if !sensorManager.isOccluded && isTorchOccluded {
+            isTorchOccluded = false
+        }
+        if !isTorchOccluded {
+            lightEngine.update(sensors: snap)
+            brightness = lightEngine.targetBrightness
+            sensorManager.setTorchLevel(brightness)
+        }
+        stepCount = sensorManager.stepCount
+        let dist = locationManager.totalDistance
 
-            self.currentHeading = self.locationManager.currentHeading?.trueHeading ?? 0
-            self.locationManager.externalStepCount = self.stepCount
-            self.locationManager.updateDeadReckoning(
-                stepCount: self.sensorManager.stepCount,
-                heading: self.currentHeading
-            )
-            let ambient = self.sensorManager.ambientLightLevel
-            self.uiBrightnessBoost = 1.0 + ambient * 2.0
-            self.placeName = self.locationManager.placeName ?? ""
-            self.lunarDateStr = LunarDate.display()
-            self.gregorianDateStr = LunarDate.gregorianShort()
-            self.gpsActive = self.locationManager.isRecording &&
-                (self.locationManager.authorizationStatus == .authorizedWhenInUse ||
-                 self.locationManager.authorizationStatus == .authorizedAlways)
-            self.pathPoints = self.currentWalkSession?.pathPointsArray ?? []
-            self.elapsedMinutes = Int(self.activeWalkSeconds / 60)
+        let isActuallyMoving = stepCount > lastStepCount
+        if isActuallyMoving {
+            activeWalkSeconds += 1
+            displayDistance = dist
+        }
+        lastStepCount = stepCount
 
-            let d = self.lightEngine.factorDetails
-            let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
-            self.moonCard = MoonCardData(
-                phaseName: phaseName,
-                brightnessDelta: d.moonDelta,
-                isActive: self.lightEngine.moonFactorActive
-            )
-            let hasWeather = self.weatherService.currentCondition != nil
-            self.weatherCard = WeatherCardData(
-                condition: hasWeather ? d.weatherCondition : "...",
-                brightnessDelta: d.weatherDelta,
-                isActive: hasWeather && self.lightEngine.weatherFactorActive,
-                provider: self.weatherService.provider
-            )
-            // Auto-factor cards
-            self.factorCards = [
-                FactorCardData(id: "ambient", icon: "eye.fill",
-                    label: L10n.isZh ? "环境光" : "Ambient",
-                    brightnessDelta: d.ambientDelta,
-                    isActive: self.lightEngine.ambientFactorActive),
-                FactorCardData(id: "posture", icon: "iphone",
-                    label: L10n.isZh ? "姿态" : "Posture",
-                    brightnessDelta: d.postureDelta,
-                    isActive: self.lightEngine.postureFactorActive),
-                FactorCardData(id: "screen", icon: "sun.max.fill",
-                    label: L10n.isZh ? "屏幕" : "Screen",
-                    brightnessDelta: d.screenDelta,
-                    isActive: self.lightEngine.screenFactorActive),
-                FactorCardData(id: "dark", icon: "moon.zzz.fill",
-                    label: L10n.isZh ? "暗适应" : "Adapt",
-                    brightnessDelta: d.darkDelta,
-                    isActive: self.lightEngine.darkAdaptationActive),
-            ]
+        // Cadence: steps/second over a 3-tick rolling window, smoothed
+        let stepDelta = isActuallyMoving ? 1 : 0
+        cadenceDeltas.append(stepDelta)
+        if cadenceDeltas.count > 3 { cadenceDeltas.removeFirst() }
+        let rawCadence = Double(cadenceDeltas.reduce(0, +)) / 3.0
+        cadence = cadence * 0.7 + rawCadence * 0.3
 
-            self.updateBatteryEstimate()
-            let displayDist = self.displayDistance
-            if displayDist < 1000 {
-                self.elapsedDistance = String(format: "%.0fm", displayDist)
-            } else {
-                self.elapsedDistance = String(format: "%.1fkm", displayDist / 1000)
-            }
+        currentHeading = locationManager.currentHeading?.trueHeading ?? 0
+        locationManager.externalStepCount = stepCount
+        locationManager.updateDeadReckoning(
+            stepCount: sensorManager.stepCount,
+            heading: currentHeading
+        )
+        let ambient = sensorManager.ambientLightLevel
+        uiBrightnessBoost = 1.0 + ambient * 2.0
+        placeName = locationManager.placeName ?? ""
+        lunarDateStr = LunarDate.display()
+        gregorianDateStr = LunarDate.gregorianShort()
+        gpsActive = locationManager.isRecording &&
+            (locationManager.authorizationStatus == .authorizedWhenInUse ||
+             locationManager.authorizationStatus == .authorizedAlways)
+        pathPoints = currentWalkSession?.pathPointsArray ?? []
+        elapsedMinutes = Int(activeWalkSeconds / 60)
 
-            // Batch Core Data saves: every 5 ticks instead of every second
-            if self.sensorTick % 5 == 0 {
-                PersistenceController.shared.save()
-            }
+        let d = lightEngine.factorDetails
+        let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
+        moonCard = MoonCardData(
+            phaseName: phaseName,
+            brightnessDelta: d.moonDelta,
+            isActive: lightEngine.moonFactorActive
+        )
+        let hasWeather = weatherService.currentCondition != nil
+        weatherCard = WeatherCardData(
+            condition: hasWeather ? d.weatherCondition : "...",
+            brightnessDelta: d.weatherDelta,
+            isActive: hasWeather && lightEngine.weatherFactorActive,
+            provider: weatherService.provider
+        )
+        factorCards = [
+            FactorCardData(id: "ambient", icon: "eye.fill",
+                label: L10n.isZh ? "环境光" : "Ambient",
+                brightnessDelta: d.ambientDelta,
+                isActive: lightEngine.ambientFactorActive),
+            FactorCardData(id: "posture", icon: "iphone",
+                label: L10n.isZh ? "姿态" : "Posture",
+                brightnessDelta: d.postureDelta,
+                isActive: lightEngine.postureFactorActive),
+            FactorCardData(id: "screen", icon: "sun.max.fill",
+                label: L10n.isZh ? "屏幕" : "Screen",
+                brightnessDelta: d.screenDelta,
+                isActive: lightEngine.screenFactorActive),
+            FactorCardData(id: "dark", icon: "moon.zzz.fill",
+                label: L10n.isZh ? "暗适应" : "Adapt",
+                brightnessDelta: d.darkDelta,
+                isActive: lightEngine.darkAdaptationActive),
+        ]
+
+        updateBatteryEstimate()
+        let displayDist = displayDistance
+        if displayDist < 1000 {
+            elapsedDistance = String(format: "%.0fm", displayDist)
+        } else {
+            elapsedDistance = String(format: "%.1fkm", displayDist / 1000)
+        }
+
+        // Batch Core Data saves: every 5 ticks instead of every second
+        if sensorTick % 5 == 0 {
+            PersistenceController.shared.save()
         }
     }
 

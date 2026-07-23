@@ -3,8 +3,10 @@ import SwiftUI
 struct GlowCircleView: View {
     let brightness: Double
     let isManual: Bool
+    let cadence: Double  // 0 = still, ~0.7-1.0 = walking
 
     @State private var breathe: Double = 0
+    @State private var stepPhase: Double = 0
 
     private var warmth: Double { brightness }
 
@@ -72,11 +74,19 @@ struct GlowCircleView: View {
                 .foregroundColor(.gloGold.opacity(0.35))
                 .offset(y: 80)
         }
-        .scaleEffect(0.95 + breathe * 0.05)
-        .opacity(0.85 + breathe * 0.15)
+        // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
+        .scaleEffect(0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))
+        .opacity(0.85 + breathe * 0.15 + cadence * 0.04 * sin(stepPhase))
         .onAppear {
             withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
                 breathe = 1
+            }
+        }
+        .onChange(of: cadence) { _ in
+            if cadence > 0.1 {
+                withAnimation(.easeInOut(duration: 0.5 / max(cadence, 0.3)).repeatForever(autoreverses: false)) {
+                    stepPhase += .pi * 2
+                }
             }
         }
     }

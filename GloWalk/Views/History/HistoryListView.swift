@@ -1,8 +1,8 @@
 import SwiftUI
+import Photos
 
 struct HistoryListView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @AppStorage("language") private var appLanguage: String = "system"
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
         predicate: NSPredicate(format: "endType != %@", "abandoned"),
@@ -11,12 +11,6 @@ struct HistoryListView: View {
     let goToSplash: () -> Void
     @State private var selectedSession: WalkSession?
     @State private var showSettings = false
-
-    private var isZh: Bool {
-        if appLanguage == "en" { return false }
-        if appLanguage == "zh-Hans" { return true }
-        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
-    }
 
     var body: some View {
         ZStack {
@@ -61,12 +55,12 @@ struct HistoryListView: View {
                                                 .font(.gloBody(13)).foregroundColor(.white.opacity(0.4))
                                         }
                                         HStack(spacing: 10) {
-                                            Text(isZh ? "🦶\(session.totalSteps)步" : "🦶\(session.totalSteps) steps")
+                                            Text(L10n.isZh ?"🦶\(session.totalSteps)步" : "🦶\(session.totalSteps) steps")
                                                 .font(.gloBody(12))
                                             Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
                                             if let end = session.endTime {
                                                 let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
-                                                Text(isZh ? "⏱\(min)分钟" : "⏱\(min)min").font(.gloBody(12))
+                                                Text(L10n.isZh ?"⏱\(min)分钟" : "⏱\(min)min").font(.gloBody(12))
                                             }
                                         }
                                         .foregroundColor(.white.opacity(0.4))
@@ -148,7 +142,7 @@ struct HistoryPosterView: View {
                 ZStack {
                     Image(uiImage: poster).resizable().scaledToFill().ignoresSafeArea()
                         .gesture(DragGesture(minimumDistance: 40).onEnded { v in
-                            if v.translation.height > 40 || v.translation.width > 40 { dismiss() }
+                            if v.translation.height > 60 { dismiss() }
                         })
                     VStack {
                         Spacer()
@@ -159,8 +153,13 @@ struct HistoryPosterView: View {
                                       label: savedToPhotos ? L10n.posterSaved : L10n.posterSave,
                                       bg: .clear, fg: .gloGold, border: true) {
                                 guard let img = posterImage else { return }
-                                UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
-                                savedToPhotos = true; Haptic.medium()
+                                PHPhotoLibrary.shared().performChanges({
+                                    PHAssetChangeRequest.creationRequestForAsset(from: img)
+                                }) { success, _ in
+                                    DispatchQueue.main.async {
+                                        if success { savedToPhotos = true; Haptic.medium() }
+                                    }
+                                }
                             }
                             HUDButton(icon: "checkmark", label: L10n.posterDone,
                                       bg: .clear, fg: .white.opacity(0.6), border: true) { dismiss() }
@@ -174,11 +173,18 @@ struct HistoryPosterView: View {
             }
         }
         .task {
-            // Load saved poster first (fast path); regenerate only if missing
             if let data = session.posterImageData, let img = UIImage(data: data) {
                 posterImage = img
             } else {
-                do { posterImage = try await PosterGenerator.generate(session: session) }
+                do {
+                    var image = try await PosterGenerator.generate(session: session)
+                    image = image.scaledToMaxDimension(1200)
+                    posterImage = image
+                    if let data = image.jpegData(compressionQuality: 0.85) {
+                        session.posterImageData = data
+                        PersistenceController.shared.save()
+                    }
+                }
                 catch { print("History poster error: \(error)") }
             }
         }

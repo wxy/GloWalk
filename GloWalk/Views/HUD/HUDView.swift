@@ -3,19 +3,11 @@ import SwiftUI
 struct HUDView: View {
     @StateObject private var viewModel = HUDViewModel()
     @EnvironmentObject var appState: AppState
-    @AppStorage("language") private var appLanguage: String = "system"
     let goToHistory: () -> Void
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
-
-    /// Effective language considering user preference + system fallback
-    private var isZh: Bool {
-        if appLanguage == "en" { return false }
-        if appLanguage == "zh-Hans" { return true }
-        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
-    }
 
     var body: some View {
         ZStack {
@@ -43,7 +35,8 @@ struct HUDView: View {
                 Spacer()
 
                 // Central glow — double-tap to end
-                GlowCircleView(brightness: viewModel.brightness, isManual: isManual)
+                GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
+                              cadence: viewModel.cadence)
                     .gesture(
                         DragGesture(minimumDistance: 10)
                             .onChanged { v in
@@ -174,9 +167,9 @@ struct HUDView: View {
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            Text(isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
+            Text(L10n.isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
             Text(" · \(viewModel.elapsedDistance)")
-            Text(isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
+            Text(L10n.isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
                 Text("🔋∞")

@@ -1,4 +1,5 @@
 import SwiftUI
+import Photos
 
 struct ArrivalSummaryView: View {
     @ObservedObject var viewModel: HUDViewModel
@@ -24,7 +25,7 @@ struct ArrivalSummaryView: View {
                         .resizable().scaledToFill()
                         .ignoresSafeArea()
                         .gesture(DragGesture(minimumDistance: 40).onEnded { v in
-                            if v.translation.height > 40 || v.translation.width > 40 {
+                            if v.translation.height > 60 {
                                 viewModel.showArrivalSummary = false
                                 onComplete()
                             }
@@ -62,8 +63,11 @@ struct ArrivalSummaryView: View {
     private func generatePoster() async {
         guard let session = viewModel.currentWalkSession else { isGenerating = false; return }
         do {
-            posterImage = try await PosterGenerator.generate(session: session)
-            if let data = posterImage?.jpegData(compressionQuality: 0.85) {
+            var image = try await PosterGenerator.generate(session: session)
+            // Scale down to max 1200px before storing to save Core Data space
+            image = image.scaledToMaxDimension(1200)
+            posterImage = image
+            if let data = image.jpegData(compressionQuality: 0.85) {
                 session.posterImageData = data; PersistenceController.shared.save()
             }
         } catch { print("Poster error: \(error)") }
@@ -72,8 +76,22 @@ struct ArrivalSummaryView: View {
 
     private func saveToPhotos() {
         guard let image = posterImage else { return }
-        UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-        savedToPhotos = true
-        Haptic.medium()
+        PHPhotoLibrary.shared().performChanges({
+            PHAssetChangeRequest.creationRequestForAsset(from: image)
+        }) { success, _ in
+            DispatchQueue.main.async {
+                if success { self.savedToPhotos = true; Haptic.medium() }
+            }
+        }
+    }
+}
+
+extension UIImage {
+    func scaledToMaxDimension(_ maxDim: CGFloat) -> UIImage {
+        let scale = min(maxDim / size.width, maxDim / size.height, 1.0)
+        guard scale < 1.0 else { return self }
+        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let renderer = UIGraphicsImageRenderer(size: newSize)
+        return renderer.image { _ in self.draw(in: CGRect(origin: .zero, size: newSize)) }
     }
 }

@@ -151,32 +151,34 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 3×2 factor grid: all 6 factors toggleable, evenly distributed
+    /// 3×2 factor grid: all 6 factors toggleable, left-aligned
     private var topStatusRow: some View {
-        VStack(spacing: 3) {
+        VStack(alignment: .leading, spacing: 3) {
             HStack(spacing: 4) {
-                ForEach(viewModel.factorCards.prefix(3)) { card in
-                    FactorCardView(icon: card.icon, label: card.label,
-                                   brightnessDelta: card.brightnessDelta,
-                                   isActive: card.isActive) {
-                        viewModel.toggleFactor(id: card.id)
-                    }
-                    .frame(maxWidth: .infinity)
+                FactorCardView(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="ambient"})?.brightnessDelta ?? 0,
+                               isActive: viewModel.factorCards.first(where: {$0.id=="ambient"})?.isActive ?? true) {
+                    viewModel.toggleFactor(id: "ambient")
+                }
+                FactorCardView(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="posture"})?.brightnessDelta ?? 0,
+                               isActive: viewModel.factorCards.first(where: {$0.id=="posture"})?.isActive ?? true) {
+                    viewModel.toggleFactor(id: "posture")
+                }
+                FactorCardView(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
+                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="screen"})?.brightnessDelta ?? 0,
+                               isActive: viewModel.factorCards.first(where: {$0.id=="screen"})?.isActive ?? true) {
+                    viewModel.toggleFactor(id: "screen")
                 }
             }
             HStack(spacing: 4) {
-                ForEach(viewModel.factorCards.dropFirst(3)) { card in
-                    FactorCardView(icon: card.icon, label: card.label,
-                                   brightnessDelta: card.brightnessDelta,
-                                   isActive: card.isActive) {
-                        viewModel.toggleFactor(id: card.id)
-                    }
-                    .frame(maxWidth: .infinity)
+                FactorCardView(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="dark"})?.brightnessDelta ?? 0,
+                               isActive: viewModel.factorCards.first(where: {$0.id=="dark"})?.isActive ?? true) {
+                    viewModel.toggleFactor(id: "dark")
                 }
                 MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
-                    .frame(maxWidth: .infinity)
                 WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-                    .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, 12)

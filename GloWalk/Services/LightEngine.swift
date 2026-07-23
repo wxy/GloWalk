@@ -76,47 +76,36 @@ final class LightEngine: ObservableObject {
         let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        // Proportional gap attribution: each factor's share of the brightness
-        // deviation from neutral baseline. Shares sum to (neutral - base) × 100%.
-        // Positive = factor pushes brightness up, negative = pushes down.
-        let neutralBase = (1.0 * wAmbient + 1.0 * wPosture + 0.0 * wScreen
-                         + 1.0 * wDark + 1.0 * wMoon + 1.0 * wWeather)
-                        / max(wAmbient + 1.0 * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
-        let gap = neutralBase - base  // positive = factors reduced brightness from neutral
+        // Proportional gap attribution: each factor's share of the gap from
+        // 100% to current brightness. Factors deviate from their "max boost"
+        // state. Shares sum exactly to targetBrightness - 100%.
+        // All deltas are ≤0 (pull brightness down), weather can be 0.
+        let ambShortfall  = (1.0 - ambientSignal) * wAmbient
+        let posShortfall  = (1.0 - postureSignal) * wPosture
+        let scrShortfall  = screenSignal * wScreen
+        let darkShortfall = adaptSignal * wDark
+        let moonShortfall = moonSignal * wMoon
+        let weathShortfall = (0.25 - weatherSignal) * wWeather  // 0.25 = max weather boost
 
-        // Deviation of each factor's contribution from neutral (same units as weighted sum)
-        let ambDev  = (1.0 - ambientSignal) * wAmbient
-        let posDev  = (1.0 - postureSignal) * wPosture
-        let scrDev  = (0.0 - screenSignal)  * wScreen
-        let darkDev = (0.0 - adaptSignal)   * wDark   // neutral adapt=0 (no dimming)
-        let moonDev = (0.0 - moonSignal)    * wMoon   // neutral moon=0 (no dimming)
-        // Actually: neutral = (1.0-0)*wDark = 1.0*wDark, current = (1.0-adapt)*wDark
-        // dev = neutral - current = 1.0*wDark - (1.0-adapt)*wDark = adapt*wDark
-        // Recalculate correctly:
-        let darkDev2 = adaptSignal * wDark
-        let moonDev2 = moonSignal * wMoon
-        let weathDev = weatherSignal * wWeather
+        let totalShortfall = ambShortfall + posShortfall + scrShortfall
+                           + darkShortfall + moonShortfall + weathShortfall
+        let gap = 1.0 - base  // gap from 100%
 
-        let totalDev = abs(ambDev) + abs(posDev) + abs(scrDev)
-                     + abs(darkDev2) + abs(moonDev2) + abs(weathDev)
+        func attr(_ shortfall: Double) -> Int {
+            guard totalShortfall > 0.0001 else { return 0 }
+            return -Int(round(shortfall / totalShortfall * gap * 100))
+        }
 
-        let ambDelta  = gapShare(gap: gap, dev: ambDev,   total: totalDev)
-        let posDelta  = gapShare(gap: gap, dev: posDev,   total: totalDev)
-        let scrDelta  = gapShare(gap: gap, dev: scrDev,   total: totalDev)
-        let darkDelta = gapShare(gap: gap, dev: -darkDev2, total: totalDev)  // negative: dims
-        let moonDelta = gapShare(gap: gap, dev: -moonDev2, total: totalDev)  // negative: dims
-        let weathDelta = gapShare(gap: gap, dev: weathDev, total: totalDev)  // positive: boosts
+        let ambDelta  = attr(ambShortfall)
+        let posDelta  = attr(posShortfall)
+        let scrDelta  = attr(scrShortfall)
+        let darkDelta = attr(darkShortfall)
+        let moonDelta = attr(moonShortfall)
+        let weathDelta = attr(weathShortfall)
 
         updateFactorDetails(sensors: sensors,
                             ambDelta: ambDelta, posDelta: posDelta, scrDelta: scrDelta,
                             darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
-    }
-
-    /// Attribute a share of the brightness gap to one factor.
-    /// Positive = factor boosts brightness; negative = dims.
-    private func gapShare(gap: Double, dev: Double, total: Double) -> Int {
-        guard total > 0.0001 else { return 0 }
-        return Int(round(gap * dev / total * 100))
     }
 
     // MARK: - Posture

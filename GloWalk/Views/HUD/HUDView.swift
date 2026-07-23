@@ -4,6 +4,12 @@ struct HUDView: View {
     @StateObject private var viewModel = HUDViewModel()
     @EnvironmentObject var appState: AppState
     let goToHistory: () -> Void
+
+    /// Moon phase decoration only appears at night (18:00–05:59).
+    private var isNightTime: Bool {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 18 || hour < 6
+    }
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
@@ -16,7 +22,8 @@ struct HUDView: View {
             // Moon phase image — top-left corner, below status row
             VStack {
                 HStack {
-                    if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                    if isNightTime,
+                   let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
                         Image(uiImage: moonImg)
                             .resizable()
                             .aspectRatio(contentMode: .fill)

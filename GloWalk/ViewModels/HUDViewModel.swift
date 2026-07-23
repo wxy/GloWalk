@@ -179,7 +179,7 @@ final class HUDViewModel: ObservableObject {
         weatherCard = WeatherCardData(
             condition: hasWeather ? d.weatherCondition : "...",
             brightnessDelta: d.weatherDelta,
-            isActive: hasWeather && lightEngine.weatherFactorActive,
+            isActive: lightEngine.weatherFactorActive,
             provider: weatherService.provider
         )
         factorCards = [

@@ -3,11 +3,13 @@ import Foundation
 @MainActor
 final class LightEngine: ObservableObject {
     @Published var targetBrightness: Double = 0.7
+    @Published var ambientFactorActive: Bool = true
+    @Published var postureFactorActive: Bool = true
+    @Published var screenFactorActive: Bool = true
+    @Published var darkAdaptationActive: Bool = true
     @Published var moonFactorActive: Bool = true
     @Published var weatherFactorActive: Bool = true
-    @Published var darkAdaptationActive: Bool = false
     @Published var factorDetails = FactorDetails()
-    /// When < 1.0, caps max brightness for low-battery power saving
     @Published var batterySaverCap: Double = 1.0
 
     private var manualOffset: Double = 0.0
@@ -15,11 +17,13 @@ final class LightEngine: ObservableObject {
 
     struct FactorDetails {
         var moonPhaseName: String = ""
-        /// Actual brightness delta if moon factor were toggled off (negative = moon dims)
-        var moonBrightnessDelta: Int = 0
         var weatherCondition: String = ""
-        /// Actual brightness delta if weather factor were toggled off (positive = weather boosts)
-        var weatherBrightnessDelta: Int = 0
+        var ambientDelta: Int = 0
+        var postureDelta: Int = 0
+        var screenDelta: Int = 0
+        var darkDelta: Int = 0
+        var moonDelta: Int = 0
+        var weatherDelta: Int = 0
     }
 
     // MARK: - Signal Weights
@@ -36,22 +40,29 @@ final class LightEngine: ObservableObject {
     func update(sensors: SensorSnapshot) {
         if sessionStartTime == nil { sessionStartTime = Date() }
 
-        let ambientSignal = 1.0 - sensors.ambientLight
-        let postureSignal = postureScore(pitch: sensors.devicePitch, roll: sensors.deviceRoll)
-        let screenSignal = sensors.screenBrightness * 0.5
+        let rawAmbientSignal = 1.0 - sensors.ambientLight
+        let rawPostureSignal = postureScore(pitch: sensors.devicePitch, roll: sensors.deviceRoll)
+        let rawScreenSignal = sensors.screenBrightness * 0.5
         let adaptMinutes = sensors.darkAdaptationMinutes
-        let adaptSignal = min(adaptMinutes / 30.0, 1.0) * 0.3
-        darkAdaptationActive = adaptMinutes > 5.0
+        let rawAdaptSignal = min(adaptMinutes / 30.0, 1.0) * 0.3
 
-        let moonSignal = moonFactorActive ? sensors.moonIllumination * 0.3 : 0.0
-        let weatherSignal: Double = {
-            guard weatherFactorActive, let w = sensors.weather else { return 0 }
+        let rawMoonSignal = sensors.moonIllumination * 0.3
+        let rawWeatherSignal: Double = {
+            guard let w = sensors.weather else { return 0 }
             switch w.lowercased() {
             case "rain", "drizzle", "thunderstorm": return 0.15
             case "snow":                          return 0.25
             default:                              return 0.0
             }
         }()
+
+        // Apply toggles — inactive factors use neutral values
+        let ambientSignal = ambientFactorActive ? rawAmbientSignal : 1.0
+        let postureSignal = postureFactorActive ? rawPostureSignal : 1.0
+        let screenSignal  = screenFactorActive  ? rawScreenSignal  : 0.0
+        let adaptSignal   = darkAdaptationActive ? rawAdaptSignal   : 0.0
+        let moonSignal    = moonFactorActive     ? rawMoonSignal    : 0.0
+        let weatherSignal = weatherFactorActive  ? rawWeatherSignal : 0.0
 
         // Compute base brightness with all active factors
         let weighted = ambientSignal * wAmbient
@@ -65,28 +76,21 @@ final class LightEngine: ObservableObject {
         let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        // Compute marginal contribution of toggleable factors (actual brightness % change)
-        // Moon: what brightness would be if moon factor were off (moonSignal=0)
-        let weightedNoMoon = ambientSignal * wAmbient
-                           + postureSignal * wPosture
-                           + screenSignal * wScreen
-                           + (1.0 - adaptSignal) * wDark
-                           + 1.0 * wMoon  // neutral moon
-                           + (1.0 + weatherSignal) * wWeather
-        let baseNoMoon = weightedNoMoon / denom
-        let moonDelta = Int(round((base - baseNoMoon) * 100))  // negative = moon dims
+        // Marginal deltas: brightness change if each factor were toggled
+        func delta(neutralWeighted: Double) -> Int {
+            Int(round((base - neutralWeighted / denom) * 100))
+        }
 
-        // Weather: what brightness would be if weather factor were off (weatherSignal=0)
-        let weightedNoWeather = ambientSignal * wAmbient
-                              + postureSignal * wPosture
-                              + screenSignal * wScreen
-                              + (1.0 - adaptSignal) * wDark
-                              + (1.0 - moonSignal) * wMoon
-                              + 1.0 * wWeather  // neutral weather
-        let baseNoWeather = weightedNoWeather / denom
-        let weatherDelta = Int(round((base - baseNoWeather) * 100))  // positive = weather boosts
+        let ambDelta  = delta(neutralWeighted: weighted - ambientSignal * wAmbient + 1.0 * wAmbient)
+        let posDelta  = delta(neutralWeighted: weighted - postureSignal * wPosture + 1.0 * wPosture)
+        let scrDelta  = delta(neutralWeighted: weighted - screenSignal * wScreen + 0.0 * wScreen)
+        let darkDelta = delta(neutralWeighted: weighted - (1.0 - adaptSignal) * wDark + 1.0 * wDark)
+        let moonDelta = delta(neutralWeighted: weighted - (1.0 - moonSignal) * wMoon + 1.0 * wMoon)
+        let weathDelta = delta(neutralWeighted: weighted - (1.0 + weatherSignal) * wWeather + 1.0 * wWeather)
 
-        updateFactorDetails(sensors: sensors, moonDelta: moonDelta, weatherDelta: weatherDelta)
+        updateFactorDetails(sensors: sensors,
+                            ambDelta: ambDelta, posDelta: posDelta, scrDelta: scrDelta,
+                            darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
     }
 
     // MARK: - Posture
@@ -103,13 +107,17 @@ final class LightEngine: ObservableObject {
     // MARK: - Factor Details for HUD
 
     private func updateFactorDetails(sensors: SensorSnapshot,
-                                      moonDelta: Int,
-                                      weatherDelta: Int) {
-        factorDetails.moonBrightnessDelta = moonDelta
+                                      ambDelta: Int, posDelta: Int, scrDelta: Int,
+                                      darkDelta: Int, moonDelta: Int, weathDelta: Int) {
+        factorDetails.ambientDelta = ambDelta
+        factorDetails.postureDelta = posDelta
+        factorDetails.screenDelta = scrDelta
+        factorDetails.darkDelta = darkDelta
+        factorDetails.moonDelta = moonDelta
+        factorDetails.weatherDelta = weathDelta
         factorDetails.moonPhaseName = moonName(sensors.moonIllumination)
         if let w = sensors.weather {
             factorDetails.weatherCondition = weatherLabel(w)
-            factorDetails.weatherBrightnessDelta = weatherDelta
         }
     }
 
@@ -121,10 +129,14 @@ final class LightEngine: ObservableObject {
     func setManualOffset(_ offset: Double) { manualOffset = min(max(offset, -0.3), 0.3) }
     func resetManualOffset() { manualOffset = 0.0 }
 
-    // MARK: - Factor Toggles (per-walk)
+    // MARK: - Factor Toggles
 
-    func toggleMoonFactor() { moonFactorActive.toggle() }
-    func toggleWeatherFactor() { weatherFactorActive.toggle() }
+    func toggleAmbientFactor()  { ambientFactorActive.toggle() }
+    func togglePostureFactor()  { postureFactorActive.toggle() }
+    func toggleScreenFactor()   { screenFactorActive.toggle() }
+    func toggleDarkFactor()     { darkAdaptationActive.toggle() }
+    func toggleMoonFactor()     { moonFactorActive.toggle() }
+    func toggleWeatherFactor()  { weatherFactorActive.toggle() }
 
     // MARK: - Safety Fallback
 

@@ -151,16 +151,35 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// Single row: moon card | GPS dot | weather card
+    /// 3×2 factor grid: 4 auto factors + moon + weather, all toggleable
     private var topStatusRow: some View {
-        HStack(alignment: .center, spacing: 4) {
-            MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            gpsIndicator
-            WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-                .frame(maxWidth: .infinity, alignment: .trailing)
+        VStack(spacing: 3) {
+            // Row 1 — ambient, posture, screen
+            HStack(spacing: 4) {
+                ForEach(viewModel.factorCards.prefix(3)) { card in
+                    FactorCardView(icon: card.icon, label: card.label,
+                                   brightnessDelta: card.brightnessDelta,
+                                   isActive: card.isActive) {
+                        viewModel.toggleFactor(id: card.id)
+                    }
+                }
+                Spacer()
+            }
+            // Row 2 — dark adapt, moon, weather, GPS
+            HStack(spacing: 4) {
+                ForEach(viewModel.factorCards.dropFirst(3)) { card in
+                    FactorCardView(icon: card.icon, label: card.label,
+                                   brightnessDelta: card.brightnessDelta,
+                                   isActive: card.isActive) {
+                        viewModel.toggleFactor(id: card.id)
+                    }
+                }
+                MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
+                WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
+                Spacer()
+                gpsIndicator
+            }
         }
-        .frame(height: 24)
         .padding(.horizontal, 12)
     }
 

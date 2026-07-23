@@ -20,6 +20,7 @@ final class HUDViewModel: ObservableObject {
     @Published var placeName: String = ""
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
+    @Published var factorCards: [FactorCardData] = []
     @Published var moonCard: MoonCardData = MoonCardData(
         phaseName: "...", brightnessDelta: 0, isActive: true)
     @Published var weatherCard: WeatherCardData = WeatherCardData(
@@ -165,16 +166,35 @@ final class HUDViewModel: ObservableObject {
             let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
             self.moonCard = MoonCardData(
                 phaseName: phaseName,
-                brightnessDelta: d.moonBrightnessDelta,
+                brightnessDelta: d.moonDelta,
                 isActive: self.lightEngine.moonFactorActive
             )
             let hasWeather = self.weatherService.currentCondition != nil
             self.weatherCard = WeatherCardData(
                 condition: hasWeather ? d.weatherCondition : "...",
-                brightnessDelta: d.weatherBrightnessDelta,
+                brightnessDelta: d.weatherDelta,
                 isActive: hasWeather && self.lightEngine.weatherFactorActive,
                 provider: self.weatherService.provider
             )
+            // Auto-factor cards
+            self.factorCards = [
+                FactorCardData(id: "ambient", icon: "eye.fill",
+                    label: L10n.isZh ? "环境光" : "Ambient",
+                    brightnessDelta: d.ambientDelta,
+                    isActive: self.lightEngine.ambientFactorActive),
+                FactorCardData(id: "posture", icon: "iphone",
+                    label: L10n.isZh ? "姿态" : "Posture",
+                    brightnessDelta: d.postureDelta,
+                    isActive: self.lightEngine.postureFactorActive),
+                FactorCardData(id: "screen", icon: "sun.max.fill",
+                    label: L10n.isZh ? "屏幕" : "Screen",
+                    brightnessDelta: d.screenDelta,
+                    isActive: self.lightEngine.screenFactorActive),
+                FactorCardData(id: "dark", icon: "moon.zzz.fill",
+                    label: L10n.isZh ? "暗适应" : "Adapt",
+                    brightnessDelta: d.darkDelta,
+                    isActive: self.lightEngine.darkAdaptationActive),
+            ]
 
             self.updateBatteryEstimate()
             let displayDist = self.displayDistance
@@ -235,6 +255,17 @@ final class HUDViewModel: ObservableObject {
 
     // MARK: - Toggles
 
+    func toggleFactor(id: String) {
+        switch id {
+        case "ambient": lightEngine.toggleAmbientFactor()
+        case "posture": lightEngine.togglePostureFactor()
+        case "screen":  lightEngine.toggleScreenFactor()
+        case "dark":    lightEngine.toggleDarkFactor()
+        case "moon":    lightEngine.toggleMoonFactor()
+        case "weather": lightEngine.toggleWeatherFactor()
+        default: break
+        }
+    }
     func toggleMoonFactor() { lightEngine.toggleMoonFactor() }
     func toggleWeatherFactor() { lightEngine.toggleWeatherFactor() }
     func setManualBrightness(_ level: Double) {
@@ -293,15 +324,21 @@ final class HUDViewModel: ObservableObject {
 
 struct MoonCardData {
     let phaseName: String
-    /// Actual brightness % change if toggled off (negative = moon dims torch)
     let brightnessDelta: Int
     let isActive: Bool
 }
 
 struct WeatherCardData {
     let condition: String
-    /// Actual brightness % change if toggled off (positive = weather boosts torch)
     let brightnessDelta: Int
     let isActive: Bool
     let provider: WeatherService.Provider
+}
+
+struct FactorCardData: Identifiable {
+    let id: String          // "ambient", "posture", "screen", "dark"
+    let icon: String        // SF Symbol name
+    let label: String       // factor name
+    let brightnessDelta: Int
+    let isActive: Bool
 }

@@ -12,7 +12,7 @@ struct MoonCardView: View {
                 Text(data.phaseName)
                     .font(.gloBody(11))
                     .lineLimit(1).minimumScaleFactor(0.65)
-                Text("\(data.effectPercent)%")
+                Text("\(data.illuminationPercent)%")
                     .font(.gloBody(9))
                     .foregroundColor(.gloAmber)
             }
@@ -35,11 +35,10 @@ struct WeatherCardView: View {
     let data: WeatherCardData
     let onTap: () -> Void
 
-    /// Subtle background tint per provider — barely visible, mainly for dev awareness
     private var providerTint: Color {
         switch data.provider {
-        case .apple:     return Color.gloGold.opacity(0.15)    // warmer gold
-        case .openMeteo: return Color.gloGold.opacity(0.10)    // slightly cooler
+        case .apple:     return Color.gloGold.opacity(0.15)
+        case .openMeteo: return Color.gloGold.opacity(0.10)
         case .none:      return Color.white.opacity(0.05)
         }
     }
@@ -57,9 +56,6 @@ struct WeatherCardView: View {
                 Text(data.condition)
                     .font(.gloBody(11))
                     .lineLimit(1).minimumScaleFactor(0.65)
-                Text(data.effectPercent > 0 ? "+\(data.effectPercent)%" : "\(data.effectPercent)%")
-                    .font(.gloBody(9))
-                    .foregroundColor(.gloAmber)
             }
             .padding(.horizontal, 6).padding(.vertical, 4)
             .background(

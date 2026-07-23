@@ -76,36 +76,47 @@ final class LightEngine: ObservableObject {
         let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        // Marginal deltas: brightness % change if each factor were toggled.
-        // Each uses its own correct denominator (posture changes it, others don't).
-        func noFactorBrightness(replaceAmbient: Double? = nil,
-                                replacePosture: Double? = nil,
-                                replaceScreen: Double? = nil,
-                                replaceAdapt: Double? = nil,
-                                replaceMoon: Double? = nil,
-                                replaceWeather: Double? = nil) -> Double {
-            let a  = replaceAmbient  ?? ambientSignal
-            let p  = replacePosture  ?? postureSignal
-            let sc = replaceScreen   ?? screenSignal
-            let ad = replaceAdapt    ?? adaptSignal
-            let m  = replaceMoon     ?? moonSignal
-            let w  = replaceWeather  ?? weatherSignal
-            let nw = a * wAmbient + p * wPosture + sc * wScreen
-                   + (1.0 - ad) * wDark + (1.0 - m) * wMoon + (1.0 + w) * wWeather
-            let nd = max(wAmbient + p * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
-            return nw / nd
-        }
+        // Proportional gap attribution: each factor's share of the brightness
+        // deviation from neutral baseline. Shares sum to (neutral - base) × 100%.
+        // Positive = factor pushes brightness up, negative = pushes down.
+        let neutralBase = (1.0 * wAmbient + 1.0 * wPosture + 0.0 * wScreen
+                         + 1.0 * wDark + 1.0 * wMoon + 1.0 * wWeather)
+                        / max(wAmbient + 1.0 * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
+        let gap = neutralBase - base  // positive = factors reduced brightness from neutral
 
-        let ambDelta  = Int(round((base - noFactorBrightness(replaceAmbient: 1.0)) * 100))
-        let posDelta  = Int(round((base - noFactorBrightness(replacePosture: 1.0)) * 100))
-        let scrDelta  = Int(round((base - noFactorBrightness(replaceScreen: 0.0)) * 100))
-        let darkDelta = Int(round((base - noFactorBrightness(replaceAdapt: 0.0)) * 100))
-        let moonDelta = Int(round((base - noFactorBrightness(replaceMoon: 0.0)) * 100))
-        let weathDelta = Int(round((base - noFactorBrightness(replaceWeather: 0.0)) * 100))
+        // Deviation of each factor's contribution from neutral (same units as weighted sum)
+        let ambDev  = (1.0 - ambientSignal) * wAmbient
+        let posDev  = (1.0 - postureSignal) * wPosture
+        let scrDev  = (0.0 - screenSignal)  * wScreen
+        let darkDev = (0.0 - adaptSignal)   * wDark   // neutral adapt=0 (no dimming)
+        let moonDev = (0.0 - moonSignal)    * wMoon   // neutral moon=0 (no dimming)
+        // Actually: neutral = (1.0-0)*wDark = 1.0*wDark, current = (1.0-adapt)*wDark
+        // dev = neutral - current = 1.0*wDark - (1.0-adapt)*wDark = adapt*wDark
+        // Recalculate correctly:
+        let darkDev2 = adaptSignal * wDark
+        let moonDev2 = moonSignal * wMoon
+        let weathDev = weatherSignal * wWeather
+
+        let totalDev = abs(ambDev) + abs(posDev) + abs(scrDev)
+                     + abs(darkDev2) + abs(moonDev2) + abs(weathDev)
+
+        let ambDelta  = gapShare(gap: gap, dev: ambDev,   total: totalDev)
+        let posDelta  = gapShare(gap: gap, dev: posDev,   total: totalDev)
+        let scrDelta  = gapShare(gap: gap, dev: scrDev,   total: totalDev)
+        let darkDelta = gapShare(gap: gap, dev: -darkDev2, total: totalDev)  // negative: dims
+        let moonDelta = gapShare(gap: gap, dev: -moonDev2, total: totalDev)  // negative: dims
+        let weathDelta = gapShare(gap: gap, dev: weathDev, total: totalDev)  // positive: boosts
 
         updateFactorDetails(sensors: sensors,
                             ambDelta: ambDelta, posDelta: posDelta, scrDelta: scrDelta,
                             darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
+    }
+
+    /// Attribute a share of the brightness gap to one factor.
+    /// Positive = factor boosts brightness; negative = dims.
+    private func gapShare(gap: Double, dev: Double, total: Double) -> Int {
+        guard total > 0.0001 else { return 0 }
+        return Int(round(gap * dev / total * 100))
     }
 
     // MARK: - Posture

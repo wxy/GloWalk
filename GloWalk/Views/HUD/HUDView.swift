@@ -151,7 +151,7 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 3×2 factor grid: all 6 factors toggleable
+    /// 3×2 factor grid: all 6 factors toggleable, evenly distributed
     private var topStatusRow: some View {
         VStack(spacing: 3) {
             HStack(spacing: 4) {
@@ -161,6 +161,7 @@ struct HUDView: View {
                                    isActive: card.isActive) {
                         viewModel.toggleFactor(id: card.id)
                     }
+                    .frame(maxWidth: .infinity)
                 }
             }
             HStack(spacing: 4) {
@@ -170,9 +171,12 @@ struct HUDView: View {
                                    isActive: card.isActive) {
                         viewModel.toggleFactor(id: card.id)
                     }
+                    .frame(maxWidth: .infinity)
                 }
                 MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
+                    .frame(maxWidth: .infinity)
                 WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
+                    .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, 12)

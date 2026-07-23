@@ -151,37 +151,89 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 3×2 factor grid: all 6 factors toggleable, left-aligned
+    /// 3×2 factor grid: each column = icon+label over delta, aligned
     private var topStatusRow: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 4) {
-                FactorCardView(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
-                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="ambient"})?.brightnessDelta ?? 0,
-                               isActive: viewModel.factorCards.first(where: {$0.id=="ambient"})?.isActive ?? true) {
-                    viewModel.toggleFactor(id: "ambient")
-                }
-                FactorCardView(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
-                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="posture"})?.brightnessDelta ?? 0,
-                               isActive: viewModel.factorCards.first(where: {$0.id=="posture"})?.isActive ?? true) {
-                    viewModel.toggleFactor(id: "posture")
-                }
-                FactorCardView(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
-                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="screen"})?.brightnessDelta ?? 0,
-                               isActive: viewModel.factorCards.first(where: {$0.id=="screen"})?.isActive ?? true) {
-                    viewModel.toggleFactor(id: "screen")
-                }
-            }
-            HStack(spacing: 4) {
-                FactorCardView(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
-                               brightnessDelta: viewModel.factorCards.first(where: {$0.id=="dark"})?.brightnessDelta ?? 0,
-                               isActive: viewModel.factorCards.first(where: {$0.id=="dark"})?.isActive ?? true) {
-                    viewModel.toggleFactor(id: "dark")
-                }
-                MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
-                WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-            }
+        VStack(spacing: 6) {
+            factorRow(
+                FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                           delta: ambDelta, active: ambActive, id: "ambient"),
+                FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                           delta: posDelta, active: posActive, id: "posture"),
+                FactorCell(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
+                           delta: scrDelta, active: scrActive, id: "screen")
+            )
+            factorRow(
+                FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                           delta: darkDelta, active: darkActive, id: "dark"),
+                FactorCell(icon: "moon.fill", label: moonLabel,
+                           delta: moonDelta, active: moonActive, id: "moon"),
+                FactorCell(icon: "cloud.fill", label: weatherLabel,
+                           delta: weatherDelta, active: weatherActive, id: "weather")
+            )
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 16)
+    }
+
+    private func factorRow(_ c1: FactorCell, _ c2: FactorCell, _ c3: FactorCell) -> some View {
+        HStack(spacing: 0) {
+            factorCol(c1)
+            factorCol(c2)
+            factorCol(c3)
+        }
+    }
+
+    private func factorCol(_ cell: FactorCell) -> some View {
+        Button(action: { viewModel.toggleFactor(id: cell.id) }) {
+            VStack(spacing: 1) {
+                HStack(spacing: 2) {
+                    Image(systemName: cell.icon)
+                        .font(.system(size: 9))
+                    Text(cell.label)
+                        .font(.system(size: 9))
+                        .lineLimit(1)
+                }
+                .foregroundColor(cell.active ? .white : .white.opacity(0.3))
+                Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(0.25))
+            }
+            .padding(.vertical, 3)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(cell.active ? Color.gloAmber.opacity(0.08) : Color.white.opacity(0.02))
+            )
+        }
+        .buttonStyle(.plain)
+        .opacity(cell.active ? 0.85 : 0.4)
+    }
+
+    private struct FactorCell {
+        let icon: String; let label: String; let delta: Int
+        let active: Bool; let id: String
+    }
+
+    // Convenience accessors for factor card data
+    private var ambDelta: Int { factorDelta("ambient") }
+    private var posDelta: Int { factorDelta("posture") }
+    private var scrDelta: Int { factorDelta("screen") }
+    private var darkDelta: Int { factorDelta("dark") }
+    private var ambActive: Bool { factorActive("ambient") }
+    private var posActive: Bool { factorActive("posture") }
+    private var scrActive: Bool { factorActive("screen") }
+    private var darkActive: Bool { factorActive("dark") }
+    private var moonDelta: Int { viewModel.moonCard.brightnessDelta }
+    private var moonActive: Bool { viewModel.moonCard.isActive }
+    private var moonLabel: String { viewModel.moonCard.phaseName }
+    private var weatherDelta: Int { viewModel.weatherCard.brightnessDelta }
+    private var weatherActive: Bool { viewModel.weatherCard.isActive }
+    private var weatherLabel: String { viewModel.weatherCard.condition }
+
+    private func factorDelta(_ id: String) -> Int {
+        viewModel.factorCards.first(where: { $0.id == id })?.brightnessDelta ?? 0
+    }
+    private func factorActive(_ id: String) -> Bool {
+        viewModel.factorCards.first(where: { $0.id == id })?.isActive ?? true
     }
 
     // MARK: - Bottom Bar

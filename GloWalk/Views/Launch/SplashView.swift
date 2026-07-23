@@ -12,8 +12,11 @@ struct SplashView: View {
             Color.gloBlackCard.ignoresSafeArea()
 
             VStack(spacing: 16) {
-                Text("🏮")
-                    .font(.system(size: 44))
+                Image("AppLogo")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 88, height: 88)
+                    .cornerRadius(22)
 
                 Text(tagline.localizedPhrase)
                     .font(.gloHeadline(17))

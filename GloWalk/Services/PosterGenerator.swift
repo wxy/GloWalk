@@ -11,18 +11,18 @@ final class PosterGenerator {
         let renderer = UIGraphicsImageRenderer(size: size)
         let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
 
-        // Load moon phase image
+        // Load moon phase image for corner decoration
         let moonImage = loadMoonImage(phase: session.wrappedMoonPhase)
 
         return renderer.image { ctx in
             // Night sky background
             drawSkyBackground(size: size, ctx: ctx)
 
-            // NASA moon image centered
-            drawMoonImage(moonImage, size: size, ctx: ctx)
+            // Centered app icon watermark — brand identity
+            drawAppIconWatermark(size: size, ctx: ctx)
 
-            // Semi-transparent tint overlay
-            drawMoonOverlay(size: size, ctx: ctx)
+            // Moon phase image in top-right corner — tonight's actual moon
+            drawMoonCorner(moonImage, size: size, ctx: ctx)
 
             // Constellation path overlay
             drawConstellationPath(session: session, size: size, ctx: ctx)
@@ -56,9 +56,10 @@ final class PosterGenerator {
     // MARK: - Sky Background
 
     private static func drawSkyBackground(size: CGSize, ctx: UIGraphicsRendererContext) {
+        // Pure black gradient — blends seamlessly with app icon background
         let colors = [
-            UIColor(red: 0.04, green: 0.04, blue: 0.12, alpha: 1).cgColor,
-            UIColor(red: 0.01, green: 0.01, blue: 0.04, alpha: 1).cgColor
+            UIColor(red: 0.02, green: 0.02, blue: 0.02, alpha: 1).cgColor,
+            UIColor.black.cgColor
         ] as CFArray
         let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(),
                            colors: colors, locations: [0, 1])!
@@ -75,60 +76,51 @@ final class PosterGenerator {
         }
     }
 
-    // MARK: - Moon Image + Overlay
+    // MARK: - App Icon Watermark (centered, subtle)
 
-    private static func drawMoonImage(_ image: UIImage?, size: CGSize,
-                                       ctx: UIGraphicsRendererContext) {
-        guard let img = image else { return }
+    private static func drawAppIconWatermark(size: CGSize, ctx: UIGraphicsRendererContext) {
+        guard let icon = UIImage(named: "AppLogo") else { return }
 
-        // Remove near-black background from NASA image, keeping moon surface details
-        let processedImg = removeBlackBackground(img)
+        let iconDim = min(size.width, size.height) * 0.22
+        let iconRect = CGRect(
+            x: (size.width - iconDim) / 2,
+            y: size.height * 0.30 - iconDim / 2,
+            width: iconDim,
+            height: iconDim
+        )
 
-        let moonSize: CGFloat = size.height * 0.85
-        let offsetX: CGFloat = -moonSize * 0.35
-        let offsetY: CGFloat = -moonSize * 0.35
-        let moonRect = CGRect(x: offsetX, y: offsetY,
-                              width: moonSize, height: moonSize)
-
+        // Rounded rect clip matching iOS icon proportions
+        let cornerRadius = iconDim * 0.225
+        let clipPath = UIBezierPath(roundedRect: iconRect, cornerRadius: cornerRadius)
         ctx.cgContext.saveGState()
-        ctx.cgContext.setAlpha(0.55)
-        processedImg.draw(in: moonRect)
+        clipPath.addClip()
+        ctx.cgContext.setAlpha(0.12)
+        icon.draw(in: iconRect)
         ctx.cgContext.restoreGState()
     }
 
-    /// Makes near-black pixels transparent (space background) while
-    /// preserving the moon's dark surface features (maria).
-    private static func removeBlackBackground(_ image: UIImage) -> UIImage {
-        guard let cgImage = image.cgImage else { return image }
-        let width = cgImage.width, height = cgImage.height
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bytesPerPixel = 4
-        let bytesPerRow = bytesPerPixel * width
-        var pixels = [UInt8](repeating: 0, count: height * bytesPerRow)
+    // MARK: - Moon Phase Corner Decoration
 
-        guard let ctx = CGContext(data: &pixels, width: width, height: height,
-                                   bitsPerComponent: 8, bytesPerRow: bytesPerRow,
-                                   space: colorSpace,
-                                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else {
-            return image
-        }
-        ctx.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+    private static func drawMoonCorner(_ image: UIImage?, size: CGSize,
+                                        ctx: UIGraphicsRendererContext) {
+        guard let img = image else { return }
 
-        // Threshold: RGB all < 25 → space black → make transparent
-        // Moon's dark areas are usually > 30-40 in at least one channel
-        for i in stride(from: 0, to: pixels.count, by: 4) {
-            let r = Int(pixels[i]), g = Int(pixels[i+1]), b = Int(pixels[i+2])
-            if r < 25 && g < 25 && b < 25 {
-                pixels[i+3] = 0  // alpha = 0 (transparent)
-            }
-        }
+        let moonDim: CGFloat = 60
+        let padding: CGFloat = 16
+        let moonRect = CGRect(
+            x: padding,
+            y: 100,
+            width: moonDim,
+            height: moonDim
+        )
 
-        guard let newCG = ctx.makeImage() else { return image }
-        return UIImage(cgImage: newCG)
-    }
-
-    private static func drawMoonOverlay(size: CGSize, ctx: UIGraphicsRendererContext) {
-        // No overlay needed — moon blends naturally into night sky
+        // Circular clip only — no ring
+        let clipPath = UIBezierPath(ovalIn: moonRect)
+        ctx.cgContext.saveGState()
+        clipPath.addClip()
+        ctx.cgContext.setAlpha(0.40)
+        img.draw(in: moonRect)
+        ctx.cgContext.restoreGState()
     }
 
     // MARK: - Constellation Path
@@ -151,12 +143,59 @@ final class PosterGenerator {
             path.stroke()
         }
 
-        // Start marker
+        let pts = session.pathPointsArray
+        // Start — left footprint
         if let p = projector.startPoint() {
-            UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12)).fill()
-            UIColor.white.setFill()
-            UIBezierPath(ovalIn: CGRect(x: p.x-6, y: p.y-6, width: 12, height: 12)).fill()
+            let dir = atan2(projector.project(pts[1]).y - projector.project(pts[0]).y,
+                            projector.project(pts[1]).x - projector.project(pts[0]).x)
+            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: true,
+                                scale: 1.5, ctx: ctx)
         }
+
+        // End — right footprint with glow
+        if let p = projector.endPoint(), pts.count >= 2 {
+            let dir = atan2(projector.project(pts[pts.count - 1]).y - projector.project(pts[pts.count - 2]).y,
+                            projector.project(pts[pts.count - 1]).x - projector.project(pts[pts.count - 2]).x)
+            // Glow aura
+            UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.18).setFill()
+            UIBezierPath(ovalIn: CGRect(x: p.x - 12, y: p.y - 12, width: 24, height: 24)).fill()
+            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: false,
+                                scale: 1.5, ctx: ctx)
+        }
+    }
+
+    /// Draw a single footprint silhouette at `point`, rotated by `angle` radians.
+    /// Scale is relative to the base 13pt size.
+    private static func drawFootprintMarker(at point: CGPoint, angle: CGFloat,
+                                             isLeft: Bool, scale: CGFloat,
+                                             ctx: UIGraphicsRendererContext) {
+        ctx.cgContext.saveGState()
+        ctx.cgContext.translateBy(x: point.x, y: point.y)
+        ctx.cgContext.rotate(by: angle)
+        if !isLeft { ctx.cgContext.scaleBy(x: -1, y: 1) }
+
+        let s = scale
+        let w: CGFloat = 4.5 * s
+        let heelW: CGFloat = 2.5 * s
+        let len: CGFloat = 13 * s
+
+        let fp = UIBezierPath()
+        fp.move(to: CGPoint(x: -heelW, y: 2 * s))
+        fp.addQuadCurve(to: CGPoint(x: heelW, y: 2 * s),
+                        controlPoint: CGPoint(x: 0, y: -1 * s))
+        fp.addCurve(to: CGPoint(x: w, y: -len/2),
+                    controlPoint1: CGPoint(x: heelW + 2 * s, y: -2 * s),
+                    controlPoint2: CGPoint(x: w, y: -len/2 + 3 * s))
+        fp.addQuadCurve(to: CGPoint(x: -w, y: -len/2),
+                        controlPoint: CGPoint(x: 0, y: -len/2 - 3 * s))
+        fp.addCurve(to: CGPoint(x: -heelW, y: 2 * s),
+                    controlPoint1: CGPoint(x: -w, y: -len/2 + 3 * s),
+                    controlPoint2: CGPoint(x: -(heelW + 2 * s), y: -2 * s))
+        fp.close()
+        UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.65).setFill()
+        fp.fill()
+
+        ctx.cgContext.restoreGState()
     }
 
     // MARK: - Header
@@ -179,7 +218,7 @@ final class PosterGenerator {
     private static func drawStats(session: WalkSession, size: CGSize,
                                    gold: UIColor, ctx: UIGraphicsRendererContext) {
         let cardY = size.height * 0.48
-        let cardH: CGFloat = 300
+        let cardH: CGFloat = 360
         let cardRect = CGRect(x: 80, y: cardY, width: size.width - 160, height: cardH)
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
@@ -203,11 +242,11 @@ final class PosterGenerator {
         let t = Tagline.random()
         drawCenteredText("\u{201C}\(t.localizedPhrase)\u{201D}",
             font: wenKaiMedium(24),
-            color: gold, y: cardY + 170, size: size, ctx: ctx)
+            color: gold, y: cardY + 185, size: size, ctx: ctx)
         drawCenteredText(t.localizedExplanation,
             font: wenKaiRegular(18),
             color: UIColor.white.withAlphaComponent(0.4),
-            y: cardY + 210, size: size, ctx: ctx)
+            y: cardY + 265, size: size, ctx: ctx)
     }
 
     // MARK: - Footer

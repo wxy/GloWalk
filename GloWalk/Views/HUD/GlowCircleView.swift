@@ -8,61 +8,69 @@ struct GlowCircleView: View {
 
     private var warmth: Double { brightness }
 
+    /// Icon opacity scales with brightness:
+    /// dim torch → ghost outline; full torch → clearly visible brand mark.
+    private var iconOpacity: Double { 0.20 + warmth * 0.70 }
+
     var body: some View {
         ZStack {
-            // Layer 1: Ambient light field — radial glow
+            // Layer 0: App icon — the central visual element.
+            // The icon already has a grainy glow texture, so it replaces
+            // the inner core glow and serves as the lantern itself.
+            Image(uiImage: UIImage(named: "AppLogo") ?? UIImage())
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 90, height: 90)
+                .cornerRadius(20)
+                .opacity(iconOpacity)
+
+            // Layer 1: Ambient halo — wide soft glow behind the icon
             RadialGradient(
                 colors: [
-                    Color.gloTorchCore.opacity(0.08 * warmth),
-                    Color.gloGold.opacity(0.03 * warmth),
+                    Color.gloTorchCore.opacity(0.06 * warmth),
+                    Color.gloGold.opacity(0.02 * warmth),
                     .clear
                 ],
                 center: .center,
-                startRadius: 15,
+                startRadius: 30,
                 endRadius: 120
             )
             .frame(width: 240, height: 240)
 
-            // Layer 2: Mid glow
+            // Layer 2: Mid halo — warm aura around the icon
             RadialGradient(
                 colors: [
-                    Color.gloTorchCore.opacity(0.18 * warmth),
-                    Color.gloGold.opacity(0.06 * warmth),
+                    Color.gloTorchCore.opacity(0.14 * warmth),
+                    Color.gloGold.opacity(0.05 * warmth),
                     .clear
                 ],
                 center: .center,
-                startRadius: 5,
-                endRadius: 70
+                startRadius: 20,
+                endRadius: 80
             )
-            .frame(width: 140, height: 140)
+            .frame(width: 160, height: 160)
 
-            // Layer 3: Inner bright core
-            RadialGradient(
-                colors: [
-                    Color.gloTorchCore.opacity(0.35 * warmth),
-                    Color.gloGold.opacity(0.12 * warmth),
-                    .clear
-                ],
-                center: .center,
-                startRadius: 0,
-                endRadius: 35
-            )
-            .frame(width: 70, height: 70)
-
-            // Layer 4: Subtle guide ring at the edge of visibility
+            // Layer 3: Guide ring — subtle boundary at the edge of glow
             Circle()
                 .stroke(
-                    Color.gloGold.opacity(0.2 * warmth),
+                    Color.gloGold.opacity(0.18 * warmth),
                     style: StrokeStyle(lineWidth: 1, dash: [3, 10])
                 )
-                .frame(width: 90, height: 90)
+                .frame(width: 100, height: 100)
 
-            // Brightness percentage — clean, centered
+            // Brightness percentage — positioned well below the icon
             Text("\(Int(brightness * 100))%")
                 .font(.gloDisplay(22))
                 .fontWeight(.light)
                 .foregroundColor(isManual ? .white : Color.gloTorchCore)
                 .shadow(color: (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth), radius: 12, x: 0, y: 0)
+                .offset(y: 55)
+
+            // "Double tap to end" hint — breathes with the glow
+            Text(L10n.hudDoubleTapToEnd)
+                .font(.gloHeadline(11))
+                .foregroundColor(.gloGold.opacity(0.35))
+                .offset(y: 80)
         }
         .scaleEffect(0.95 + breathe * 0.05)
         .opacity(0.85 + breathe * 0.15)

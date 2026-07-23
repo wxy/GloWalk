@@ -174,8 +174,13 @@ struct HistoryPosterView: View {
             }
         }
         .task {
-            do { posterImage = try await PosterGenerator.generate(session: session) }
-            catch { print("History poster error: \(error)") }
+            // Load saved poster first (fast path); regenerate only if missing
+            if let data = session.posterImageData, let img = UIImage(data: data) {
+                posterImage = img
+            } else {
+                do { posterImage = try await PosterGenerator.generate(session: session) }
+                catch { print("History poster error: \(error)") }
+            }
         }
     }
 }

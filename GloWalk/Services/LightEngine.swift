@@ -54,7 +54,7 @@ final class LightEngine: ObservableObject {
                      + screenSignal * wScreen
                      + (1.0 - adaptSignal) * wDark
                      + (1.0 - moonSignal) * wMoon
-                     + (1.0 - weatherSignal) * wWeather
+                     + (1.0 + weatherSignal) * wWeather
 
         let base = weighted / max(
             wAmbient + postureSignal * wPosture + wScreen + wDark + wMoon + wWeather, 0.01
@@ -84,7 +84,7 @@ final class LightEngine: ObservableObject {
         factorDetails.moonPhaseName = moonName(sensors.moonIllumination)
         if let w = sensors.weather {
             factorDetails.weatherCondition = weatherLabel(w)
-            factorDetails.weatherEffectPercent = Int(round(-weatherSignal * 100))
+            factorDetails.weatherEffectPercent = Int(round(weatherSignal * 100))
         }
     }
 

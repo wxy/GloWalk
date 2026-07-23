@@ -28,6 +28,8 @@ final class HUDViewModel: ObservableObject {
     @Published var walkCompleted: Bool = false
     @Published var generatedPosterImage: UIImage?
     @Published private(set) var currentWalkSession: WalkSession?
+    /// Current moon phase image filename (e.g. "full_moon") for corner decoration
+    @Published var currentMoonPhaseName: String = "full_moon"
 
     private var activeWalkSeconds: Double = 0
     private var lastDistance: Double = 0
@@ -50,10 +52,14 @@ final class HUDViewModel: ObservableObject {
         isActive = true
         sessionStartTime = Date()
 
+        // Prevent screen sleep and auto-dim during walk
+        UIApplication.shared.isIdleTimerDisabled = true
+
         sensorManager.start()
 
         let context = PersistenceController.shared.container.viewContext
         let moon = MoonPhase.current()
+        currentMoonPhaseName = moon.phase
         currentWalkSession = WalkSession.create(
             in: context, moonPhase: moon.phase,
             weatherCondition: weatherService.currentCondition
@@ -165,6 +171,7 @@ final class HUDViewModel: ObservableObject {
 
     func endWalkAndNotify() {
         isActive = false
+        UIApplication.shared.isIdleTimerDisabled = false
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
@@ -189,6 +196,7 @@ final class HUDViewModel: ObservableObject {
 
     func endWalkAbruptly() {
         isActive = false
+        UIApplication.shared.isIdleTimerDisabled = false
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
@@ -213,11 +221,13 @@ final class HUDViewModel: ObservableObject {
     var enteredBackground = false
     func willResignActive() {
         enteredBackground = true
+        UIApplication.shared.isIdleTimerDisabled = false
         lightEngine.enterSafetyFallback()
         sensorManager.setTorchLevel(1.0)
     }
     func didBecomeActive() {
         enteredBackground = false
+        UIApplication.shared.isIdleTimerDisabled = true
         brightness = lightEngine.targetBrightness
     }
 

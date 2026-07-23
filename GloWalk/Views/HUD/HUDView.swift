@@ -21,11 +21,25 @@ struct HUDView: View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Top status row — leave room for notch/Dynamic Island
-                topStatusRow
-                    .padding(.top, 48)
+            // Moon phase image — top-left corner, below status row
+            VStack {
+                HStack {
+                    if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                        Image(uiImage: moonImg)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                            .padding(.leading, 12)
+                            .padding(.top, 48)
+                    }
+                    Spacer()
+                }
+                Spacer()
+            }
 
+            VStack(spacing: 0) {
                 Spacer()
 
                 // Central glow — double-tap to end
@@ -69,13 +83,6 @@ struct HUDView: View {
                             viewModel.resetToAutoBrightness()
                         }
                     }
-                    .overlay(alignment: .bottom) {
-                        Text(L10n.hudDoubleTapToEnd)
-                            .font(.gloHeadline(11))
-                            .foregroundColor(.gloGold.opacity(0.4))
-                            .offset(y: 28)
-                    }
-
                 // Constellation path — fixed space, no layout jump
                 ConstellationPathView(
                     points: viewModel.pathPoints,
@@ -86,9 +93,9 @@ struct HUDView: View {
                 .padding(.horizontal, 32)
                 .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
 
-                Spacer()
+                Spacer().frame(height: 12)
 
-                // Occlusion warning — fixed height to prevent layout shift
+                // Occlusion warning — above the status row, not between cards and bar
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
                     Text(L10n.hudOccluded).font(.gloBody(11))
@@ -96,8 +103,18 @@ struct HUDView: View {
                 .foregroundColor(.gloGold)
                 .padding(.vertical, 4).padding(.horizontal, 12)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
                 .opacity(viewModel.isTorchOccluded ? 1 : 0)
+
+                // Status row + bottom bar — tight grouping
+                topStatusRow
+
+                // Thin divider
+                Rectangle()
+                    .fill(Color.gloGold.opacity(0.10))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 4)
 
                 // Bottom bar — flush with screen bottom
                 bottomBar
@@ -133,60 +150,25 @@ struct HUDView: View {
         }
     }
 
-    // MARK: - Top Status Row
+    // MARK: - Status Row
 
-    /// 3×2 grid: left (moon) | center (GPS) | right (weather)
-    /// Side columns share remaining width equally; center is narrow (icons only).
+    /// Single row: moon card | GPS dot | weather card
     private var topStatusRow: some View {
-        VStack(spacing: 2) {
-            // Row 1 — moon card · GPS · weather card
-            HStack(alignment: .center, spacing: 4) {
-                MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                gpsIndicator
-                    .frame(width: 36)
-                WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .frame(height: 24)
-
-            // Row 2 — lunar date · place name · gregorian date
-            HStack(alignment: .center, spacing: 4) {
-                Text(viewModel.lunarDateStr)
-                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Group {
-                    if viewModel.placeName.isEmpty {
-                        Text(viewModel.gpsActive ? L10n.hudGPS : L10n.hudGPSUnavailable)
-                    } else {
-                        Text(verbatim: viewModel.placeName)
-                    }
-                }
-                .font(.gloBody(9)).foregroundColor(.white.opacity(0.45))
-                .lineLimit(1)
-                .frame(width: 70)
-                Text(viewModel.gregorianDateStr)
-                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .frame(height: 14)
+        HStack(alignment: .center, spacing: 4) {
+            MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            gpsIndicator
+            WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
+                .frame(maxWidth: .infinity, alignment: .trailing)
         }
+        .frame(height: 24)
         .padding(.horizontal, 12)
-        .padding(.top, 6)
     }
 
     private var gpsIndicator: some View {
-        HStack(spacing: 3) {
-            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-                .font(.system(size: 10))
-                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
-            if viewModel.gpsActive {
-                Image(systemName: "location.north.line.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(.gloGold.opacity(0.5))
-                    .rotationEffect(.degrees(viewModel.currentHeading))
-            }
-        }
+        Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
+            .font(.system(size: 10))
+            .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
     }
 
     // MARK: - Bottom Bar

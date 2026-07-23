@@ -21,9 +21,9 @@ final class HUDViewModel: ObservableObject {
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
     @Published var moonCard: MoonCardData = MoonCardData(
-        phaseName: "...", illuminationPercent: 50, isActive: true)
+        phaseName: "...", brightnessDelta: 0, isActive: true)
     @Published var weatherCard: WeatherCardData = WeatherCardData(
-        condition: "...", isActive: true, provider: .none)
+        condition: "...", brightnessDelta: 0, isActive: true, provider: .none)
     @Published var showArrivalSummary: Bool = false
     @Published private(set) var currentWalkSession: WalkSession?
     /// Current moon phase image filename (e.g. "full_moon") for corner decoration
@@ -165,12 +165,13 @@ final class HUDViewModel: ObservableObject {
             let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
             self.moonCard = MoonCardData(
                 phaseName: phaseName,
-                illuminationPercent: Int(round((moonIllum) * 100)),
+                brightnessDelta: d.moonBrightnessDelta,
                 isActive: self.lightEngine.moonFactorActive
             )
             let hasWeather = self.weatherService.currentCondition != nil
             self.weatherCard = WeatherCardData(
                 condition: hasWeather ? d.weatherCondition : "...",
+                brightnessDelta: d.weatherBrightnessDelta,
                 isActive: hasWeather && self.lightEngine.weatherFactorActive,
                 provider: self.weatherService.provider
             )
@@ -292,13 +293,15 @@ final class HUDViewModel: ObservableObject {
 
 struct MoonCardData {
     let phaseName: String
-    /// Actual moon illumination 0–100 (e.g., 63 = 63% full)
-    let illuminationPercent: Int
+    /// Actual brightness % change if toggled off (negative = moon dims torch)
+    let brightnessDelta: Int
     let isActive: Bool
 }
 
 struct WeatherCardData {
     let condition: String
+    /// Actual brightness % change if toggled off (positive = weather boosts torch)
+    let brightnessDelta: Int
     let isActive: Bool
     let provider: WeatherService.Provider
 }

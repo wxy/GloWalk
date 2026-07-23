@@ -195,7 +195,7 @@ final class LightEngineTests: XCTestCase {
         engine.update(sensors: rain)
 
         XCTAssertFalse(engine.factorDetails.weatherCondition.isEmpty)
-        XCTAssertNotEqual(engine.factorDetails.weatherEffectPercent, 0)
+        XCTAssertNotEqual(engine.factorDetails.weatherBrightnessDelta, 0)
     }
 
     func testMoonFactorDetails() {

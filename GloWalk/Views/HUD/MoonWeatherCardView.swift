@@ -12,9 +12,11 @@ struct MoonCardView: View {
                 Text(data.phaseName)
                     .font(.gloBody(11))
                     .lineLimit(1).minimumScaleFactor(0.65)
-                Text("\(data.illuminationPercent)%")
-                    .font(.gloBody(9))
-                    .foregroundColor(.gloAmber)
+                if data.brightnessDelta != 0 {
+                    Text(data.brightnessDelta > 0 ? "+\(data.brightnessDelta)%" : "\(data.brightnessDelta)%")
+                        .font(.gloBody(9))
+                        .foregroundColor(.gloAmber)
+                }
             }
             .padding(.horizontal, 6).padding(.vertical, 4)
             .background(
@@ -56,6 +58,11 @@ struct WeatherCardView: View {
                 Text(data.condition)
                     .font(.gloBody(11))
                     .lineLimit(1).minimumScaleFactor(0.65)
+                if data.brightnessDelta != 0 {
+                    Text(data.brightnessDelta > 0 ? "+\(data.brightnessDelta)%" : "\(data.brightnessDelta)%")
+                        .font(.gloBody(9))
+                        .foregroundColor(.gloAmber)
+                }
             }
             .padding(.horizontal, 6).padding(.vertical, 4)
             .background(

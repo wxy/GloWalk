@@ -15,9 +15,11 @@ final class LightEngine: ObservableObject {
 
     struct FactorDetails {
         var moonPhaseName: String = ""
-        var moonEffectPercent: Int = 0
+        /// Actual brightness delta if moon factor were toggled off (negative = moon dims)
+        var moonBrightnessDelta: Int = 0
         var weatherCondition: String = ""
-        var weatherEffectPercent: Int = 0
+        /// Actual brightness delta if weather factor were toggled off (positive = weather boosts)
+        var weatherBrightnessDelta: Int = 0
     }
 
     // MARK: - Signal Weights
@@ -51,6 +53,7 @@ final class LightEngine: ObservableObject {
             }
         }()
 
+        // Compute base brightness with all active factors
         let weighted = ambientSignal * wAmbient
                      + postureSignal * wPosture
                      + screenSignal * wScreen
@@ -58,12 +61,32 @@ final class LightEngine: ObservableObject {
                      + (1.0 - moonSignal) * wMoon
                      + (1.0 + weatherSignal) * wWeather
 
-        let base = weighted / max(
-            wAmbient + postureSignal * wPosture + wScreen + wDark + wMoon + wWeather, 0.01
-        )
+        let denom = max(wAmbient + postureSignal * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
+        let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        updateFactorDetails(sensors: sensors, moonSignal: moonSignal, weatherSignal: weatherSignal)
+        // Compute marginal contribution of toggleable factors (actual brightness % change)
+        // Moon: what brightness would be if moon factor were off (moonSignal=0)
+        let weightedNoMoon = ambientSignal * wAmbient
+                           + postureSignal * wPosture
+                           + screenSignal * wScreen
+                           + (1.0 - adaptSignal) * wDark
+                           + 1.0 * wMoon  // neutral moon
+                           + (1.0 + weatherSignal) * wWeather
+        let baseNoMoon = weightedNoMoon / denom
+        let moonDelta = Int(round((base - baseNoMoon) * 100))  // negative = moon dims
+
+        // Weather: what brightness would be if weather factor were off (weatherSignal=0)
+        let weightedNoWeather = ambientSignal * wAmbient
+                              + postureSignal * wPosture
+                              + screenSignal * wScreen
+                              + (1.0 - adaptSignal) * wDark
+                              + (1.0 - moonSignal) * wMoon
+                              + 1.0 * wWeather  // neutral weather
+        let baseNoWeather = weightedNoWeather / denom
+        let weatherDelta = Int(round((base - baseNoWeather) * 100))  // positive = weather boosts
+
+        updateFactorDetails(sensors: sensors, moonDelta: moonDelta, weatherDelta: weatherDelta)
     }
 
     // MARK: - Posture
@@ -80,13 +103,13 @@ final class LightEngine: ObservableObject {
     // MARK: - Factor Details for HUD
 
     private func updateFactorDetails(sensors: SensorSnapshot,
-                                      moonSignal: Double,
-                                      weatherSignal: Double) {
-        factorDetails.moonEffectPercent = Int(round(-moonSignal * 100))
+                                      moonDelta: Int,
+                                      weatherDelta: Int) {
+        factorDetails.moonBrightnessDelta = moonDelta
         factorDetails.moonPhaseName = moonName(sensors.moonIllumination)
         if let w = sensors.weather {
             factorDetails.weatherCondition = weatherLabel(w)
-            factorDetails.weatherEffectPercent = Int(round(weatherSignal * 100))
+            factorDetails.weatherBrightnessDelta = weatherDelta
         }
     }
 

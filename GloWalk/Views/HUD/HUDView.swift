@@ -151,35 +151,23 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 3×2 factor grid: each column = icon+label over delta, aligned
+    /// 6-column factor row: each column = icon+label over delta, aligned
     private var topStatusRow: some View {
-        VStack(spacing: 6) {
-            factorRow(
-                FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
-                           delta: ambDelta, active: ambActive, id: "ambient"),
-                FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
-                           delta: posDelta, active: posActive, id: "posture"),
-                FactorCell(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
-                           delta: scrDelta, active: scrActive, id: "screen")
-            )
-            factorRow(
-                FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
-                           delta: darkDelta, active: darkActive, id: "dark"),
-                FactorCell(icon: "moon.fill", label: moonLabel,
-                           delta: moonDelta, active: moonActive, id: "moon"),
-                FactorCell(icon: "cloud.fill", label: weatherLabel,
-                           delta: weatherDelta, active: weatherActive, id: "weather")
-            )
-        }
-        .padding(.horizontal, 16)
-    }
-
-    private func factorRow(_ c1: FactorCell, _ c2: FactorCell, _ c3: FactorCell) -> some View {
         HStack(spacing: 0) {
-            factorCol(c1)
-            factorCol(c2)
-            factorCol(c3)
+            factorCol(FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                                  delta: ambDelta, active: ambActive, id: "ambient"))
+            factorCol(FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                                  delta: posDelta, active: posActive, id: "posture"))
+            factorCol(FactorCell(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
+                                  delta: scrDelta, active: scrActive, id: "screen"))
+            factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                                  delta: darkDelta, active: darkActive, id: "dark"))
+            factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
+                                  delta: moonDelta, active: moonActive, id: "moon"))
+            factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
+                                  delta: weatherDelta, active: weatherActive, id: "weather"))
         }
+        .padding(.horizontal, 12)
     }
 
     private func factorCol(_ cell: FactorCell) -> some View {

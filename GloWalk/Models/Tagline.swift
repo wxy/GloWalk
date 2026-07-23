@@ -17,7 +17,10 @@ struct TaglineItem: Codable, Identifiable {
     }
 
     private var isChinese: Bool {
-        Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+        let lang = UserPreferences.shared.language
+        if lang == "en" { return false }
+        if lang == "zh-Hans" { return true }
+        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
     }
 }
 

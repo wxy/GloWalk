@@ -6,23 +6,26 @@ struct MoonCardView: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 Image(systemName: data.isActive ? "moon.fill" : "moon")
-                    .font(.gloBody(12))
+                    .font(.gloBody(11))
                 Text(data.phaseName)
-                    .font(.gloBody(12))
+                    .font(.gloBody(11))
+                    .lineLimit(1).minimumScaleFactor(0.65)
                 Text("\(data.effectPercent)%")
-                    .font(.gloBody(10))
+                    .font(.gloBody(9))
                     .foregroundColor(.gloAmber)
             }
-            .padding(.horizontal, 8).padding(.vertical, 4)
+            .padding(.horizontal, 6).padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(data.isActive
-                          ? Color.gloAmber.opacity(0.15)
-                          : Color.white.opacity(0.05))
+                    .fill(data.isActive ? Color.gloAmber.opacity(0.12) : Color.white.opacity(0.04))
             )
-            .opacity(data.isActive ? 0.8 : 0.4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white.opacity(data.isActive ? 0.08 : 0.03), lineWidth: 0.5)
+            )
+            .opacity(data.isActive ? 0.9 : 0.4)
         }
         .buttonStyle(.plain)
     }
@@ -43,27 +46,31 @@ struct WeatherCardView: View {
 
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: 4) {
-                // Tiny provider indicator dot
+            HStack(spacing: 3) {
                 Circle()
                     .fill(data.provider == .apple ? Color.gloGold : Color.gloGold.opacity(0.5))
                     .frame(width: 4, height: 4)
                     .opacity(data.isActive ? 1 : 0.3)
 
                 Image(systemName: data.isActive ? "cloud.fill" : "cloud")
-                    .font(.gloBody(12))
+                    .font(.gloBody(11))
                 Text(data.condition)
-                    .font(.gloBody(12))
+                    .font(.gloBody(11))
+                    .lineLimit(1).minimumScaleFactor(0.65)
                 Text(data.effectPercent > 0 ? "+\(data.effectPercent)%" : "\(data.effectPercent)%")
-                    .font(.gloBody(10))
+                    .font(.gloBody(9))
                     .foregroundColor(.gloAmber)
             }
-            .padding(.horizontal, 8).padding(.vertical, 4)
+            .padding(.horizontal, 6).padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 8)
                     .fill(providerTint)
             )
-            .opacity(data.isActive ? 0.8 : 0.4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.white.opacity(data.isActive ? 0.08 : 0.03), lineWidth: 0.5)
+            )
+            .opacity(data.isActive ? 0.9 : 0.4)
         }
         .buttonStyle(.plain)
     }

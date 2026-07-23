@@ -177,7 +177,6 @@ final class SensorManager: ObservableObject {
 
 private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let onSample: (Double) -> Void
-    private var callCount: Int = 0
     private var lastEmitTime: Date = .distantPast
 
     init(onSample: @escaping (Double) -> Void) {
@@ -187,7 +186,6 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
-        callCount += 1
         // Throttle to ~2 Hz to avoid flooding the main thread
         let now = Date()
         guard now.timeIntervalSince(lastEmitTime) > 0.5 else { return }
@@ -197,12 +195,14 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
 
+        let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
+        guard pixelFormat == kCVPixelFormatType_32BGRA else { return }
         guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else { return }
         let width  = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
         let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
         let bytesPerPixel = 4
-        let sampleStep = 8 // every 8th pixel
+        let sampleStep = 8
 
         var total: Double = 0
         var count: Int = 0

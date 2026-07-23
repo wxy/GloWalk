@@ -15,11 +15,15 @@ final class HUDViewModel: ObservableObject {
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
     @Published var currentHeading: Double = 0
+    /// UI brightness boost factor: 1.0 (dark) → 2.5 (bright daylight). Adjusts element visibility.
+    @Published var uiBrightnessBoost: Double = 1.0
     @Published var placeName: String = ""
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
-    @Published var moonCard: MoonCardData?
-    @Published var weatherCard: WeatherCardData?
+    @Published var moonCard: MoonCardData = MoonCardData(
+        phaseName: "...", effectPercent: 0, isActive: true)
+    @Published var weatherCard: WeatherCardData = WeatherCardData(
+        condition: "...", effectPercent: 0, isActive: true, provider: .none)
     @Published var showArrivalSummary: Bool = false
     @Published var walkCompleted: Bool = false
     @Published var generatedPosterImage: UIImage?
@@ -120,6 +124,9 @@ final class HUDViewModel: ObservableObject {
                     stepCount: self.sensorManager.stepCount,
                     heading: self.currentHeading
                 )
+                // UI brightness adapts to ambient light: dim at night, boosted in daylight
+                let ambient = self.sensorManager.ambientLightLevel
+                self.uiBrightnessBoost = 1.0 + ambient * 2.0  // 1.0(dark) → 3.0(bright)
                 self.placeName = self.locationManager.placeName ?? ""
                 self.lunarDateStr = LunarDate.display()
                 self.gregorianDateStr = LunarDate.gregorianShort()
@@ -130,17 +137,18 @@ final class HUDViewModel: ObservableObject {
                 self.elapsedMinutes = Int(self.activeWalkSeconds / 60)
 
                 let d = self.lightEngine.factorDetails
+                let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
                 self.moonCard = MoonCardData(
-                    phaseName: d.moonPhaseName, effectPercent: d.moonEffectPercent,
+                    phaseName: phaseName, effectPercent: d.moonEffectPercent,
                     isActive: self.lightEngine.moonFactorActive
                 )
-                if self.weatherService.currentCondition != nil {
-                    self.weatherCard = WeatherCardData(
-                        condition: d.weatherCondition, effectPercent: d.weatherEffectPercent,
-                        isActive: self.lightEngine.weatherFactorActive,
-                        provider: self.weatherService.provider
-                    )
-                }
+                let hasWeather = self.weatherService.currentCondition != nil
+                self.weatherCard = WeatherCardData(
+                    condition: hasWeather ? d.weatherCondition : "...",
+                    effectPercent: hasWeather ? d.weatherEffectPercent : 0,
+                    isActive: hasWeather && self.lightEngine.weatherFactorActive,
+                    provider: self.weatherService.provider
+                )
 
                 self.updateBatteryEstimate()
                 let displayDist = self.displayDistance

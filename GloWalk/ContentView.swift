@@ -7,9 +7,20 @@ enum AppScreen {
 
 struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @AppStorage("language") private var language: String = "system"
     @StateObject private var appState = AppState()
     @State private var screen: AppScreen = .privacy
     @State private var hudID = UUID()
+
+    /// The effective locale derived from user's language preference,
+    /// injected into the view hierarchy so all Text(LocalizedStringKey) resolves correctly.
+    private var resolvedLocale: Locale {
+        switch language {
+        case "en": return Locale(identifier: "en")
+        case "zh-Hans": return Locale(identifier: "zh-Hans")
+        default: return .autoupdatingCurrent
+        }
+    }
 
     var body: some View {
         Group {
@@ -32,6 +43,7 @@ struct ContentView: View {
                 HistoryListView(goToSplash: { screen = .splash })
             }
         }
+        .environment(\.locale, resolvedLocale)
         .onAppear {
             if hasCompletedOnboarding {
                 let status = AVCaptureDevice.authorizationStatus(for: .video)
@@ -42,6 +54,14 @@ struct ContentView: View {
             if done {
                 let status = AVCaptureDevice.authorizationStatus(for: .video)
                 screen = (status == .notDetermined) ? .cameraPermission : .splash
+            }
+        }
+        .onChange(of: language) { newLang in
+            // Sync to AppleLanguages so Bundle + String Catalog resolve correctly
+            if newLang == "system" {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.set([newLang], forKey: "AppleLanguages")
             }
         }
     }

@@ -88,17 +88,8 @@ final class LightEngine: ObservableObject {
         }
     }
 
-    private func moonName(_ i: Double) -> String {
-        switch i { case 0..<0.05: "新月"; case 0.05..<0.35: "蛾眉月";
-                    case 0.35..<0.65: "弦月"; case 0.65..<0.95: "盈凸月";
-                    default: "满月" }
-    }
-    private func weatherLabel(_ c: String) -> String {
-        switch c.lowercased() {
-        case "rain": "小雨"; case "drizzle": "毛毛雨";
-        case "snow": "雪"; case "fog","mist": "雾"; default: "云"
-        }
-    }
+    private func moonName(_ i: Double) -> String { L10n.moonPhaseName(illumination: i) }
+    private func weatherLabel(_ c: String) -> String { L10n.weatherLabel(c) }
 
     // MARK: - Manual Override
 

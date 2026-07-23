@@ -14,6 +14,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private var currentSession: WalkSession?
     private var lastLocation: CLLocation?
     private var lastStepCount: Int = 0
+    private var lastGPSRecordedStepCount: Int = 0
     private var estimatedLat: Double?
     private var estimatedLon: Double?
     private var hasGeocoded = false
@@ -107,9 +108,9 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         }
         lastLocation = location
 
-        // Only record path points when user is actually walking (steps increasing, not in car)
-        let stepsChanged = externalStepCount > lastStepCount || lastStepCount == 0
-        if stepsChanged {
+        // Only record path points when user has actually taken steps (prevents GPS drift)
+        if externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount {
+            lastGPSRecordedStepCount = externalStepCount
             let ctx = PersistenceController.shared.container.viewContext
             _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
                                  lon: location.coordinate.longitude,

@@ -39,21 +39,19 @@ enum LunarDate {
         return "\(monthStr) \(d)"
     }
 
-    /// Auto-select based on current locale
+    /// Auto-select based on language preference
     static func display(for date: Date = Date()) -> String {
-        let lang = Locale.preferredLanguages.first ?? "en"
-        if lang.hasPrefix("zh") {
+        if L10n.isZh {
             return chineseDisplay(for: date)
         } else {
             return englishDisplay(for: date)
         }
     }
 
-    /// Short gregorian date: "7/22" in en, "7月22日" in zh
+    /// Short gregorian date: "M/d" in en, "M月d日" in zh
     static func gregorianShort(for date: Date = Date()) -> String {
-        let lang = Locale.preferredLanguages.first ?? "en"
         let df = DateFormatter()
-        if lang.hasPrefix("zh") {
+        if L10n.isZh {
             df.dateFormat = "M月d日"
         } else {
             df.dateFormat = "M/d"

@@ -16,17 +16,18 @@ struct SplashView: View {
                     .font(.system(size: 44))
 
                 Text(tagline.localizedPhrase)
-                    .font(.gloHeadline(20))
+                    .font(.gloHeadline(17))
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 20)
                     .fixedSize(horizontal: false, vertical: true)
+                    .lineSpacing(4)
 
                 Text(tagline.localizedExplanation)
-                    .font(.gloBody(12))
-                    .foregroundColor(.white.opacity(0.5))
+                    .font(.gloBody(11))
+                    .foregroundColor(.white.opacity(0.45))
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
+                    .padding(.horizontal, 28)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

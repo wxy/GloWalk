@@ -7,6 +7,8 @@ final class LightEngine: ObservableObject {
     @Published var weatherFactorActive: Bool = true
     @Published var darkAdaptationActive: Bool = false
     @Published var factorDetails = FactorDetails()
+    /// When < 1.0, caps max brightness for low-battery power saving
+    @Published var batterySaverCap: Double = 1.0
 
     private var manualOffset: Double = 0.0
     private var sessionStartTime: Date?
@@ -59,7 +61,7 @@ final class LightEngine: ObservableObject {
         let base = weighted / max(
             wAmbient + postureSignal * wPosture + wScreen + wDark + wMoon + wWeather, 0.01
         )
-        targetBrightness = min(max(base + manualOffset, 0.1), 1.0)
+        targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
         updateFactorDetails(sensors: sensors, moonSignal: moonSignal, weatherSignal: weatherSignal)
     }

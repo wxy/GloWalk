@@ -249,9 +249,19 @@ final class HUDViewModel: ObservableObject {
             let bf = 1.0 / max(brightness, 0.1)
             let bat = Double(batteryPercentage) / 100.0
             estimatedMinutesRemaining = Int(base * bf * bat)
+
+            // Low-battery power saving: cap max brightness to extend runtime
+            if batteryPercentage <= 10 {
+                lightEngine.batterySaverCap = 0.6   // critical: max 60%
+            } else if batteryPercentage <= 20 {
+                lightEngine.batterySaverCap = 0.8   // warning: max 80%
+            } else {
+                lightEngine.batterySaverCap = 1.0   // normal: no cap
+            }
         } else {
             batteryPercentage = 100
             estimatedMinutesRemaining = 90
+            lightEngine.batterySaverCap = 1.0
         }
     }
 }

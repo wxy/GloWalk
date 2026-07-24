@@ -15,8 +15,8 @@ struct ConstellationPathView: View {
 
             // Draw bezier segments — golden constellation lines
             projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
-                let alpha = 0.2 + (1.0 - avgLight) * 0.35
-                let width = 1.5 + (1.0 - avgLight) * 2.5
+                let alpha = 0.35 + (1.0 - avgLight) * 0.40
+                let width = 2.0 + (1.0 - avgLight) * 3.0
 
                 var path = Path()
                 path.move(to: pt1)
@@ -27,19 +27,19 @@ struct ConstellationPathView: View {
                     style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start — footprint emoji
+            // Start — 👣 emoji centered on the start point
             if let start = projector.startPoint() {
                 ctx.draw(Text("👣").font(.system(size: 16)),
-                         at: CGPoint(x: start.x, y: start.y))
+                         at: CGPoint(x: start.x - 8, y: start.y - 8))
             }
 
-            // End — footprint emoji with glow aura
+            // End — 🦶 emoji with glow aura, centered on the end point
             if let end = projector.endPoint(), points.count >= 2 {
-                let glowRect = CGRect(x: end.x - 9, y: end.y - 9, width: 18, height: 18)
+                let glowRect = CGRect(x: end.x - 10, y: end.y - 10, width: 20, height: 20)
                 ctx.fill(Path(ellipseIn: glowRect),
                          with: .color(Color.gloGold.opacity(0.18)))
                 ctx.draw(Text("🦶").font(.system(size: 16)),
-                         at: CGPoint(x: end.x, y: end.y - 6))
+                         at: CGPoint(x: end.x - 8, y: end.y - 8))
             }
 
             // Nocturnal animal easter egg — ~3% chance, appears mid-path
@@ -56,7 +56,7 @@ struct ConstellationPathView: View {
                 }
             }
         }
-        .opacity(isActive ? 0.7 : 0)
+        .opacity(isActive ? 0.85 : 0)
         .animation(.easeInOut(duration: 1.0), value: isActive)
     }
 

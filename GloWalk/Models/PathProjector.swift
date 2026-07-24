@@ -47,8 +47,20 @@ struct PathProjector {
         let tension: CGFloat = 0.35
         for i in 2..<points.count {
             let p0 = points[i-2], p1 = points[i-1], p2 = points[i]
-            let pt0 = project(p0), pt1 = project(p1), pt2 = project(p2)
+            let pt0 = project(p0), pt2 = project(p2)
+            var pt1 = project(p1)
             let avgLight = (p1.ambientLight + p2.ambientLight) / 2.0
+
+            // Spike filter: if pt1 forms a >90° angle with neighbors,
+            // pull it toward the midpoint to smooth out GPS glitches.
+            let vIn = CGPoint(x: pt1.x - pt0.x, y: pt1.y - pt0.y)
+            let vOut = CGPoint(x: pt2.x - pt1.x, y: pt2.y - pt1.y)
+            let dot = vIn.x * vOut.x + vIn.y * vOut.y
+            if dot < 0 {  // angle > 90° = spike
+                let mid = CGPoint(x: (pt0.x + pt2.x) / 2, y: (pt0.y + pt2.y) / 2)
+                pt1 = CGPoint(x: pt1.x * 0.4 + mid.x * 0.6,
+                              y: pt1.y * 0.4 + mid.y * 0.6)
+            }
 
             let cp1 = CGPoint(x: pt1.x + (pt2.x - pt0.x) * tension,
                               y: pt1.y + (pt2.y - pt0.y) * tension)

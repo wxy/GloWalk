@@ -13,12 +13,17 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
     private var lastLocation: CLLocation?
+    private var lastRecordedCoord: CLLocationCoordinate2D?  // last valid GPS point saved to path
     private var lastStepCount: Int = 0
     private var lastGPSRecordedStepCount: Int = 0
     private var estimatedLat: Double?
     private var estimatedLon: Double?
     private var hasGeocoded = false
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
+
+    /// Maximum allowed deviation (degrees) between GPS bearing and device heading.
+    /// Points exceeding this are treated as drift and filtered out.
+    private let headingFilterThreshold: Double = 50
 
     override init() {
         super.init()
@@ -108,16 +113,28 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         }
         lastLocation = location
 
-        // Only record path points when user has actually taken steps (prevents GPS drift)
-        if externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount {
-            lastGPSRecordedStepCount = externalStepCount
-            let ctx = PersistenceController.shared.container.viewContext
-            _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
-                                 lon: location.coordinate.longitude,
-                                 ambientLight: 0.5, torchBrightness: 0.7,
-                                 session: session)
-            PersistenceController.shared.save()
+        // Only record path points when user has actually taken steps
+        guard externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount else { return }
+        guard location.horizontalAccuracy > 0 && location.horizontalAccuracy < 30 else { return }
+
+        // Heading-based drift filter: if GPS bearing deviates too far from device
+        // heading, the point is likely GPS drift — skip it.
+        if let prevCoord = lastRecordedCoord,
+           let heading = currentHeading?.trueHeading, heading >= 0 {
+            let bearing = prevCoord.bearing(to: location.coordinate)
+            var deviation = abs(bearing - heading)
+            if deviation > 180 { deviation = 360 - deviation }
+            if deviation > headingFilterThreshold { return }
         }
+
+        lastGPSRecordedStepCount = externalStepCount
+        lastRecordedCoord = location.coordinate
+        let ctx = PersistenceController.shared.container.viewContext
+        _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
+                             lon: location.coordinate.longitude,
+                             ambientLight: 0.5, torchBrightness: 0.7,
+                             session: session)
+        PersistenceController.shared.save()
 
         // Reverse geocode once on first good GPS fix
         if !hasGeocoded && location.horizontalAccuracy < 30 {
@@ -129,5 +146,19 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                 }
             }
         }
+    }
+}
+
+// MARK: - Coordinate Bearing
+
+extension CLLocationCoordinate2D {
+    /// Initial bearing from this coordinate to `other` (degrees, 0=north, clockwise).
+    func bearing(to other: CLLocationCoordinate2D) -> Double {
+        let dLon = (other.longitude - longitude) * .pi / 180
+        let lat1 = latitude * .pi / 180
+        let lat2 = other.latitude * .pi / 180
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        return (atan2(y, x) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360)
     }
 }

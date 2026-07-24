@@ -42,6 +42,7 @@ final class SensorManager: ObservableObject {
         stopProximityMonitoring()
         captureSession?.stopRunning()
         captureSession = nil
+        captureDevice = nil
         motionManager.stopDeviceMotionUpdates()
         pedometer.stopUpdates()
     }

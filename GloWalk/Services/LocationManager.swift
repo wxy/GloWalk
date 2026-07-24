@@ -8,23 +8,29 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isRecording: Bool = false
     @Published var placeName: String?
-    @Published var estimatedPathPoints: [PathPoint] = []
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
-    private var lastLocation: CLLocation?
+    private var lastRecordedCoord: CLLocationCoordinate2D?  // last valid GPS point saved to path
     private var lastStepCount: Int = 0
     private var lastGPSRecordedStepCount: Int = 0
     private var estimatedLat: Double?
     private var estimatedLon: Double?
     private var hasGeocoded = false
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
+    /// Real sensor values at recording time, injected each tick by HUDViewModel.
+    var currentAmbientLight: Double = 0.5
+    var currentTorchBrightness: Double = 0.7
+
+    /// Maximum allowed deviation (degrees) between GPS bearing and device heading.
+    /// Points exceeding this are treated as drift and filtered out.
+    private let headingFilterThreshold: Double = 50
 
     override init() {
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        manager.distanceFilter = 10
+        manager.distanceFilter = 5
     }
 
     // MARK: - Pedestrian Dead Reckoning (indoor / no GPS)
@@ -59,17 +65,17 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             // Save estimated point to Core Data
             let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
-                let pt = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
-                                          ambientLight: 0.5, torchBrightness: 0.7, session: session)
+                _ = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
+                                     ambientLight: currentAmbientLight,
+                                     torchBrightness: currentTorchBrightness,
+                                     session: session)
                 PersistenceController.shared.save()
-                estimatedPathPoints.append(pt)
             }
         }
     }
 
     func startRecording(session: WalkSession) {
         currentSession = session
-        lastLocation = nil
         totalDistance = 0
         authorizationStatus = manager.authorizationStatus
         isRecording = true
@@ -103,18 +109,53 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             estimatedLat = location.coordinate.latitude
             estimatedLon = location.coordinate.longitude
         }
-        if let last = lastLocation {
-            totalDistance += location.distance(from: last)
-        }
-        lastLocation = location
+        // Only record path points (and accrue distance) when the user has
+        // actually stepped and the fix is accurate. Distance is measured from
+        // the recorded path itself, so it is never double-counted with dead
+        // reckoning and never grows while standing still.
+        guard externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount else { return }
+        guard location.horizontalAccuracy > 0 && location.horizontalAccuracy < 30 else { return }
 
-        // Only record path points when user has actually taken steps (prevents GPS drift)
-        if externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount {
-            lastGPSRecordedStepCount = externalStepCount
-            let ctx = PersistenceController.shared.container.viewContext
+        // Heading-based drift filter: if GPS bearing deviates too far from device
+        // heading, the point is likely GPS drift — fall back to dead reckoning.
+        let isDrift: Bool = {
+            guard let prevCoord = lastRecordedCoord,
+                  let heading = currentHeading?.trueHeading, heading >= 0 else { return false }
+            let bearing = prevCoord.bearing(to: location.coordinate)
+            var deviation = abs(bearing - heading)
+            if deviation > 180 { deviation = 360 - deviation }
+            return deviation > headingFilterThreshold
+        }()
+
+        let stepDelta = externalStepCount - lastGPSRecordedStepCount
+        lastGPSRecordedStepCount = externalStepCount
+        let ctx = PersistenceController.shared.container.viewContext
+
+        if isDrift {
+            // Synthesize a point via dead reckoning when GPS is drifting.
+            guard let prevCoord = lastRecordedCoord,
+                  let heading = currentHeading?.trueHeading, heading >= 0 else { return }
+            let strideMeters = 0.7 * Double(max(stepDelta, 1))
+            let rad = heading * .pi / 180
+            let newLat = prevCoord.latitude + (strideMeters / 111_320) * cos(rad)
+            let newLon = prevCoord.longitude + (strideMeters / (111_320 * cos(prevCoord.latitude * .pi / 180))) * sin(rad)
+            lastRecordedCoord = CLLocationCoordinate2D(latitude: newLat, longitude: newLon)
+            totalDistance += strideMeters
+            _ = PathPoint.create(in: ctx, lat: newLat, lon: newLon,
+                                 ambientLight: currentAmbientLight,
+                                 torchBrightness: currentTorchBrightness,
+                                 session: session)
+            PersistenceController.shared.save()
+        } else {
+            if let prev = lastRecordedCoord {
+                let prevLoc = CLLocation(latitude: prev.latitude, longitude: prev.longitude)
+                totalDistance += location.distance(from: prevLoc)
+            }
+            lastRecordedCoord = location.coordinate
             _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
                                  lon: location.coordinate.longitude,
-                                 ambientLight: 0.5, torchBrightness: 0.7,
+                                 ambientLight: currentAmbientLight,
+                                 torchBrightness: currentTorchBrightness,
                                  session: session)
             PersistenceController.shared.save()
         }
@@ -129,5 +170,19 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                 }
             }
         }
+    }
+}
+
+// MARK: - Coordinate Bearing
+
+extension CLLocationCoordinate2D {
+    /// Initial bearing from this coordinate to `other` (degrees, 0=north, clockwise).
+    func bearing(to other: CLLocationCoordinate2D) -> Double {
+        let dLon = (other.longitude - longitude) * .pi / 180
+        let lat1 = latitude * .pi / 180
+        let lat2 = other.latitude * .pi / 180
+        let y = sin(dLon) * cos(lat2)
+        let x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLon)
+        return (atan2(y, x) * 180 / .pi + 360).truncatingRemainder(dividingBy: 360)
     }
 }

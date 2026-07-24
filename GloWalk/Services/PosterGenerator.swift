@@ -127,70 +127,34 @@ final class PosterGenerator {
         guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
               session.pathPointsArray.count >= 2 else { return }
 
-        projector.forEachSegment { pt1, pt2, _, _, avgLight in
-            let alpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
-            let width = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
+        projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
+            // Brighter torch (flashlight) → brighter, thicker line.
+            let alpha = CGFloat(0.3 + avgTorch * 0.5)
+            let width = CGFloat(2.0 + avgTorch * 4.0)
 
             let path = UIBezierPath()
-            path.move(to: pt1); path.addLine(to: pt2)
+            path.move(to: pt1)
+            path.addCurve(to: pt2, controlPoint1: cp1, controlPoint2: cp2)
             path.lineWidth = width; path.lineCapStyle = .round
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: alpha).setStroke()
             path.stroke()
         }
 
         let pts = session.pathPointsArray
-        // Start — left footprint
+        let footprintFont = UIFont.systemFont(ofSize: 28)
+        let attrs: [NSAttributedString.Key: Any] = [.font: footprintFont]
+
+        // Start — 👣 emoji
         if let p = projector.startPoint() {
-            let dir = atan2(projector.project(pts[1]).y - projector.project(pts[0]).y,
-                            projector.project(pts[1]).x - projector.project(pts[0]).x)
-            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: true,
-                                scale: 1.5, ctx: ctx)
+            "👣".draw(at: CGPoint(x: p.x - 16, y: p.y - 16), withAttributes: attrs)
         }
 
-        // End — right footprint with glow
+        // End — 🦶 emoji with glow
         if let p = projector.endPoint(), pts.count >= 2 {
-            let dir = atan2(projector.project(pts[pts.count - 1]).y - projector.project(pts[pts.count - 2]).y,
-                            projector.project(pts[pts.count - 1]).x - projector.project(pts[pts.count - 2]).x)
-            // Glow aura
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.18).setFill()
-            UIBezierPath(ovalIn: CGRect(x: p.x - 12, y: p.y - 12, width: 24, height: 24)).fill()
-            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: false,
-                                scale: 1.5, ctx: ctx)
+            UIBezierPath(ovalIn: CGRect(x: p.x - 18, y: p.y - 18, width: 36, height: 36)).fill()
+            "🦶".draw(at: CGPoint(x: p.x - 18, y: p.y - 22), withAttributes: attrs)
         }
-    }
-
-    /// Draw a single footprint silhouette at `point`, rotated by `angle` radians.
-    /// Scale is relative to the base 13pt size.
-    private static func drawFootprintMarker(at point: CGPoint, angle: CGFloat,
-                                             isLeft: Bool, scale: CGFloat,
-                                             ctx: UIGraphicsRendererContext) {
-        ctx.cgContext.saveGState()
-        ctx.cgContext.translateBy(x: point.x, y: point.y)
-        ctx.cgContext.rotate(by: angle)
-        if !isLeft { ctx.cgContext.scaleBy(x: -1, y: 1) }
-
-        let s = scale
-        let w: CGFloat = 4.5 * s
-        let heelW: CGFloat = 2.5 * s
-        let len: CGFloat = 13 * s
-
-        let fp = UIBezierPath()
-        fp.move(to: CGPoint(x: -heelW, y: 2 * s))
-        fp.addQuadCurve(to: CGPoint(x: heelW, y: 2 * s),
-                        controlPoint: CGPoint(x: 0, y: -1 * s))
-        fp.addCurve(to: CGPoint(x: w, y: -len/2),
-                    controlPoint1: CGPoint(x: heelW + 2 * s, y: -2 * s),
-                    controlPoint2: CGPoint(x: w, y: -len/2 + 3 * s))
-        fp.addQuadCurve(to: CGPoint(x: -w, y: -len/2),
-                        controlPoint: CGPoint(x: 0, y: -len/2 - 3 * s))
-        fp.addCurve(to: CGPoint(x: -heelW, y: 2 * s),
-                    controlPoint1: CGPoint(x: -w, y: -len/2 + 3 * s),
-                    controlPoint2: CGPoint(x: -(heelW + 2 * s), y: -2 * s))
-        fp.close()
-        UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.65).setFill()
-        fp.fill()
-
-        ctx.cgContext.restoreGState()
     }
 
     // MARK: - Header

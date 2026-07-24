@@ -31,7 +31,6 @@ final class HUDViewModel: ObservableObject {
     @Published var currentMoonPhaseName: String = "full_moon"
 
     private var activeWalkSeconds: Double = 0
-    private var lastDistance: Double = 0
     private var lastStepCount: Int = 0
     /// Smoothed step cadence (0 = still, ~2 = brisk walk). Drives rhythm pulse in glow.
     @Published var cadence: Double = 0
@@ -153,6 +152,10 @@ final class HUDViewModel: ObservableObject {
 
         currentHeading = locationManager.currentHeading?.trueHeading ?? 0
         locationManager.externalStepCount = stepCount
+        // Feed real sensor values so recorded path points carry true ambient
+        // light and torch brightness (torch drives the constellation coloring).
+        locationManager.currentAmbientLight = sensorManager.ambientLightLevel
+        locationManager.currentTorchBrightness = brightness
         locationManager.updateDeadReckoning(
             stepCount: sensorManager.stepCount,
             heading: currentHeading
@@ -166,7 +169,7 @@ final class HUDViewModel: ObservableObject {
             (locationManager.authorizationStatus == .authorizedWhenInUse ||
              locationManager.authorizationStatus == .authorizedAlways)
         pathPoints = currentWalkSession?.pathPointsArray ?? []
-        elapsedMinutes = Int(activeWalkSeconds / 60)
+        elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime ?? Date()) / 60)
 
         let d = lightEngine.factorDetails
         let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
@@ -249,6 +252,12 @@ final class HUDViewModel: ObservableObject {
         locationManager.stopRecording()
         sensorTimer?.invalidate()
         if let s = currentWalkSession {
+            // Don't keep empty walks (consistent with endWalkAndNotify).
+            if sensorManager.stepCount == 0 {
+                PersistenceController.shared.container.viewContext.delete(s)
+                PersistenceController.shared.save()
+                return
+            }
             s.endTime = Date()
             s.endType = "interrupted"
             s.totalSteps = Int64(sensorManager.stepCount)

@@ -36,10 +36,29 @@ final class WeatherService: ObservableObject {
     private func tryWeatherKit(at location: CLLocation) async -> String? {
         do {
             let weather = try await WeatherKit.WeatherService.shared.weather(for: location)
-            return weather.currentWeather.condition.rawValue
+            return normalize(weather.currentWeather.condition)
         } catch {
             print("[Weather] WeatherKit failed, falling back to Open-Meteo: \(error.localizedDescription)")
             return nil
+        }
+    }
+
+    /// Map WeatherKit's rich condition set to the same vocabulary Open-Meteo
+    /// produces (clear/cloud/fog/drizzle/rain/snow/thunderstorm), so the light
+    /// engine and localized labels behave identically regardless of provider.
+    @available(iOS 16, *)
+    private func normalize(_ condition: WeatherCondition) -> String {
+        switch condition {
+        case .clear, .mostlyClear, .hot: return "clear"
+        case .cloudy, .mostlyCloudy, .partlyCloudy: return "cloud"
+        case .foggy, .haze, .smoky: return "fog"
+        case .drizzle, .freezingDrizzle: return "drizzle"
+        case .rain, .heavyRain, .sunShowers, .freezingRain: return "rain"
+        case .snow, .heavySnow, .flurries, .blizzard, .blowingSnow,
+             .sleet, .wintryMix, .hail: return "snow"
+        case .thunderstorms, .isolatedThunderstorms, .scatteredThunderstorms,
+             .strongStorms, .tropicalStorm, .hurricane: return "thunderstorm"
+        default: return "cloud"
         }
     }
 

@@ -31,7 +31,6 @@ final class HUDViewModel: ObservableObject {
     @Published var currentMoonPhaseName: String = "full_moon"
 
     private var activeWalkSeconds: Double = 0
-    private var lastDistance: Double = 0
     private var lastStepCount: Int = 0
     /// Smoothed step cadence (0 = still, ~2 = brisk walk). Drives rhythm pulse in glow.
     @Published var cadence: Double = 0

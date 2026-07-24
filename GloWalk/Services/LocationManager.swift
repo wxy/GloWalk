@@ -8,7 +8,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isRecording: Bool = false
     @Published var placeName: String?
-    @Published var estimatedPathPoints: [PathPoint] = []
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
@@ -66,12 +65,11 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             // Save estimated point to Core Data
             let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
-                let pt = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
-                                          ambientLight: currentAmbientLight,
-                                          torchBrightness: currentTorchBrightness,
-                                          session: session)
+                _ = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
+                                     ambientLight: currentAmbientLight,
+                                     torchBrightness: currentTorchBrightness,
+                                     session: session)
                 PersistenceController.shared.save()
-                estimatedPathPoints.append(pt)
             }
         }
     }

@@ -83,12 +83,12 @@ struct HUDView: View {
                             viewModel.resetToAutoBrightness()
                         }
                     }
-                // Constellation path — fixed space, no layout jump
+                // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
                     points: viewModel.pathPoints,
                     isActive: viewModel.isActive && viewModel.pathPoints.count >= 2
                 )
-                .frame(height: 100)
+                .frame(height: 140)
                 .padding(.horizontal, 32)
                 .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
 

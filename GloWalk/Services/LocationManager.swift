@@ -128,13 +128,14 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             return deviation > headingFilterThreshold
         }()
 
+        let stepDelta = externalStepCount - lastGPSRecordedStepCount
         lastGPSRecordedStepCount = externalStepCount
 
         if isDrift {
             // Use dead reckoning to fill the gap when GPS is drifting
             guard let prevCoord = lastRecordedCoord,
                   let heading = currentHeading?.trueHeading else { return }
-            let strideMeters = 0.7 * Double(externalStepCount - (lastGPSRecordedStepCount - 1))
+            let strideMeters = 0.7 * Double(max(stepDelta, 1))
             let rad = heading * .pi / 180
             let newLat = prevCoord.latitude + (strideMeters / 111_320) * cos(rad)
             let newLon = prevCoord.longitude + (strideMeters / (111_320 * cos(prevCoord.latitude * .pi / 180))) * sin(rad)

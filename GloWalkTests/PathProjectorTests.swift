@@ -104,9 +104,11 @@ final class PathProjectorTests: XCTestCase {
         var segmentCount = 0
         projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
             segmentCount += 1
-            // Control points should equal endpoints for 2-point line segment
-            XCTAssertEqual(cp1, pt1)
-            XCTAssertEqual(cp2, pt2)
+            // Catmull-Rom control points for a 2-point path lie on the segment
+            XCTAssertEqual(cp1.x, pt1.x + (pt2.x - pt1.x) / 6, accuracy: 0.5)
+            XCTAssertEqual(cp1.y, pt1.y + (pt2.y - pt1.y) / 6, accuracy: 0.5)
+            XCTAssertEqual(cp2.x, pt2.x - (pt2.x - pt1.x) / 6, accuracy: 0.5)
+            XCTAssertEqual(cp2.y, pt2.y - (pt2.y - pt1.y) / 6, accuracy: 0.5)
             XCTAssertEqual(avgLight, 0.5, accuracy: 0.01,
                            "Average light should be (0.3 + 0.7) / 2 = 0.5")
         }
@@ -114,24 +116,24 @@ final class PathProjectorTests: XCTestCase {
     }
 
     func testBezierCurveSegmentCount() {
-        // 3 points → 1 bezier segment (p0 provides tangent for p1→p2 curve)
+        // N points → N-1 segments (one Bézier per consecutive pair)
         let three = [
             makePoint(lat: 39.9, lon: 116.4),
             makePoint(lat: 39.91, lon: 116.41),
             makePoint(lat: 39.92, lon: 116.42),
         ]
-        var area = CGRect(x: 0, y: 0, width: 300, height: 100)
+        let area = CGRect(x: 0, y: 0, width: 300, height: 100)
         var projector = PathProjector(points: three, area: area)!
         var count = 0
         projector.forEachSegment { _, _, _, _, _ in count += 1 }
-        XCTAssertEqual(count, 1, "3 points → 1 bezier segment")
+        XCTAssertEqual(count, 2, "3 points → 2 segments")
 
-        // 4 points → 2 bezier segments
+        // 4 points → 3 bezier segments
         let four = three + [makePoint(lat: 39.93, lon: 116.43)]
         projector = PathProjector(points: four, area: area)!
         count = 0
         projector.forEachSegment { _, _, _, _, _ in count += 1 }
-        XCTAssertEqual(count, 2, "4 points → 2 bezier segments")
+        XCTAssertEqual(count, 3, "4 points → 3 segments")
     }
 
     // MARK: - Start and End Points

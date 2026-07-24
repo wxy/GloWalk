@@ -6,40 +6,41 @@ struct ConstellationPathView: View {
 
     var body: some View {
         Canvas { ctx, size in
-            let inset: CGFloat = 28
+            // Small margin so the footprint markers/glow don't clip at the
+            // edges; the projector centres the curve within `area`.
+            let inset: CGFloat = 14
             let area = CGRect(x: inset, y: inset,
                               width: size.width - inset * 2,
                               height: size.height - inset * 2)
             guard let projector = PathProjector(points: points, area: area),
                   points.count >= 2 else { return }
 
-            // Draw straight line segments — golden constellation lines
-            projector.forEachSegment { pt1, pt2, _, _, avgLight in
+            // Draw the smooth constellation curve — one Bézier per segment,
+            // joined C1-continuously so the whole path reads as a single line.
+            projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
                 let alpha = 0.35 + (1.0 - avgLight) * 0.40
                 let width = 2.0 + (1.0 - avgLight) * 3.0
 
                 var path = Path()
                 path.move(to: pt1)
-                path.addLine(to: pt2)
+                path.addCurve(to: pt2, control1: cp1, control2: cp2)
 
                 ctx.stroke(path,
                     with: .color(Color.gloGold.opacity(alpha)),
                     style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start — 👣 emoji at the first point
+            // Start — 👣 centered on the first point so it sits on the curve tip
             if let sp = projector.startPoint() {
-                ctx.draw(Text("👣").font(.system(size: 16)),
-                         at: CGPoint(x: sp.x - 8, y: sp.y - 8))
+                ctx.draw(Text("👣").font(.system(size: 16)), at: sp)
             }
 
-            // End — 🦶 emoji with glow aura, centered on the end point
+            // End — 🦶 with glow aura, centered on the last point
             if let end = projector.endPoint(), points.count >= 2 {
                 let glowRect = CGRect(x: end.x - 10, y: end.y - 10, width: 20, height: 20)
                 ctx.fill(Path(ellipseIn: glowRect),
                          with: .color(Color.gloGold.opacity(0.18)))
-                ctx.draw(Text("🦶").font(.system(size: 16)),
-                         at: CGPoint(x: end.x - 8, y: end.y - 8))
+                ctx.draw(Text("🦶").font(.system(size: 16)), at: end)
             }
 
             // Nocturnal animal easter egg — ~3% chance, appears mid-path

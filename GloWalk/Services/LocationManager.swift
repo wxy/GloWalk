@@ -118,23 +118,41 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         guard location.horizontalAccuracy > 0 && location.horizontalAccuracy < 30 else { return }
 
         // Heading-based drift filter: if GPS bearing deviates too far from device
-        // heading, the point is likely GPS drift — skip it.
-        if let prevCoord = lastRecordedCoord,
-           let heading = currentHeading?.trueHeading, heading >= 0 {
+        // heading, the point is likely GPS drift — fall back to dead reckoning.
+        let isDrift: Bool = {
+            guard let prevCoord = lastRecordedCoord,
+                  let heading = currentHeading?.trueHeading, heading >= 0 else { return false }
             let bearing = prevCoord.bearing(to: location.coordinate)
             var deviation = abs(bearing - heading)
             if deviation > 180 { deviation = 360 - deviation }
-            if deviation > headingFilterThreshold { return }
-        }
+            return deviation > headingFilterThreshold
+        }()
 
         lastGPSRecordedStepCount = externalStepCount
-        lastRecordedCoord = location.coordinate
-        let ctx = PersistenceController.shared.container.viewContext
-        _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
-                             lon: location.coordinate.longitude,
-                             ambientLight: 0.5, torchBrightness: 0.7,
-                             session: session)
-        PersistenceController.shared.save()
+
+        if isDrift {
+            // Use dead reckoning to fill the gap when GPS is drifting
+            guard let prevCoord = lastRecordedCoord,
+                  let heading = currentHeading?.trueHeading else { return }
+            let strideMeters = 0.7 * Double(externalStepCount - (lastGPSRecordedStepCount - 1))
+            let rad = heading * .pi / 180
+            let newLat = prevCoord.latitude + (strideMeters / 111_320) * cos(rad)
+            let newLon = prevCoord.longitude + (strideMeters / (111_320 * cos(prevCoord.latitude * .pi / 180))) * sin(rad)
+            lastRecordedCoord = CLLocationCoordinate2D(latitude: newLat, longitude: newLon)
+            let ctx = PersistenceController.shared.container.viewContext
+            _ = PathPoint.create(in: ctx, lat: newLat, lon: newLon,
+                                 ambientLight: 0.5, torchBrightness: 0.7,
+                                 session: session)
+            PersistenceController.shared.save()
+        } else {
+            lastRecordedCoord = location.coordinate
+            let ctx = PersistenceController.shared.container.viewContext
+            _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
+                                 lon: location.coordinate.longitude,
+                                 ambientLight: 0.5, torchBrightness: 0.7,
+                                 session: session)
+            PersistenceController.shared.save()
+        }
 
         // Reverse geocode once on first good GPS fix
         if !hasGeocoded && location.horizontalAccuracy < 30 {

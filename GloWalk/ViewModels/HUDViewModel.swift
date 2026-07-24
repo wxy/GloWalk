@@ -166,7 +166,7 @@ final class HUDViewModel: ObservableObject {
             (locationManager.authorizationStatus == .authorizedWhenInUse ||
              locationManager.authorizationStatus == .authorizedAlways)
         pathPoints = currentWalkSession?.pathPointsArray ?? []
-        elapsedMinutes = Int(activeWalkSeconds / 60)
+        elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime ?? Date()) / 60)
 
         let d = lightEngine.factorDetails
         let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName

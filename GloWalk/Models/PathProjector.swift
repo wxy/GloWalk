@@ -44,7 +44,7 @@ struct PathProjector {
             }
             return
         }
-        let tension: CGFloat = 0.25
+        let tension: CGFloat = 0.35
         for i in 2..<points.count {
             let p0 = points[i-2], p1 = points[i-1], p2 = points[i]
             let pt0 = project(p0), pt1 = project(p1), pt2 = project(p2)

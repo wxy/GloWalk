@@ -86,21 +86,25 @@ struct ConstellationPathView: View {
     /// Base footprint silhouette (origin-centered, toes point up/-Y, heel at +Y)
     private func footprintPath() -> Path {
         var fp = Path()
-        let w: CGFloat = 6.5
-        let heelW: CGFloat = 3.5
-        let len: CGFloat = 18
+        let len: CGFloat = 20
+        let toeW: CGFloat = 4.5     // half-width at toe area
+        let heelW: CGFloat = 2.0    // half-width at heel (narrower)
 
-        fp.move(to: CGPoint(x: -heelW, y: 2))
-        fp.addQuadCurve(to: CGPoint(x: heelW, y: 2),
-                        control: CGPoint(x: 0, y: -1))
-        fp.addCurve(to: CGPoint(x: w, y: -len/2),
-                    control1: CGPoint(x: heelW + 2, y: -2),
-                    control2: CGPoint(x: w, y: -len/2 + 3))
-        fp.addQuadCurve(to: CGPoint(x: -w, y: -len/2),
-                        control: CGPoint(x: 0, y: -len/2 - 3))
-        fp.addCurve(to: CGPoint(x: -heelW, y: 2),
-                    control1: CGPoint(x: -w, y: -len/2 + 3),
-                    control2: CGPoint(x: -(heelW + 2), y: -2))
+        // Heel (bottom)
+        fp.move(to: CGPoint(x: -heelW, y: len/2 - 2))
+        fp.addQuadCurve(to: CGPoint(x: heelW, y: len/2 - 2),
+                        control: CGPoint(x: 0, y: len/2))
+        // Right edge → toes (widening)
+        fp.addCurve(to: CGPoint(x: toeW, y: -len/2 + 2),
+                    control1: CGPoint(x: heelW + 1, y: len/4),
+                    control2: CGPoint(x: toeW + 1, y: -len/4))
+        // Toe curve
+        fp.addQuadCurve(to: CGPoint(x: -toeW, y: -len/2 + 2),
+                        control: CGPoint(x: 0, y: -len/2 - 2))
+        // Left edge → heel
+        fp.addCurve(to: CGPoint(x: -heelW, y: len/2 - 2),
+                    control1: CGPoint(x: -(toeW + 1), y: -len/4),
+                    control2: CGPoint(x: -(heelW + 1), y: len/4))
         fp.closeSubpath()
         return fp
     }

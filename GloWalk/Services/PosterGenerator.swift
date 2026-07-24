@@ -127,12 +127,13 @@ final class PosterGenerator {
         guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
               session.pathPointsArray.count >= 2 else { return }
 
-        projector.forEachSegment { pt1, pt2, _, _, avgLight in
+        projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
             let alpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
             let width = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
 
             let path = UIBezierPath()
-            path.move(to: pt1); path.addLine(to: pt2)
+            path.move(to: pt1)
+            path.addCurve(to: pt2, controlPoint1: cp1, controlPoint2: cp2)
             path.lineWidth = width; path.lineCapStyle = .round
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: alpha).setStroke()
             path.stroke()
@@ -169,23 +170,22 @@ final class PosterGenerator {
         ctx.cgContext.rotate(by: angle)
         if !isLeft { ctx.cgContext.scaleBy(x: -1, y: 1) }
 
-        let s = scale
-        let w: CGFloat = 4.5 * s
-        let heelW: CGFloat = 2.5 * s
-        let len: CGFloat = 13 * s
+        let len: CGFloat = 20 * scale
+        let toeW: CGFloat = 4.5 * scale
+        let heelW: CGFloat = 2.0 * scale
 
         let fp = UIBezierPath()
-        fp.move(to: CGPoint(x: -heelW, y: 2 * s))
-        fp.addQuadCurve(to: CGPoint(x: heelW, y: 2 * s),
-                        controlPoint: CGPoint(x: 0, y: -1 * s))
-        fp.addCurve(to: CGPoint(x: w, y: -len/2),
-                    controlPoint1: CGPoint(x: heelW + 2 * s, y: -2 * s),
-                    controlPoint2: CGPoint(x: w, y: -len/2 + 3 * s))
-        fp.addQuadCurve(to: CGPoint(x: -w, y: -len/2),
-                        controlPoint: CGPoint(x: 0, y: -len/2 - 3 * s))
-        fp.addCurve(to: CGPoint(x: -heelW, y: 2 * s),
-                    controlPoint1: CGPoint(x: -w, y: -len/2 + 3 * s),
-                    controlPoint2: CGPoint(x: -(heelW + 2 * s), y: -2 * s))
+        fp.move(to: CGPoint(x: -heelW, y: len/2 - 2 * scale))
+        fp.addQuadCurve(to: CGPoint(x: heelW, y: len/2 - 2 * scale),
+                        controlPoint: CGPoint(x: 0, y: len/2))
+        fp.addCurve(to: CGPoint(x: toeW, y: -len/2 + 2 * scale),
+                    controlPoint1: CGPoint(x: heelW + 1 * scale, y: len/4),
+                    controlPoint2: CGPoint(x: toeW + 1 * scale, y: -len/4))
+        fp.addQuadCurve(to: CGPoint(x: -toeW, y: -len/2 + 2 * scale),
+                        controlPoint: CGPoint(x: 0, y: -len/2 - 2 * scale))
+        fp.addCurve(to: CGPoint(x: -heelW, y: len/2 - 2 * scale),
+                    controlPoint1: CGPoint(x: -(toeW + 1 * scale), y: -len/4),
+                    controlPoint2: CGPoint(x: -(heelW + 1 * scale), y: len/4))
         fp.close()
         UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.8).setFill()
         fp.fill()

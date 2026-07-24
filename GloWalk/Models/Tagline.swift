@@ -10,17 +10,10 @@ struct TaglineItem: Codable, Identifiable {
 
     /// Returns the phrase in the current system language
     var localizedPhrase: String {
-        isChinese ? phrase : phrase_en
+        L10n.isZh ? phrase : phrase_en
     }
     var localizedExplanation: String {
-        isChinese ? explanation : explanation_en
-    }
-
-    private var isChinese: Bool {
-        let lang = UserPreferences.shared.language
-        if lang == "en" { return false }
-        if lang == "zh-Hans" { return true }
-        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+        L10n.isZh ? explanation : explanation_en
     }
 }
 

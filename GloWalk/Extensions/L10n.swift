@@ -41,13 +41,9 @@ enum L10n {
     static var settingsTitle: LocalizedStringKey { "settings.title" }
     static var settingsDone: LocalizedStringKey { "settings.done" }
     static var settingsLanguage: LocalizedStringKey { "settings.language" }
-    static var settingsLighting: LocalizedStringKey { "settings.lighting" }
-    static var settingsArrival: LocalizedStringKey { "settings.arrival" }
     static var settingsData: LocalizedStringKey { "settings.data" }
     static var settingsAbout: LocalizedStringKey { "settings.about" }
     static var settingsFollowSystem: LocalizedStringKey { "settings.followSystem" }
-    static var settingsDefaultBrightness: LocalizedStringKey { "settings.defaultBrightness" }
-    static var settingsAutoArrival: LocalizedStringKey { "settings.autoArrival" }
     static var settingsPermissions: LocalizedStringKey { "settings.permissions" }
     static var settingsClearRecords: LocalizedStringKey { "settings.clearRecords" }
     static var settingsCleared: LocalizedStringKey { "settings.cleared" }

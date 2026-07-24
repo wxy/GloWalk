@@ -255,12 +255,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_CFBundleDisplayName = "GloWalk: 随行路灯";
 				INFOPLIST_KEY_CFBundleName = GloWalk;
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -323,12 +323,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "随行路灯";
+				INFOPLIST_KEY_CFBundleDisplayName = "GloWalk: 随行路灯";
 				INFOPLIST_KEY_CFBundleName = GloWalk;
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。";
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -349,21 +349,23 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = GloWalk/GloWalk.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GloWalk/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = GloWalk;
+				INFOPLIST_KEY_CFBundleDisplayName = "GloWalk: Path of Light";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk uses the rear camera to sense ambient brightness. No photos, no video, no storage.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk records your walking path to generate night walk posters. Data stays on device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk uses motion sensors to detect walking state and phone posture for adaptive brightness.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save night walk posters to your photo library.";
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.glowalk;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -401,7 +403,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GloWalk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GloWalk";
 			};
 			name = Debug;
@@ -427,7 +429,7 @@
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GloWalk.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/GloWalk";
 				VALIDATE_PRODUCT = YES;
 			};
@@ -439,21 +441,23 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = GloWalk/GloWalk.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = GloWalk/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = GloWalk;
+				INFOPLIST_KEY_CFBundleDisplayName = "GloWalk: Path of Light";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk uses the rear camera to sense ambient brightness. No photos, no video, no storage.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk records your walking path to generate night walk posters. Data stays on device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk uses motion sensors to detect walking state and phone posture for adaptive brightness.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Save night walk posters to your photo library.";
-				INFOPLIST_KEY_UIRequiredDeviceCapabilities = "armv7 flashlight";
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = arm64;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Dark;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = wang.xingyu.glowalk;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

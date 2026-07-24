@@ -6,8 +6,6 @@ struct GloWalkHUDModifier: ViewModifier {
             .background(Color.gloBlack)
             .preferredColorScheme(.dark)
             .statusBar(hidden: true)
-            // persistentSystemOverlays only available iOS 16+
-
     }
 }
 

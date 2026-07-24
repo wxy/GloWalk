@@ -11,7 +11,6 @@ final class WeatherService: ObservableObject {
 
     @Published var currentCondition: String?
     @Published var provider: Provider = .none
-    @Published var isAvailable: Bool = true
 
     func fetch(at location: CLLocation) async {
         // Try Apple WeatherKit first (richer data, but restricted in China)

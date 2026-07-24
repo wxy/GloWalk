@@ -16,9 +16,6 @@
     "%@%%" : {
 
     },
-    "🏮" : {
-
-    },
     "📏%@m" : {
 
     },
@@ -27,40 +24,6 @@
     },
     "🔋∞" : {
 
-    },
-    "app.name" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GloWalk"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "随行路灯"
-          }
-        }
-      }
-    },
-    "app.tagline" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A solitary step, a lantern aglow"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "踽踽独行，脚下有光"
-          }
-        }
-      }
     },
     "camera.allow" : {
       "extractionState" : "manual",
@@ -299,40 +262,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在结束..."
-          }
-        }
-      }
-    },
-    "hud.gps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS"
-          }
-        }
-      }
-    },
-    "hud.gpsUnavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS Offline"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "GPS 不可用"
           }
         }
       }
@@ -796,40 +725,6 @@
         }
       }
     },
-    "settings.arrival" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrival"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "安全到达"
-          }
-        }
-      }
-    },
-    "settings.autoArrival" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto Arrival Detection"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自动到达检测"
-          }
-        }
-      }
-    },
     "settings.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -949,23 +844,6 @@
         }
       }
     },
-    "settings.defaultBrightness" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default Brightness"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "起始亮度"
-          }
-        }
-      }
-    },
     "settings.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1013,23 +891,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "语言"
-          }
-        }
-      }
-    },
-    "settings.lighting" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lighting"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "照明偏好"
           }
         }
       }
@@ -1117,174 +978,6 @@
             "value" : "1.0 · 随行路灯"
           }
         }
-      }
-    },
-    "moon.new" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Moon" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新月" } }
-      }
-    },
-    "moon.crescent" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Crescent" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "蛾眉月" } }
-      }
-    },
-    "moon.quarter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quarter Moon" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "弦月" } }
-      }
-    },
-    "moon.gibbous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Gibbous" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "盈凸月" } }
-      }
-    },
-    "moon.full" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Full Moon" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "满月" } }
-      }
-    },
-    "moon.new_moon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Moon" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新月" } }
-      }
-    },
-    "moon.waxing_crescent" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waxing Crescent" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "蛾眉月" } }
-      }
-    },
-    "moon.first_quarter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "First Quarter" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "上弦月" } }
-      }
-    },
-    "moon.waxing_gibbous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waxing Gibbous" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "盈凸月" } }
-      }
-    },
-    "moon.full_moon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Full Moon" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "满月" } }
-      }
-    },
-    "moon.waning_gibbous" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waning Gibbous" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "亏凸月" } }
-      }
-    },
-    "moon.last_quarter" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Last Quarter" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "下弦月" } }
-      }
-    },
-    "moon.waning_crescent" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waning Crescent" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "残月" } }
-      }
-    },
-    "weather.rain" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rain" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "小雨" } }
-      }
-    },
-    "weather.drizzle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drizzle" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "毛毛雨" } }
-      }
-    },
-    "weather.snow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Snow" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "雪" } }
-      }
-    },
-    "weather.fog" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Fog" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "雾" } }
-      }
-    },
-    "weather.cloud" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cloudy" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "云" } }
-      }
-    },
-    "poster.steps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : " steps" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : " 步" } }
-      }
-    },
-    "poster.meters" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : " m" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : " 米" } }
-      }
-    },
-    "poster.kilometers" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : " km" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : " 公里" } }
-      }
-    },
-    "poster.minutes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : " min" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : " 分钟" } }
-      }
-    },
-    "poster.dateFormat" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "MMM d" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "M月d日" } }
-      }
-    },
-    "poster.footer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "A solitary step, a lantern aglow — GloWalk" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "踽踽独行，脚下有光 — GloWalk" } }
       }
     },
     "中文" : {

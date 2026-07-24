@@ -7,13 +7,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Path of Light"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "随行路灯"
+            "value" : "GloWalk: 随行路灯"
           }
         }
       }

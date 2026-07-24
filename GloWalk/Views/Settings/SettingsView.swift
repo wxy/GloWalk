@@ -16,8 +16,6 @@ struct SettingsView: View {
                 Color.gloBlackSurface.ignoresSafeArea()
                 Form {
                     Section { languageSection } header: { sectionHeader(L10n.settingsLanguage) }
-                    Section { brightnessSection } header: { sectionHeader(L10n.settingsLighting) }
-                    Section { arrivalSection } header: { sectionHeader(L10n.settingsArrival) }
                     Section { dataSection } header: { sectionHeader(L10n.settingsData) }
                     Section { taglineSection } header: { sectionHeader(Text("")) }
                     Section {
@@ -53,18 +51,6 @@ struct SettingsView: View {
             Text("中文").tag("zh-Hans")
         }
         .font(.gloBody(14)).foregroundColor(.white)
-    }
-
-    private var brightnessSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.settingsDefaultBrightness).font(.gloBody(14)).foregroundColor(.white)
-            Slider(value: $prefs.defaultBrightness, in: 0.3...1.0, step: 0.05).tint(.gloGold)
-        }
-    }
-
-    private var arrivalSection: some View {
-        Toggle(L10n.settingsAutoArrival, isOn: $prefs.enableWiFiArrival)
-            .tint(.gloGold).font(.gloBody(14)).foregroundColor(.white)
     }
 
     private var dataSection: some View {

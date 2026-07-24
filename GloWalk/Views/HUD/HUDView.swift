@@ -3,33 +3,47 @@ import SwiftUI
 struct HUDView: View {
     @StateObject private var viewModel = HUDViewModel()
     @EnvironmentObject var appState: AppState
-    @AppStorage("language") private var appLanguage: String = "system"
     let goToHistory: () -> Void
+
+    /// Moon phase decoration only appears at night (18:00–05:59).
+    private var isNightTime: Bool {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 18 || hour < 6
+    }
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
 
-    /// Effective language considering user preference + system fallback
-    private var isZh: Bool {
-        if appLanguage == "en" { return false }
-        if appLanguage == "zh-Hans" { return true }
-        return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
-    }
-
     var body: some View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                // Top status row — leave room for notch/Dynamic Island
-                topStatusRow
-                    .padding(.top, 48)
+            // Moon phase image — top-left corner, below status row
+            VStack {
+                HStack {
+                    if isNightTime,
+                   let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                        Image(uiImage: moonImg)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                            .padding(.leading, 12)
+                            .padding(.top, 48)
+                    }
+                    Spacer()
+                }
+                Spacer()
+            }
 
+            VStack(spacing: 0) {
                 Spacer()
 
                 // Central glow — double-tap to end
-                GlowCircleView(brightness: viewModel.brightness, isManual: isManual)
+                GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
+                              cadence: viewModel.cadence)
                     .gesture(
                         DragGesture(minimumDistance: 10)
                             .onChanged { v in
@@ -69,26 +83,18 @@ struct HUDView: View {
                             viewModel.resetToAutoBrightness()
                         }
                     }
-                    .overlay(alignment: .bottom) {
-                        Text(L10n.hudDoubleTapToEnd)
-                            .font(.gloHeadline(11))
-                            .foregroundColor(.gloGold.opacity(0.4))
-                            .offset(y: 28)
-                    }
-
                 // Constellation path — fixed space, no layout jump
                 ConstellationPathView(
                     points: viewModel.pathPoints,
-                    heading: viewModel.currentHeading,
                     isActive: viewModel.isActive && viewModel.pathPoints.count >= 2
                 )
                 .frame(height: 100)
                 .padding(.horizontal, 32)
                 .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
 
-                Spacer()
+                Spacer().frame(height: 12)
 
-                // Occlusion warning — fixed height to prevent layout shift
+                // Occlusion warning — above the status row, not between cards and bar
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
                     Text(L10n.hudOccluded).font(.gloBody(11))
@@ -96,8 +102,18 @@ struct HUDView: View {
                 .foregroundColor(.gloGold)
                 .padding(.vertical, 4).padding(.horizontal, 12)
                 .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
-                .padding(.bottom, 4)
+                .padding(.bottom, 2)
                 .opacity(viewModel.isTorchOccluded ? 1 : 0)
+
+                // Status row + bottom bar — tight grouping
+                topStatusRow
+
+                // Thin divider
+                Rectangle()
+                    .fill(Color.gloGold.opacity(0.10))
+                    .frame(height: 0.5)
+                    .padding(.horizontal, 24)
+                    .padding(.top, 4)
 
                 // Bottom bar — flush with screen bottom
                 bottomBar
@@ -133,69 +149,88 @@ struct HUDView: View {
         }
     }
 
-    // MARK: - Top Status Row
+    // MARK: - Status Row
 
-    /// 3×2 grid: left (moon) | center (GPS) | right (weather)
-    /// Side columns share remaining width equally; center is narrow (icons only).
+    /// 6-column factor row: each column = icon+label over delta, aligned
     private var topStatusRow: some View {
-        VStack(spacing: 2) {
-            // Row 1 — moon card · GPS · weather card
-            HStack(alignment: .center, spacing: 4) {
-                MoonCardView(data: viewModel.moonCard) { viewModel.toggleMoonFactor() }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                gpsIndicator
-                    .frame(width: 36)
-                WeatherCardView(data: viewModel.weatherCard) { viewModel.toggleWeatherFactor() }
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .frame(height: 24)
-
-            // Row 2 — lunar date · place name · gregorian date
-            HStack(alignment: .center, spacing: 4) {
-                Text(viewModel.lunarDateStr)
-                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Group {
-                    if viewModel.placeName.isEmpty {
-                        Text(viewModel.gpsActive ? L10n.hudGPS : L10n.hudGPSUnavailable)
-                    } else {
-                        Text(verbatim: viewModel.placeName)
-                    }
-                }
-                .font(.gloBody(9)).foregroundColor(.white.opacity(0.45))
-                .lineLimit(1)
-                .frame(width: 70)
-                Text(viewModel.gregorianDateStr)
-                    .font(.gloBody(9)).foregroundColor(.white.opacity(0.5))
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-            }
-            .frame(height: 14)
+        HStack(spacing: 0) {
+            factorCol(FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                                  delta: ambDelta, active: ambActive, id: "ambient"))
+            factorCol(FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                                  delta: posDelta, active: posActive, id: "posture"))
+            factorCol(FactorCell(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
+                                  delta: scrDelta, active: scrActive, id: "screen"))
+            factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                                  delta: darkDelta, active: darkActive, id: "dark"))
+            factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
+                                  delta: moonDelta, active: moonActive, id: "moon"))
+            factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
+                                  delta: weatherDelta, active: weatherActive, id: "weather"))
         }
         .padding(.horizontal, 12)
-        .padding(.top, 6)
     }
 
-    private var gpsIndicator: some View {
-        HStack(spacing: 3) {
-            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-                .font(.system(size: 10))
-                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.7) : .red.opacity(0.4))
-            if viewModel.gpsActive {
-                Image(systemName: "location.north.line.fill")
-                    .font(.system(size: 10))
-                    .foregroundColor(.gloGold.opacity(0.5))
-                    .rotationEffect(.degrees(viewModel.currentHeading))
+    private func factorCol(_ cell: FactorCell) -> some View {
+        Button(action: { viewModel.toggleFactor(id: cell.id) }) {
+            VStack(spacing: 1) {
+                HStack(spacing: 2) {
+                    Image(systemName: cell.icon)
+                        .font(.system(size: 9))
+                    Text(cell.label)
+                        .font(.system(size: 9))
+                        .lineLimit(1)
+                }
+                .foregroundColor(cell.active ? .white : .white.opacity(0.3))
+                Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
+                    .font(.system(size: 10).monospacedDigit())
+                    .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(0.25))
             }
+            .padding(.vertical, 3)
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(cell.active ? Color.gloAmber.opacity(0.08) : Color.white.opacity(0.02))
+            )
         }
+        .buttonStyle(.plain)
+        .opacity(cell.active ? 0.85 : 0.4)
+    }
+
+    private struct FactorCell {
+        let icon: String; let label: String; let delta: Int
+        let active: Bool; let id: String
+    }
+
+    // Convenience accessors for factor card data
+    private var ambDelta: Int { factorDelta("ambient") }
+    private var posDelta: Int { factorDelta("posture") }
+    private var scrDelta: Int { factorDelta("screen") }
+    private var darkDelta: Int { factorDelta("dark") }
+    private var ambActive: Bool { factorActive("ambient") }
+    private var posActive: Bool { factorActive("posture") }
+    private var scrActive: Bool { factorActive("screen") }
+    private var darkActive: Bool { factorActive("dark") }
+    private var moonDelta: Int { viewModel.moonCard.brightnessDelta }
+    private var moonActive: Bool { viewModel.moonCard.isActive }
+    private var moonLabel: String { viewModel.moonCard.phaseName }
+    private var weatherDelta: Int { viewModel.weatherCard.brightnessDelta }
+    private var weatherActive: Bool { viewModel.weatherCard.isActive }
+    private var weatherLabel: String { viewModel.weatherCard.condition }
+
+    private func factorDelta(_ id: String) -> Int {
+        viewModel.factorCards.first(where: { $0.id == id })?.brightnessDelta ?? 0
+    }
+    private func factorActive(_ id: String) -> Bool {
+        viewModel.factorCards.first(where: { $0.id == id })?.isActive ?? true
     }
 
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            Text(isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
+            Text(L10n.isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
             Text(" · \(viewModel.elapsedDistance)")
-            Text(isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
+            Text(L10n.isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
                 Text("🔋∞")
@@ -203,6 +238,10 @@ struct HUDView: View {
                 Text("🔋\(viewModel.estimatedMinutesRemaining)min")
             }
             Spacer()
+            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
+                .font(.system(size: 10))
+                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.6) : .red.opacity(0.35))
+                .padding(.trailing, 6)
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 14))

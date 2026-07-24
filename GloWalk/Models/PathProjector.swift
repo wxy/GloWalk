@@ -44,7 +44,7 @@ struct PathProjector {
             }
             return
         }
-        let tension: CGFloat = 0.35
+        let tension: CGFloat = 0.45
         var lastDrawn: CGPoint?  // track actual endpoint to avoid gaps from smoothing
         for i in 2..<points.count {
             let p0 = points[i-2], p1 = points[i-1], p2 = points[i]

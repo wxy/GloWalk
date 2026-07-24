@@ -27,10 +27,13 @@ struct ConstellationPathView: View {
                     style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start — 👣 emoji centered on the start point
-            if let start = projector.startPoint() {
+            // Start — 👣 emoji at the first drawn point (second GPS point for bezier)
+            let startPoint: CGPoint? = points.count >= 3
+                ? projector.project(points[1])
+                : projector.startPoint()
+            if let sp = startPoint {
                 ctx.draw(Text("👣").font(.system(size: 16)),
-                         at: CGPoint(x: start.x - 8, y: start.y - 8))
+                         at: CGPoint(x: sp.x - 8, y: sp.y - 8))
             }
 
             // End — 🦶 emoji with glow aura, centered on the end point

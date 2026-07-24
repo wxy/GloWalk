@@ -29,7 +29,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         super.init()
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        manager.distanceFilter = 10
+        manager.distanceFilter = 5
     }
 
     // MARK: - Pedestrian Dead Reckoning (indoor / no GPS)

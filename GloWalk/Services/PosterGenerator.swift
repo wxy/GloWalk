@@ -140,57 +140,20 @@ final class PosterGenerator {
         }
 
         let pts = session.pathPointsArray
-        // Start — left footprint
+        let footprintFont = UIFont.systemFont(ofSize: 28)
+        let attrs: [NSAttributedString.Key: Any] = [.font: footprintFont]
+
+        // Start — 👣 emoji
         if let p = projector.startPoint() {
-            let dir = atan2(projector.project(pts[1]).y - projector.project(pts[0]).y,
-                            projector.project(pts[1]).x - projector.project(pts[0]).x)
-            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: true,
-                                scale: 2.5, ctx: ctx)
+            "👣".draw(at: CGPoint(x: p.x - 16, y: p.y - 16), withAttributes: attrs)
         }
 
-        // End — right footprint with glow
+        // End — 🦶 emoji with glow
         if let p = projector.endPoint(), pts.count >= 2 {
-            let dir = atan2(projector.project(pts[pts.count - 1]).y - projector.project(pts[pts.count - 2]).y,
-                            projector.project(pts[pts.count - 1]).x - projector.project(pts[pts.count - 2]).x)
-            // Glow aura
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.18).setFill()
-            UIBezierPath(ovalIn: CGRect(x: p.x - 12, y: p.y - 12, width: 24, height: 24)).fill()
-            drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: false,
-                                scale: 2.5, ctx: ctx)
+            UIBezierPath(ovalIn: CGRect(x: p.x - 18, y: p.y - 18, width: 36, height: 36)).fill()
+            "🦶".draw(at: CGPoint(x: p.x - 18, y: p.y - 22), withAttributes: attrs)
         }
-    }
-
-    /// Draw a single footprint silhouette at `point`, rotated by `angle` radians.
-    /// Scale is relative to the base 13pt size.
-    private static func drawFootprintMarker(at point: CGPoint, angle: CGFloat,
-                                             isLeft: Bool, scale: CGFloat,
-                                             ctx: UIGraphicsRendererContext) {
-        ctx.cgContext.saveGState()
-        ctx.cgContext.translateBy(x: point.x, y: point.y)
-        ctx.cgContext.rotate(by: angle)
-        if !isLeft { ctx.cgContext.scaleBy(x: -1, y: 1) }
-
-        let len: CGFloat = 20 * scale
-        let toeW: CGFloat = 4.5 * scale
-        let heelW: CGFloat = 2.0 * scale
-
-        let fp = UIBezierPath()
-        fp.move(to: CGPoint(x: -heelW, y: len/2 - 2 * scale))
-        fp.addQuadCurve(to: CGPoint(x: heelW, y: len/2 - 2 * scale),
-                        controlPoint: CGPoint(x: 0, y: len/2))
-        fp.addCurve(to: CGPoint(x: toeW, y: -len/2 + 2 * scale),
-                    controlPoint1: CGPoint(x: heelW + 1 * scale, y: len/4),
-                    controlPoint2: CGPoint(x: toeW + 1 * scale, y: -len/4))
-        fp.addQuadCurve(to: CGPoint(x: -toeW, y: -len/2 + 2 * scale),
-                        controlPoint: CGPoint(x: 0, y: -len/2 - 2 * scale))
-        fp.addCurve(to: CGPoint(x: -heelW, y: len/2 - 2 * scale),
-                    controlPoint1: CGPoint(x: -(toeW + 1 * scale), y: -len/4),
-                    controlPoint2: CGPoint(x: -(heelW + 1 * scale), y: len/4))
-        fp.close()
-        UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.8).setFill()
-        fp.fill()
-
-        ctx.cgContext.restoreGState()
     }
 
     // MARK: - Header

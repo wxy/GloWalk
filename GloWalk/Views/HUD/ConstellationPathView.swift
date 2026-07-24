@@ -27,22 +27,19 @@ struct ConstellationPathView: View {
                     style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start — left footprint pointing along first segment direction
+            // Start — footprint emoji
             if let start = projector.startPoint() {
-                let direction = segmentDirection(from: projector.project(points[0]),
-                                                  to: projector.project(points[1]))
-                drawFootprint(ctx: &ctx, at: start, angle: direction, isLeft: true)
+                ctx.draw(Text("👣").font(.system(size: 16)),
+                         at: CGPoint(x: start.x, y: start.y))
             }
 
-            // End — right footprint pointing along last segment direction
+            // End — footprint emoji with glow aura
             if let end = projector.endPoint(), points.count >= 2 {
-                let direction = segmentDirection(from: projector.project(points[points.count - 2]),
-                                                  to: projector.project(points[points.count - 1]))
-                // Glow aura behind the footprint
                 let glowRect = CGRect(x: end.x - 9, y: end.y - 9, width: 18, height: 18)
                 ctx.fill(Path(ellipseIn: glowRect),
                          with: .color(Color.gloGold.opacity(0.18)))
-                drawFootprint(ctx: &ctx, at: end, angle: direction, isLeft: false)
+                ctx.draw(Text("🦶").font(.system(size: 16)),
+                         at: CGPoint(x: end.x, y: end.y - 6))
             }
 
             // Nocturnal animal easter egg — ~3% chance, appears mid-path
@@ -66,47 +63,6 @@ struct ConstellationPathView: View {
     /// Direction angle from pt1 to pt2 (radians, 0 = right)
     private func segmentDirection(from pt1: CGPoint, to pt2: CGPoint) -> CGFloat {
         atan2(pt2.y - pt1.y, pt2.x - pt1.x)
-    }
-
-    /// Draw a simplified footprint silhouette transformed to `point` + `angle`.
-    /// `isLeft` draws normally; right foot is mirrored via scaleX(-1).
-    private func drawFootprint(ctx: inout GraphicsContext, at point: CGPoint,
-                                angle: CGFloat, isLeft: Bool) {
-        var transform = CGAffineTransform.identity
-            .translatedBy(x: point.x, y: point.y)
-            .rotated(by: angle)
-        if !isLeft {
-            transform = transform.scaledBy(x: -1, y: 1)
-        }
-
-        let fp = footprintPath().applying(transform)
-        ctx.fill(fp, with: .color(Color.gloGold.opacity(0.8)))
-    }
-
-    /// Base footprint silhouette (origin-centered, toes point up/-Y, heel at +Y)
-    private func footprintPath() -> Path {
-        var fp = Path()
-        let len: CGFloat = 20
-        let toeW: CGFloat = 4.5     // half-width at toe area
-        let heelW: CGFloat = 2.0    // half-width at heel (narrower)
-
-        // Heel (bottom)
-        fp.move(to: CGPoint(x: -heelW, y: len/2 - 2))
-        fp.addQuadCurve(to: CGPoint(x: heelW, y: len/2 - 2),
-                        control: CGPoint(x: 0, y: len/2))
-        // Right edge → toes (widening)
-        fp.addCurve(to: CGPoint(x: toeW, y: -len/2 + 2),
-                    control1: CGPoint(x: heelW + 1, y: len/4),
-                    control2: CGPoint(x: toeW + 1, y: -len/4))
-        // Toe curve
-        fp.addQuadCurve(to: CGPoint(x: -toeW, y: -len/2 + 2),
-                        control: CGPoint(x: 0, y: -len/2 - 2))
-        // Left edge → heel
-        fp.addCurve(to: CGPoint(x: -heelW, y: len/2 - 2),
-                    control1: CGPoint(x: -(toeW + 1), y: -len/4),
-                    control2: CGPoint(x: -(heelW + 1), y: len/4))
-        fp.closeSubpath()
-        return fp
     }
 
     // MARK: - Animal Easter Eggs

@@ -69,7 +69,7 @@ Build with Xcode 16+ targeting iOS 15.0+. Run on a physical iPhone for full sens
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
 
 ## Privacy
 

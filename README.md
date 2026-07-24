@@ -7,7 +7,7 @@
 ---
 
 <p align="center">
-  <img src="GloWalk/Assets.xcassets/AppLogo.imageset/app-logo.png" width="128" alt="GloWalk Icon">
+  <img src="GloWalk/Resources/GloWalk.png" width="128" alt="GloWalk Icon">
 </p>
 
 ## Features

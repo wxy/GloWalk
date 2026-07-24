@@ -59,19 +59,20 @@ struct PathProjector {
     /// curve is C1-continuous — no kinks, no gaps — and its two tips land
     /// exactly on the first and last points where the footprint markers sit.
     ///
-    /// `drawSegment` receives: start, end, control1, control2, avgLight (0-1).
+    /// `drawSegment` receives: start, end, control1, control2, avgTorch (0-1)
+    /// — the average torch (flashlight) brightness recorded along the segment.
     func forEachSegment(_ drawSegment: (CGPoint, CGPoint, CGPoint, CGPoint, Double) -> Void) {
         guard points.count >= 2 else { return }
 
         // Project once; drop points that land on the same spot (GPS jitter in
         // place) so they don't introduce zero-length wiggles in the curve.
         var pts: [CGPoint] = []
-        var lights: [Double] = []
+        var torch: [Double] = []
         for p in points {
             let sp = project(p)
             if let last = pts.last, hypot(sp.x - last.x, sp.y - last.y) < 0.5 { continue }
             pts.append(sp)
-            lights.append(p.ambientLight)
+            torch.append(p.torchBrightness)
         }
         guard pts.count >= 2 else { return }
 
@@ -86,8 +87,8 @@ struct PathProjector {
             let cp2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6.0,
                               y: p2.y - (p3.y - p1.y) / 6.0)
 
-            let avgLight = (lights[i] + lights[i + 1]) / 2.0
-            drawSegment(p1, p2, cp1, cp2, avgLight)
+            let avgTorch = (torch[i] + torch[i + 1]) / 2.0
+            drawSegment(p1, p2, cp1, cp2, avgTorch)
         }
     }
 

@@ -12,7 +12,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
-    private var lastLocation: CLLocation?
     private var lastRecordedCoord: CLLocationCoordinate2D?  // last valid GPS point saved to path
     private var lastStepCount: Int = 0
     private var lastGPSRecordedStepCount: Int = 0
@@ -20,6 +19,9 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private var estimatedLon: Double?
     private var hasGeocoded = false
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
+    /// Real sensor values at recording time, injected each tick by HUDViewModel.
+    var currentAmbientLight: Double = 0.5
+    var currentTorchBrightness: Double = 0.7
 
     /// Maximum allowed deviation (degrees) between GPS bearing and device heading.
     /// Points exceeding this are treated as drift and filtered out.
@@ -65,7 +67,9 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
                 let pt = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
-                                          ambientLight: 0.5, torchBrightness: 0.7, session: session)
+                                          ambientLight: currentAmbientLight,
+                                          torchBrightness: currentTorchBrightness,
+                                          session: session)
                 PersistenceController.shared.save()
                 estimatedPathPoints.append(pt)
             }
@@ -74,7 +78,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
 
     func startRecording(session: WalkSession) {
         currentSession = session
-        lastLocation = nil
         totalDistance = 0
         authorizationStatus = manager.authorizationStatus
         isRecording = true
@@ -108,12 +111,10 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             estimatedLat = location.coordinate.latitude
             estimatedLon = location.coordinate.longitude
         }
-        if let last = lastLocation {
-            totalDistance += location.distance(from: last)
-        }
-        lastLocation = location
-
-        // Only record path points when user has actually taken steps
+        // Only record path points (and accrue distance) when the user has
+        // actually stepped and the fix is accurate. Distance is measured from
+        // the recorded path itself, so it is never double-counted with dead
+        // reckoning and never grows while standing still.
         guard externalStepCount > 0 && externalStepCount > lastGPSRecordedStepCount else { return }
         guard location.horizontalAccuracy > 0 && location.horizontalAccuracy < 30 else { return }
 
@@ -130,27 +131,33 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
 
         let stepDelta = externalStepCount - lastGPSRecordedStepCount
         lastGPSRecordedStepCount = externalStepCount
+        let ctx = PersistenceController.shared.container.viewContext
 
         if isDrift {
-            // Use dead reckoning to fill the gap when GPS is drifting
+            // Synthesize a point via dead reckoning when GPS is drifting.
             guard let prevCoord = lastRecordedCoord,
-                  let heading = currentHeading?.trueHeading else { return }
+                  let heading = currentHeading?.trueHeading, heading >= 0 else { return }
             let strideMeters = 0.7 * Double(max(stepDelta, 1))
             let rad = heading * .pi / 180
             let newLat = prevCoord.latitude + (strideMeters / 111_320) * cos(rad)
             let newLon = prevCoord.longitude + (strideMeters / (111_320 * cos(prevCoord.latitude * .pi / 180))) * sin(rad)
             lastRecordedCoord = CLLocationCoordinate2D(latitude: newLat, longitude: newLon)
-            let ctx = PersistenceController.shared.container.viewContext
+            totalDistance += strideMeters
             _ = PathPoint.create(in: ctx, lat: newLat, lon: newLon,
-                                 ambientLight: 0.5, torchBrightness: 0.7,
+                                 ambientLight: currentAmbientLight,
+                                 torchBrightness: currentTorchBrightness,
                                  session: session)
             PersistenceController.shared.save()
         } else {
+            if let prev = lastRecordedCoord {
+                let prevLoc = CLLocation(latitude: prev.latitude, longitude: prev.longitude)
+                totalDistance += location.distance(from: prevLoc)
+            }
             lastRecordedCoord = location.coordinate
-            let ctx = PersistenceController.shared.container.viewContext
             _ = PathPoint.create(in: ctx, lat: location.coordinate.latitude,
                                  lon: location.coordinate.longitude,
-                                 ambientLight: 0.5, torchBrightness: 0.7,
+                                 ambientLight: currentAmbientLight,
+                                 torchBrightness: currentTorchBrightness,
                                  session: session)
             PersistenceController.shared.save()
         }

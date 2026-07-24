@@ -24,6 +24,7 @@ final class PathProjectorTests: XCTestCase {
         pt.latitude = lat
         pt.longitude = lon
         pt.ambientLight = light
+        pt.torchBrightness = light  // constellation coloring uses torch brightness
         pt.timestamp = Date()
         return pt
     }
@@ -102,15 +103,15 @@ final class PathProjectorTests: XCTestCase {
         }
 
         var segmentCount = 0
-        projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
+        projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
             segmentCount += 1
             // Catmull-Rom control points for a 2-point path lie on the segment
             XCTAssertEqual(cp1.x, pt1.x + (pt2.x - pt1.x) / 6, accuracy: 0.5)
             XCTAssertEqual(cp1.y, pt1.y + (pt2.y - pt1.y) / 6, accuracy: 0.5)
             XCTAssertEqual(cp2.x, pt2.x - (pt2.x - pt1.x) / 6, accuracy: 0.5)
             XCTAssertEqual(cp2.y, pt2.y - (pt2.y - pt1.y) / 6, accuracy: 0.5)
-            XCTAssertEqual(avgLight, 0.5, accuracy: 0.01,
-                           "Average light should be (0.3 + 0.7) / 2 = 0.5")
+            XCTAssertEqual(avgTorch, 0.5, accuracy: 0.01,
+                           "Average torch brightness should be (0.3 + 0.7) / 2 = 0.5")
         }
         XCTAssertEqual(segmentCount, 1, "Two points should yield exactly one segment")
     }

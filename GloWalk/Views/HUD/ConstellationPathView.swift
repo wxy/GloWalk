@@ -17,9 +17,10 @@ struct ConstellationPathView: View {
 
             // Draw the smooth constellation curve — one Bézier per segment,
             // joined C1-continuously so the whole path reads as a single line.
-            projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
-                let alpha = 0.35 + (1.0 - avgLight) * 0.40
-                let width = 2.0 + (1.0 - avgLight) * 3.0
+            projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
+                // Brighter torch (flashlight) → brighter, thicker line.
+                let alpha = 0.35 + avgTorch * 0.40
+                let width = 2.0 + avgTorch * 3.0
 
                 var path = Path()
                 path.move(to: pt1)

@@ -127,9 +127,10 @@ final class PosterGenerator {
         guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
               session.pathPointsArray.count >= 2 else { return }
 
-        projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
-            let alpha = CGFloat(0.3 + (1.0 - avgLight) * 0.5)
-            let width = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
+        projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
+            // Brighter torch (flashlight) → brighter, thicker line.
+            let alpha = CGFloat(0.3 + avgTorch * 0.5)
+            let width = CGFloat(2.0 + avgTorch * 4.0)
 
             let path = UIBezierPath()
             path.move(to: pt1)

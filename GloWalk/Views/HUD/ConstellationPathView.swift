@@ -80,15 +80,15 @@ struct ConstellationPathView: View {
         }
 
         let fp = footprintPath().applying(transform)
-        ctx.fill(fp, with: .color(Color.gloGold.opacity(0.65)))
+        ctx.fill(fp, with: .color(Color.gloGold.opacity(0.8)))
     }
 
     /// Base footprint silhouette (origin-centered, toes point up/-Y, heel at +Y)
     private func footprintPath() -> Path {
         var fp = Path()
-        let w: CGFloat = 4.5
-        let heelW: CGFloat = 2.5
-        let len: CGFloat = 13
+        let w: CGFloat = 6.5
+        let heelW: CGFloat = 3.5
+        let len: CGFloat = 18
 
         fp.move(to: CGPoint(x: -heelW, y: 2))
         fp.addQuadCurve(to: CGPoint(x: heelW, y: 2),

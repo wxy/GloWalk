@@ -144,7 +144,7 @@ final class PosterGenerator {
             let dir = atan2(projector.project(pts[1]).y - projector.project(pts[0]).y,
                             projector.project(pts[1]).x - projector.project(pts[0]).x)
             drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: true,
-                                scale: 1.5, ctx: ctx)
+                                scale: 2.5, ctx: ctx)
         }
 
         // End — right footprint with glow
@@ -155,7 +155,7 @@ final class PosterGenerator {
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.18).setFill()
             UIBezierPath(ovalIn: CGRect(x: p.x - 12, y: p.y - 12, width: 24, height: 24)).fill()
             drawFootprintMarker(at: p, angle: CGFloat(dir), isLeft: false,
-                                scale: 1.5, ctx: ctx)
+                                scale: 2.5, ctx: ctx)
         }
     }
 
@@ -187,7 +187,7 @@ final class PosterGenerator {
                     controlPoint1: CGPoint(x: -w, y: -len/2 + 3 * s),
                     controlPoint2: CGPoint(x: -(heelW + 2 * s), y: -2 * s))
         fp.close()
-        UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.65).setFill()
+        UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 0.8).setFill()
         fp.fill()
 
         ctx.cgContext.restoreGState()

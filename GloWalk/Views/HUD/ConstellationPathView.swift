@@ -13,25 +13,22 @@ struct ConstellationPathView: View {
             guard let projector = PathProjector(points: points, area: area),
                   points.count >= 2 else { return }
 
-            // Draw bezier segments — golden constellation lines
-            projector.forEachSegment { pt1, pt2, cp1, cp2, avgLight in
+            // Draw straight line segments — golden constellation lines
+            projector.forEachSegment { pt1, pt2, _, _, avgLight in
                 let alpha = 0.35 + (1.0 - avgLight) * 0.40
                 let width = 2.0 + (1.0 - avgLight) * 3.0
 
                 var path = Path()
                 path.move(to: pt1)
-                path.addCurve(to: pt2, control1: cp1, control2: cp2)
+                path.addLine(to: pt2)
 
                 ctx.stroke(path,
                     with: .color(Color.gloGold.opacity(alpha)),
                     style: StrokeStyle(lineWidth: width, lineCap: .round, lineJoin: .round))
             }
 
-            // Start — 👣 emoji at the first drawn point (second GPS point for bezier)
-            let startPoint: CGPoint? = points.count >= 3
-                ? projector.project(points[1])
-                : projector.startPoint()
-            if let sp = startPoint {
+            // Start — 👣 emoji at the first point
+            if let sp = projector.startPoint() {
                 ctx.draw(Text("👣").font(.system(size: 16)),
                          at: CGPoint(x: sp.x - 8, y: sp.y - 8))
             }

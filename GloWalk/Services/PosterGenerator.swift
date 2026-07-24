@@ -132,8 +132,7 @@ final class PosterGenerator {
             let width = CGFloat(2.0 + (1.0 - avgLight) * 4.0)
 
             let path = UIBezierPath()
-            path.move(to: pt1)
-            path.addCurve(to: pt2, controlPoint1: cp1, controlPoint2: cp2)
+            path.move(to: pt1); path.addLine(to: pt2)
             path.lineWidth = width; path.lineCapStyle = .round
             UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: alpha).setStroke()
             path.stroke()

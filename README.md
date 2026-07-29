@@ -55,7 +55,20 @@ GloWalk/
 brightness = ambient(40%) + posture(25%) + screen(10%) + darkAdapt(10%) + moon(10%) + weather(5%)
 ```
 
-All six factors contribute proportionally to the gap from optimal brightness. Toggle any factor to see its real-time impact.
+All five factors contribute proportionally to the gap from optimal brightness. Toggle any factor to see its real-time impact.
+
+## Usage Guide
+
+| Action | Gesture |
+|--------|---------|
+| **Auto brightness** | Automatic — camera + posture + dark adaptation + moon + weather |
+| **Manual adjust** | Drag up/down on the glow circle |
+| **Restore auto** | Single-tap the brightness percentage |
+| **Pause flashlight** | Long-press the glow circle (0.8s). Long-press again to resume |
+| **End walk** | Double-tap the glow circle → generates poster |
+| **Toggle a factor** | Tap any factor card at the bottom |
+| **Dismiss poster** | Swipe down on the poster |
+| **View past posters** | Tap any walk in history to see its poster again |
 
 ## Getting Started
 
@@ -89,6 +102,19 @@ See [PRIVACY.md](PRIVACY.md).
 - **深色界面** — 每一像素都为夜间设计，琥珀金配色
 - **中英双语** — 完整的中英文支持，运行时可切换
 - **隐私优先** — 所有数据仅存本机，无需账号，无分析，无追踪
+
+### 使用指南
+
+| 操作 | 手势 |
+|------|------|
+| **自动调光** | 全自动——摄像头 + 姿态 + 暗适应 + 月相 + 天气 |
+| **手动调光** | 在光晕区域上下滑动 |
+| **恢复自动** | 单击亮度百分比数字 |
+| **临时关灯** | 长按光晕 0.8 秒，再次长按恢复 |
+| **结束步行** | 双击光晕 → 生成海报 |
+| **因素开关** | 点击底部因素卡片 |
+| **关闭海报** | 向下滑动海报 |
+| **查看历史海报** | 步行历史中点击记录，重新查看海报 |
 
 ### 系统要求
 

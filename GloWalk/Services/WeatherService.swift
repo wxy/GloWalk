@@ -4,7 +4,12 @@ import WeatherKit
 #endif
 
 /// Hybrid weather: tries Apple WeatherKit first, falls back to free Open-Meteo.
-/// Automatically handles mainland China and other restricted regions.
+/// WeatherKit is more accurate globally but restricted in mainland China;
+/// Open-Meteo works everywhere with no API key.
+///
+/// When WeatherKit is the active provider, the UI must display the
+/// " Weather" trademark and link to the legal attribution page
+/// (https://weatherkit.apple.com/legal-attribution.html).
 @MainActor
 final class WeatherService: ObservableObject {
     enum Provider { case apple, openMeteo, none }
@@ -13,7 +18,7 @@ final class WeatherService: ObservableObject {
     @Published var provider: Provider = .none
 
     func fetch(at location: CLLocation) async {
-        // Try Apple WeatherKit first (richer data, but restricted in China)
+        // Try Apple WeatherKit first (richer data, restricted in China)
         if #available(iOS 16, *) {
             if let condition = await tryWeatherKit(at: location) {
                 currentCondition = condition
@@ -43,9 +48,6 @@ final class WeatherService: ObservableObject {
         }
     }
 
-    /// Map WeatherKit's rich condition set to the same vocabulary Open-Meteo
-    /// produces (clear/cloud/fog/drizzle/rain/snow/thunderstorm), so the light
-    /// engine and localized labels behave identically regardless of provider.
     @available(iOS 16, *)
     private func normalize(_ condition: WeatherCondition) -> String {
         switch condition {

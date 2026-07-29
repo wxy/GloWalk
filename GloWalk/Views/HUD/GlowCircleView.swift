@@ -3,7 +3,8 @@ import SwiftUI
 struct GlowCircleView: View {
     let brightness: Double
     let isManual: Bool
-    let cadence: Double  // 0 = still, ~0.7-1.0 = walking
+    let cadence: Double
+    let isPaused: Bool
 
     @State private var breathe: Double = 0
     @State private var stepPhase: Double = 0
@@ -60,19 +61,30 @@ struct GlowCircleView: View {
                 )
                 .frame(width: 100, height: 100)
 
-            // Brightness percentage — positioned well below the icon
+            // Brightness percentage — with strikethrough overlay when paused
             Text("\(Int(brightness * 100))%")
                 .font(.gloDisplay(22))
                 .fontWeight(.light)
-                .foregroundColor(isManual ? .white : Color.gloTorchCore)
-                .shadow(color: (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth), radius: 12, x: 0, y: 0)
-                .offset(y: 55)
+                .foregroundColor(isPaused ? .white.opacity(0.25)
+                                 : isManual ? .white : Color.gloTorchCore)
+                .shadow(color: isPaused ? .clear
+                         : (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth),
+                         radius: 12, x: 0, y: 0)
+                .overlay {
+                    if isPaused {
+                        Rectangle()
+                            .fill(.white.opacity(0.25))
+                            .frame(height: 1)
+                            .frame(width: 44)
+                    }
+                }
+                .offset(y: 64)
 
             // "Double tap to end" hint — breathes with the glow
             Text(L10n.hudDoubleTapToEnd)
                 .font(.gloHeadline(11))
                 .foregroundColor(.gloGold.opacity(0.35))
-                .offset(y: 80)
+                .offset(y: 88)
         }
         // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
         .scaleEffect(0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))

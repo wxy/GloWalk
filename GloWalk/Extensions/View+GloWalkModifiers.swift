@@ -5,7 +5,6 @@ struct GloWalkHUDModifier: ViewModifier {
         content
             .background(Color.gloBlack)
             .preferredColorScheme(.dark)
-            .statusBar(hidden: true)
     }
 }
 

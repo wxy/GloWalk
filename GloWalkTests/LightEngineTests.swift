@@ -27,19 +27,49 @@ final class LightEngineTests: XCTestCase {
                              "Rain should boost brightness for safety")
     }
 
-    func testSnowBoostsMoreThanRain() {
+    func testThunderstormBoostsMoreThanRain() {
         let rain = makeSnapshot(ambient: 0.5, posture: 1.0, weather: "rain")
-        let snow = makeSnapshot(ambient: 0.5, posture: 1.0, weather: "snow")
+        let storm = makeSnapshot(ambient: 0.5, posture: 1.0, weather: "thunderstorm")
 
         engine.update(sensors: rain)
         let rainB = engine.targetBrightness
 
+        engine.update(sensors: storm)
+        let stormB = engine.targetBrightness
+
+        // Thunderstorm should boost more than rain (danger + low visibility)
+        XCTAssertGreaterThan(stormB, rainB,
+                             "Thunderstorm should boost brightness more than rain")
+    }
+
+    func testSnowDoesNotBoost() {
+        let snow = makeSnapshot(ambient: 0.5, posture: 1.0, weather: "snow")
+        let clear = makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil)
+
         engine.update(sensors: snow)
         let snowB = engine.targetBrightness
 
-        // Snow should boost more than rain
-        XCTAssertGreaterThan(snowB, rainB,
-                             "Snow should provide a larger brightness boost than rain")
+        engine.update(sensors: clear)
+        let clearB = engine.targetBrightness
+
+        // Snow should not boost — ground reflection compensates
+        XCTAssertEqual(snowB, clearB, accuracy: 0.001,
+                       "Snow should not boost brightness")
+    }
+
+    func testFogBoostsBrightness() {
+        let fog = makeSnapshot(ambient: 0.5, posture: 1.0, weather: "fog")
+        let clear = makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil)
+
+        engine.update(sensors: fog)
+        let fogB = engine.targetBrightness
+
+        engine.update(sensors: clear)
+        let clearB = engine.targetBrightness
+
+        // Fog should boost for low visibility
+        XCTAssertGreaterThan(fogB, clearB,
+                             "Fog should boost brightness for low visibility")
     }
 
     func testClearWeatherNoBoost() {

@@ -21,6 +21,7 @@ enum L10n {
     static var hudGPS: LocalizedStringKey { "hud.gps" }
     static var hudEnding: LocalizedStringKey { "hud.ending" }
     static var hudDrawing: LocalizedStringKey { "hud.drawing" }
+    static var hudZeroStep: LocalizedStringKey { "hud.zeroStep" }
     static var hudSteps: LocalizedStringKey { "hud.steps" }
 
     static var posterShare: LocalizedStringKey { "poster.share" }

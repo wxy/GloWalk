@@ -113,6 +113,7 @@ struct HUDView: View {
             }
         }
         .gloWalkHUD()
+        .contentShape(Rectangle())
         .onTapGesture(count: 2) {
             Haptic.heavy()
             if viewModel.stepCount == 0 {

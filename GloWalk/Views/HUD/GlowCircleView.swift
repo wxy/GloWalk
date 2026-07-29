@@ -81,15 +81,17 @@ struct GlowCircleView: View {
                 .offset(y: 64)
 
             // Operation hints — breathe with the glow
-            VStack(spacing: 2) {
-                Text(L10n.isZh ? "双击 结束步行" : "Double-tap · End walk")
-                Text(L10n.isZh ? "长按 开关闪光灯" : "Long-press · Toggle torch")
-                Text(L10n.isZh ? "滑动 调整亮度" : "Swipe · Adjust brightness")
-                Text(L10n.isZh ? "单击 恢复自动" : "Tap · Restore auto")
+            VStack(spacing: 4) {
+                Text(L10n.isZh
+                     ? "双击结束步行    长按开关灯光"
+                     : "Double-tap to end, long-press for torch")
+                Text(L10n.isZh
+                     ? "滑动调整亮度    单击恢复自动"
+                     : "Swipe to adjust, tap to restore")
             }
-            .font(.gloBody(9))
-            .foregroundColor(.gloGold.opacity(0.3))
-            .offset(y: 88)
+            .font(.gloBody(11))
+            .foregroundColor(.white.opacity(0.5))
+            .offset(y: 100)
         }
         // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
         .scaleEffect(0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))

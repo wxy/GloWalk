@@ -5,7 +5,6 @@ final class LightEngine: ObservableObject {
     @Published var targetBrightness: Double = 0.7
     @Published var ambientFactorActive: Bool = true
     @Published var postureFactorActive: Bool = true
-    @Published var screenFactorActive: Bool = true
     @Published var darkAdaptationActive: Bool = true
     @Published var moonFactorActive: Bool = true
     @Published var weatherFactorActive: Bool = true
@@ -29,11 +28,10 @@ final class LightEngine: ObservableObject {
     // MARK: - Signal Weights
 
     private let wAmbient: Double = 0.40
-    private let wPosture: Double = 0.25
-    private let wScreen:  Double = 0.10
-    private let wDark:    Double = 0.10
-    private let wMoon:    Double = 0.10
-    private let wWeather: Double = 0.05
+    private let wPosture: Double = 0.15
+    private let wDark:    Double = 0.15
+    private let wMoon:    Double = 0.15
+    private let wWeather: Double = 0.15
 
     // MARK: - Update
 
@@ -42,7 +40,6 @@ final class LightEngine: ObservableObject {
 
         let rawAmbientSignal = 1.0 - sensors.ambientLight
         let rawPostureSignal = postureScore(pitch: sensors.devicePitch, roll: sensors.deviceRoll)
-        let rawScreenSignal = sensors.screenBrightness * 0.5
         let adaptMinutes = sensors.darkAdaptationMinutes
         let rawAdaptSignal = min(adaptMinutes / 30.0, 1.0) * 0.3
 
@@ -50,46 +47,53 @@ final class LightEngine: ObservableObject {
         let rawWeatherSignal: Double = {
             guard let w = sensors.weather else { return 0 }
             switch w.lowercased() {
-            case "rain", "drizzle", "thunderstorm": return 0.15
-            case "snow":                          return 0.25
-            default:                              return 0.0
+            case "thunderstorm":                        return 0.25  // danger + low viz
+            case "rain", "drizzle":                     return 0.20  // wet road, low viz
+            case "fog", "mist", "haze":                 return 0.15  // low visibility
+            case "snow":                                return 0.0   // ground reflection compensates
+            default:                                    return 0.0
             }
         }()
 
         // Apply toggles — inactive factors use neutral values
         let ambientSignal = ambientFactorActive ? rawAmbientSignal : 1.0
         let postureSignal = postureFactorActive ? rawPostureSignal : 1.0
-        let screenSignal  = screenFactorActive  ? rawScreenSignal  : 0.0
         let adaptSignal   = darkAdaptationActive ? rawAdaptSignal   : 0.0
         let moonSignal    = moonFactorActive     ? rawMoonSignal    : 0.0
         let weatherSignal = weatherFactorActive  ? rawWeatherSignal : 0.0
 
-        // Compute base brightness with all active factors
+        // Compute base brightness (5-factor model)
         let weighted = ambientSignal * wAmbient
                      + postureSignal * wPosture
-                     + screenSignal * wScreen
                      + (1.0 - adaptSignal) * wDark
                      + (1.0 - moonSignal) * wMoon
                      + (1.0 + weatherSignal) * wWeather
 
-        let denom = max(wAmbient + postureSignal * wPosture + wScreen + wDark + wMoon + wWeather, 0.01)
+        let denom = max(wAmbient + postureSignal * wPosture + wDark + wMoon + wWeather, 0.01)
         let base = weighted / denom
         targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
 
-        // Proportional gap attribution: each factor's share of the gap from
-        // 100% to current brightness. Factors deviate from their "max boost"
-        // state. Shares sum exactly to targetBrightness - 100%.
-        // All deltas are ≤0 (pull brightness down), weather can be 0.
-        let ambShortfall  = (1.0 - ambientSignal) * wAmbient
-        let posShortfall  = (1.0 - postureSignal) * wPosture
-        let scrShortfall  = screenSignal * wScreen
-        let darkShortfall = adaptSignal * wDark
-        let moonShortfall = moonSignal * wMoon
-        let weathShortfall = (0.25 - weatherSignal) * wWeather  // 0.25 = max weather boost
+        // Proportional gap attribution
+        let ambShortfall  = ambientFactorActive  ? (1.0 - ambientSignal) * wAmbient   : 0
+        let posShortfall  = postureFactorActive  ? (1.0 - postureSignal) * wPosture   : 0
+        let darkShortfall = darkAdaptationActive ? adaptSignal * wDark                : 0
+        let moonShortfall = moonFactorActive     ? moonSignal * wMoon                 : 0
+        let weathShortfall = weatherFactorActive ? (0.25 - weatherSignal) * wWeather  : 0
 
-        let totalShortfall = ambShortfall + posShortfall + scrShortfall
-                           + darkShortfall + moonShortfall + weathShortfall
-        let gap = 1.0 - base  // gap from 100%
+        let totalShortfall = ambShortfall + posShortfall + darkShortfall
+                           + moonShortfall + weathShortfall
+
+        let optAmbient  = ambientFactorActive  ? 1.0 : ambientSignal
+        let optPosture  = postureFactorActive  ? 1.0 : postureSignal
+        let optAdapt    = darkAdaptationActive ? 0.0 : adaptSignal
+        let optMoon     = moonFactorActive     ? 0.0 : moonSignal
+        let optWeather  = weatherFactorActive  ? 0.25 : weatherSignal
+        let maxWeighted = optAmbient * wAmbient + optPosture * wPosture
+                        + (1.0 - optAdapt) * wDark + (1.0 - optMoon) * wMoon
+                        + (1.0 + optWeather) * wWeather
+        let maxDenom = wAmbient + optPosture * wPosture + wDark + wMoon + wWeather
+        let theoreticalMax = maxWeighted / max(maxDenom, 0.01)
+        let gap = theoreticalMax - base
 
         func attr(_ shortfall: Double) -> Int {
             guard totalShortfall > 0.0001 else { return 0 }
@@ -98,13 +102,12 @@ final class LightEngine: ObservableObject {
 
         let ambDelta  = attr(ambShortfall)
         let posDelta  = attr(posShortfall)
-        let scrDelta  = attr(scrShortfall)
         let darkDelta = attr(darkShortfall)
         let moonDelta = attr(moonShortfall)
         let weathDelta = attr(weathShortfall)
 
         updateFactorDetails(sensors: sensors,
-                            ambDelta: ambDelta, posDelta: posDelta, scrDelta: scrDelta,
+                            ambDelta: ambDelta, posDelta: posDelta, scrDelta: 0,
                             darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
     }
 
@@ -148,7 +151,6 @@ final class LightEngine: ObservableObject {
 
     func toggleAmbientFactor()  { ambientFactorActive.toggle() }
     func togglePostureFactor()  { postureFactorActive.toggle() }
-    func toggleScreenFactor()   { screenFactorActive.toggle() }
     func toggleDarkFactor()     { darkAdaptationActive.toggle() }
     func toggleMoonFactor()     { moonFactorActive.toggle() }
     func toggleWeatherFactor()  { weatherFactorActive.toggle() }

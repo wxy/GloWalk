@@ -5,13 +5,15 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = "0m"
+    @Published var elapsedDistance: String = L10n.isZh ? "0米" : "0m"
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
+    /// Long-press to temporarily turn off torch without ending walk
+    @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
     @Published var currentHeading: Double = 0
@@ -61,6 +63,12 @@ final class HUDViewModel: ObservableObject {
         let context = PersistenceController.shared.container.viewContext
         let moon = MoonPhase.current()
         currentMoonPhaseName = moon.phase
+        // Set initial moon card immediately, don't wait for first tick
+        moonCard = MoonCardData(
+            phaseName: L10n.moonPhaseName(illumination: moon.illumination),
+            brightnessDelta: 0,
+            isActive: true
+        )
         currentWalkSession = WalkSession.create(
             in: context, moonPhase: moon.phase,
             weatherCondition: weatherService.currentCondition
@@ -128,10 +136,14 @@ final class HUDViewModel: ObservableObject {
         } else if !sensorManager.isOccluded && isTorchOccluded {
             isTorchOccluded = false
         }
-        if !isTorchOccluded {
+        if !isTorchOccluded && !torchPaused {
             lightEngine.update(sensors: snap)
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
+        } else if torchPaused {
+            sensorManager.setTorchLevel(0)
+            locationManager.currentTorchBrightness = 0
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -194,10 +206,6 @@ final class HUDViewModel: ObservableObject {
                 label: L10n.isZh ? "姿态" : "Posture",
                 brightnessDelta: d.postureDelta,
                 isActive: lightEngine.postureFactorActive),
-            FactorCardData(id: "screen", icon: "sun.max.fill",
-                label: L10n.isZh ? "屏幕" : "Screen",
-                brightnessDelta: d.screenDelta,
-                isActive: lightEngine.screenFactorActive),
             FactorCardData(id: "dark", icon: "moon.zzz.fill",
                 label: L10n.isZh ? "暗适应" : "Adapt",
                 brightnessDelta: d.darkDelta,
@@ -207,9 +215,9 @@ final class HUDViewModel: ObservableObject {
         updateBatteryEstimate()
         let displayDist = displayDistance
         if displayDist < 1000 {
-            elapsedDistance = String(format: "%.0fm", displayDist)
+            elapsedDistance = String(format: L10n.isZh ? "%.0f米" : "%.0fm", displayDist)
         } else {
-            elapsedDistance = String(format: "%.1fkm", displayDist / 1000)
+            elapsedDistance = String(format: L10n.isZh ? "%.1f公里" : "%.1fkm", displayDist / 1000)
         }
 
         // Batch Core Data saves: every 5 ticks instead of every second
@@ -272,12 +280,12 @@ final class HUDViewModel: ObservableObject {
         switch id {
         case "ambient": lightEngine.toggleAmbientFactor()
         case "posture": lightEngine.togglePostureFactor()
-        case "screen":  lightEngine.toggleScreenFactor()
         case "dark":    lightEngine.toggleDarkFactor()
         case "moon":    lightEngine.toggleMoonFactor()
         case "weather": lightEngine.toggleWeatherFactor()
         default: break
         }
+        Haptic.selection()
     }
     func toggleMoonFactor() { lightEngine.toggleMoonFactor() }
     func toggleWeatherFactor() { lightEngine.toggleWeatherFactor() }
@@ -290,10 +298,11 @@ final class HUDViewModel: ObservableObject {
     func willResignActive() {
         enteredBackground = true
         UIApplication.shared.isIdleTimerDisabled = false
-        lightEngine.enterSafetyFallback()
-        sensorManager.setTorchLevel(1.0)
+        // Let timer and GPS keep running — path points recorded in background
+        // will naturally have torchBrightness=0 since iOS kills the flashlight.
     }
     func didBecomeActive() {
+        guard enteredBackground else { return }
         enteredBackground = false
         UIApplication.shared.isIdleTimerDisabled = true
         brightness = lightEngine.targetBrightness

@@ -5,7 +5,7 @@ struct HistoryListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
-        predicate: NSPredicate(format: "endType != %@", "abandoned"),
+        predicate: NSPredicate(format: "endType != %@ AND totalSteps > 0 AND totalDistance > 0", "abandoned"),
         animation: .default
     ) private var sessions: FetchedResults<WalkSession>
     let goToSplash: () -> Void
@@ -57,7 +57,9 @@ struct HistoryListView: View {
                                         HStack(spacing: 10) {
                                             Text(L10n.isZh ?"🦶\(session.totalSteps)步" : "🦶\(session.totalSteps) steps")
                                                 .font(.gloBody(12))
-                                            Text("📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
+                                            Text(L10n.isZh
+                                                 ? "📏\(String(format: "%.0f", session.totalDistance))米"
+                                                 : "📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
                                             if let end = session.endTime {
                                                 let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
                                                 Text(L10n.isZh ?"⏱\(min)分钟" : "⏱\(min)min").font(.gloBody(12))
@@ -173,20 +175,8 @@ struct HistoryPosterView: View {
             }
         }
         .task {
-            if let data = session.posterImageData, let img = UIImage(data: data) {
-                posterImage = img
-            } else {
-                do {
-                    var image = try await PosterGenerator.generate(session: session)
-                    image = image.scaledToMaxDimension(1200)
-                    posterImage = image
-                    if let data = image.jpegData(compressionQuality: 0.85) {
-                        session.posterImageData = data
-                        PersistenceController.shared.save()
-                    }
-                }
-                catch { print("History poster error: \(error)") }
-            }
+            do { posterImage = try await PosterGenerator.generate(session: session) }
+            catch { print("History poster error: \(error)") }
         }
     }
 }

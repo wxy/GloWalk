@@ -16,6 +16,11 @@ struct SettingsView: View {
                 Color.gloBlackSurface.ignoresSafeArea()
                 Form {
                     Section { languageSection } header: { sectionHeader(L10n.settingsLanguage) }
+                    Section {
+                        NavigationLink { HelpView() } label: {
+                            Text(L10n.isZh ? "使用帮助" : "Help").font(.gloBody(14)).foregroundColor(.white)
+                        }
+                    } header: { sectionHeader(Text(L10n.isZh ? "帮助" : "Help")) }
                     Section { dataSection } header: { sectionHeader(L10n.settingsData) }
                     Section { taglineSection } header: { sectionHeader(Text("")) }
                     Section {
@@ -23,6 +28,17 @@ struct SettingsView: View {
                             Text(L10n.settingsVersion).font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
                             Spacer()
                             Text(L10n.settingsVersionValue).font(.gloBody(13)).foregroundColor(.white.opacity(0.3))
+                        }
+                        Button(action: {
+                            if let url = URL(string: "https://weatherkit.apple.com/legal-attribution.html") {
+                                UIApplication.shared.open(url)
+                            }
+                        }) {
+                            HStack {
+                                Text("\u{F8FF} Weather").font(.gloBody(12)).foregroundColor(.white.opacity(0.4))
+                                Spacer()
+                                Text("Legal").font(.gloBody(11)).foregroundColor(.gloGold.opacity(0.5))
+                            }
                         }
                     } header: { sectionHeader(L10n.settingsAbout) }
                 }

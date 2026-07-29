@@ -14,6 +14,8 @@ struct HUDView: View {
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
+    @State private var isTorchPaused = false
+    @GestureState private var isLongPressing = false
 
     var body: some View {
         ZStack {
@@ -43,17 +45,8 @@ struct HUDView: View {
 
                 // Central glow — double-tap to end
                 GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
-                              cadence: viewModel.cadence)
-                    .gesture(
-                        DragGesture(minimumDistance: 10)
-                            .onChanged { v in
-                                let delta = -v.translation.height / 200.0
-                                let new = min(max(viewModel.brightness + delta, 0.1), 1.0)
-                                if abs(new - viewModel.brightness) > 0.05 { Haptic.selection() }
-                                isManual = true
-                                viewModel.setManualBrightness(new)
-                            }
-                    )
+                              cadence: viewModel.cadence,
+                              isPaused: viewModel.torchPaused)
                     .onTapGesture(count: 2) {
                         Haptic.heavy()
                         if viewModel.stepCount == 0 {
@@ -61,14 +54,12 @@ struct HUDView: View {
                             viewModel.sensorManager.stop()
                             viewModel.locationManager.stopRecording()
                             viewModel.sensorTimer?.invalidate()
-                            // Mark as abandoned rather than deleting — @FetchRequest may
-                            // have already seen the object; marking ensures filter works
                             if let s = viewModel.currentWalkSession {
                                 s.endType = "abandoned"
                                 s.endTime = Date()
                                 PersistenceController.shared.save()
                             }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                                 goToHistory()
                             }
                         } else {
@@ -77,11 +68,33 @@ struct HUDView: View {
                         }
                     }
                     .onTapGesture(count: 1) {
-                        // Single tap on brightness number → back to auto
                         if isManual {
                             isManual = false
                             viewModel.resetToAutoBrightness()
+                            Haptic.light()
                         }
+                    }
+                    .gesture(
+                        DragGesture(minimumDistance: 10)
+                            .onChanged { v in
+                                let delta = -v.translation.height / 200.0
+                                let new = min(max(viewModel.brightness + delta, 0.1), 1.0)
+                                if abs(new - viewModel.brightness) > 0.05 { Haptic.selection() }
+                                if !isManual { isManual = true; Haptic.light() }
+                                viewModel.setManualBrightness(new)
+                            }
+                            .onEnded { _ in Haptic.selection() }
+                    )
+                    .simultaneousGesture(
+                        LongPressGesture(minimumDuration: 0.8)
+                            .updating($isLongPressing) { value, state, _ in state = value }
+                            .onEnded { _ in
+                                viewModel.torchPaused.toggle()
+                                Haptic.medium()
+                            }
+                    )
+                    .onChange(of: isLongPressing) { pressing in
+                        if pressing { Haptic.medium() }
                     }
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
@@ -134,7 +147,7 @@ struct HUDView: View {
                     Color.black.opacity(0.6).ignoresSafeArea()
                     VStack(spacing: 16) {
                         ProgressView().tint(.gloGold).scaleEffect(1.5)
-                        Text(isEndingZeroStep ? L10n.hudEnding : L10n.hudDrawing)
+                        Text(isEndingZeroStep ? L10n.hudZeroStep : L10n.hudDrawing)
                             .font(.gloBody(14)).foregroundColor(.gloGold.opacity(0.7))
                     }
                 }
@@ -151,49 +164,57 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
-    /// 6-column factor row: each column = icon+label over delta, aligned
+    /// 5-factor row weighted by influence: ambient 40%, rest 15% each
     private var topStatusRow: some View {
-        HStack(spacing: 0) {
-            factorCol(FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
-                                  delta: ambDelta, active: ambActive, id: "ambient"))
-            factorCol(FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
-                                  delta: posDelta, active: posActive, id: "posture"))
-            factorCol(FactorCell(icon: "sun.max.fill", label: L10n.isZh ? "屏幕" : "Screen",
-                                  delta: scrDelta, active: scrActive, id: "screen"))
-            factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
-                                  delta: darkDelta, active: darkActive, id: "dark"))
-            factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
-                                  delta: moonDelta, active: moonActive, id: "moon"))
-            factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
-                                  delta: weatherDelta, active: weatherActive, id: "weather"))
+        GeometryReader { geo in
+            let total = geo.size.width
+            HStack(spacing: 3) {
+                factorCol(FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                                      delta: ambDelta, active: ambActive, id: "ambient"))
+                    .frame(width: total * 0.40)
+                factorCol(FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                                      delta: posDelta, active: posActive, id: "posture"))
+                    .frame(width: total * 0.15)
+                factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                                      delta: darkDelta, active: darkActive, id: "dark"))
+                    .frame(width: total * 0.15)
+                factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
+                                      delta: moonDelta, active: moonActive, id: "moon"))
+                    .frame(width: total * 0.15)
+                factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
+                                      delta: weatherDelta, active: weatherActive, id: "weather"))
+                    .frame(width: total * 0.15)
+            }
         }
+        .frame(height: 38)
         .padding(.horizontal, 12)
     }
 
     private func factorCol(_ cell: FactorCell) -> some View {
-        Button(action: { viewModel.toggleFactor(id: cell.id) }) {
+        let boost = viewModel.uiBrightnessBoost
+        return Button(action: { viewModel.toggleFactor(id: cell.id) }) {
             VStack(spacing: 1) {
+                Text(cell.label)
+                    .font(.system(size: 9))
+                    .lineLimit(1)
+                    .foregroundColor(cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7)))
                 HStack(spacing: 2) {
                     Image(systemName: cell.icon)
-                        .font(.system(size: 9))
-                    Text(cell.label)
-                        .font(.system(size: 9))
-                        .lineLimit(1)
+                        .font(.system(size: 8))
+                    Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
+                        .font(.system(size: 10).monospacedDigit())
                 }
-                .foregroundColor(cell.active ? .white : .white.opacity(0.3))
-                Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
-                    .font(.system(size: 10).monospacedDigit())
-                    .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(0.25))
+                .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(min(0.25 * boost, 0.6)))
             }
             .padding(.vertical, 3)
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(cell.active ? Color.gloAmber.opacity(0.08) : Color.white.opacity(0.02))
+                    .fill(cell.active ? Color.gloAmber.opacity(min(0.08 * boost, 0.20)) : Color.white.opacity(min(0.02 * boost, 0.06)))
             )
         }
         .buttonStyle(.plain)
-        .opacity(cell.active ? 0.85 : 0.4)
+        .opacity(min(cell.active ? 0.85 : 0.4 * boost, 1.0))
     }
 
     private struct FactorCell {
@@ -204,11 +225,9 @@ struct HUDView: View {
     // Convenience accessors for factor card data
     private var ambDelta: Int { factorDelta("ambient") }
     private var posDelta: Int { factorDelta("posture") }
-    private var scrDelta: Int { factorDelta("screen") }
     private var darkDelta: Int { factorDelta("dark") }
     private var ambActive: Bool { factorActive("ambient") }
     private var posActive: Bool { factorActive("posture") }
-    private var scrActive: Bool { factorActive("screen") }
     private var darkActive: Bool { factorActive("dark") }
     private var moonDelta: Int { viewModel.moonCard.brightnessDelta }
     private var moonActive: Bool { viewModel.moonCard.isActive }
@@ -233,19 +252,25 @@ struct HUDView: View {
             Text(L10n.isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
-                Text("🔋∞")
+                Text(L10n.isZh ? "🔋∞" : "🔋∞")
             } else {
-                Text("🔋\(viewModel.estimatedMinutesRemaining)min")
+                Text(L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min")
             }
             Spacer()
-            Image(systemName: viewModel.gpsActive ? "location.fill" : "location.slash")
-                .font(.system(size: 10))
+            Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
+                .font(.system(size: 12))
                 .foregroundColor(viewModel.gpsActive ? .green.opacity(0.6) : .red.opacity(0.35))
-                .padding(.trailing, 6)
+                .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
+            Button(action: { goToHistory() }) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gloGold.opacity(0.5))
+            }
+            .padding(.horizontal, 10)
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 14))
-                    .foregroundColor(.gloGold.opacity(0.3))
+                    .foregroundColor(.gloGold.opacity(0.6))
             }
         }
         .font(.gloMono(11))

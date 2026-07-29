@@ -63,13 +63,7 @@ struct ArrivalSummaryView: View {
     private func generatePoster() async {
         guard let session = viewModel.currentWalkSession else { isGenerating = false; return }
         do {
-            var image = try await PosterGenerator.generate(session: session)
-            // Scale down to max 1200px before storing to save Core Data space
-            image = image.scaledToMaxDimension(1200)
-            posterImage = image
-            if let data = image.jpegData(compressionQuality: 0.85) {
-                session.posterImageData = data; PersistenceController.shared.save()
-            }
+            posterImage = try await PosterGenerator.generate(session: session)
         } catch { print("Poster error: \(error)") }
         isGenerating = false
     }
@@ -83,15 +77,5 @@ struct ArrivalSummaryView: View {
                 if success { self.savedToPhotos = true; Haptic.medium() }
             }
         }
-    }
-}
-
-extension UIImage {
-    func scaledToMaxDimension(_ maxDim: CGFloat) -> UIImage {
-        let scale = min(maxDim / size.width, maxDim / size.height, 1.0)
-        guard scale < 1.0 else { return self }
-        let newSize = CGSize(width: size.width * scale, height: size.height * scale)
-        let renderer = UIGraphicsImageRenderer(size: newSize)
-        return renderer.image { _ in self.draw(in: CGRect(origin: .zero, size: newSize)) }
     }
 }

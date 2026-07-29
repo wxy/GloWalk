@@ -5,7 +5,7 @@ struct HistoryListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
-        predicate: NSPredicate(format: "endType != %@", "abandoned"),
+        predicate: NSPredicate(format: "endType != %@ AND totalSteps > 0 AND totalDistance > 0", "abandoned"),
         animation: .default
     ) private var sessions: FetchedResults<WalkSession>
     let goToSplash: () -> Void
@@ -175,20 +175,8 @@ struct HistoryPosterView: View {
             }
         }
         .task {
-            if let data = session.posterImageData, let img = UIImage(data: data) {
-                posterImage = img
-            } else {
-                do {
-                    var image = try await PosterGenerator.generate(session: session)
-                    image = image.scaledToMaxDimension(1200)
-                    posterImage = image
-                    if let data = image.jpegData(compressionQuality: 0.85) {
-                        session.posterImageData = data
-                        PersistenceController.shared.save()
-                    }
-                }
-                catch { print("History poster error: \(error)") }
-            }
+            do { posterImage = try await PosterGenerator.generate(session: session) }
+            catch { print("History poster error: \(error)") }
         }
     }
 }

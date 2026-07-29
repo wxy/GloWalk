@@ -140,8 +140,10 @@ final class HUDViewModel: ObservableObject {
             lightEngine.update(sensors: snap)
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
         } else if torchPaused {
             sensorManager.setTorchLevel(0)
+            locationManager.currentTorchBrightness = 0
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -296,10 +298,11 @@ final class HUDViewModel: ObservableObject {
     func willResignActive() {
         enteredBackground = true
         UIApplication.shared.isIdleTimerDisabled = false
-        lightEngine.enterSafetyFallback()
-        sensorManager.setTorchLevel(1.0)
+        // Let timer and GPS keep running — path points recorded in background
+        // will naturally have torchBrightness=0 since iOS kills the flashlight.
     }
     func didBecomeActive() {
+        guard enteredBackground else { return }
         enteredBackground = false
         UIApplication.shared.isIdleTimerDisabled = true
         brightness = lightEngine.targetBrightness

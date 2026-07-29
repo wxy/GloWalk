@@ -122,8 +122,9 @@ final class PosterGenerator {
 
     private static func drawConstellationPath(session: WalkSession, size: CGSize,
                                                ctx: UIGraphicsRendererContext) {
-        let pathArea = CGRect(x: 100, y: size.height * 0.22,
-                               width: size.width - 200, height: size.height * 0.22)
+        let pathMargin = size.width * 0.12
+        let pathArea = CGRect(x: pathMargin, y: size.height * 0.22,
+                               width: size.width - pathMargin * 2, height: size.height * 0.22)
         guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
               session.pathPointsArray.count >= 2 else { return }
 
@@ -176,9 +177,10 @@ final class PosterGenerator {
 
     private static func drawStats(session: WalkSession, size: CGSize,
                                    gold: UIColor, ctx: UIGraphicsRendererContext) {
+        let margin: CGFloat = size.width * 0.10
         let cardY = size.height * 0.48
         let cardH: CGFloat = 360
-        let cardRect = CGRect(x: 80, y: cardY, width: size.width - 160, height: cardH)
+        let cardRect = CGRect(x: margin, y: cardY, width: size.width - margin * 2, height: cardH)
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
 
@@ -234,9 +236,10 @@ final class PosterGenerator {
 
     private static func drawCenteredText(_ text: String, font: UIFont, color: UIColor,
                                           y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext) {
+        let margin = size.width * 0.08
         let p = NSMutableParagraphStyle(); p.alignment = .center
         let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
-        (text as NSString).draw(in: CGRect(x: 40, y: y, width: size.width - 80, height: 150),
+        (text as NSString).draw(in: CGRect(x: margin, y: y, width: size.width - margin * 2, height: 150),
                                 withAttributes: attrs)
     }
 

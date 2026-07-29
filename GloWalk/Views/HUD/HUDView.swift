@@ -47,6 +47,13 @@ struct HUDView: View {
                 GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
+                    .onTapGesture(count: 1) {
+                        if isManual {
+                            isManual = false
+                            viewModel.resetToAutoBrightness()
+                            Haptic.light()
+                        }
+                    }
                     .gesture(
                         DragGesture(minimumDistance: 10)
                             .onChanged { v in
@@ -68,33 +75,6 @@ struct HUDView: View {
                     )
                     .onChange(of: isLongPressing) { pressing in
                         if pressing { Haptic.medium() }
-                    }
-                    .onTapGesture(count: 2) {
-                        Haptic.heavy()
-                        if viewModel.stepCount == 0 {
-                            isEndingZeroStep = true
-                            viewModel.sensorManager.stop()
-                            viewModel.locationManager.stopRecording()
-                            viewModel.sensorTimer?.invalidate()
-                            if let s = viewModel.currentWalkSession {
-                                s.endType = "abandoned"
-                                s.endTime = Date()
-                                PersistenceController.shared.save()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                goToHistory()
-                            }
-                        } else {
-                            isEnding = true
-                            viewModel.endWalkAndNotify()
-                        }
-                    }
-                    .onTapGesture(count: 1) {
-                        if isManual {
-                            isManual = false
-                            viewModel.resetToAutoBrightness()
-                            Haptic.light()
-                        }
                     }
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
@@ -133,6 +113,26 @@ struct HUDView: View {
             }
         }
         .gloWalkHUD()
+        .onTapGesture(count: 2) {
+            Haptic.heavy()
+            if viewModel.stepCount == 0 {
+                isEndingZeroStep = true
+                viewModel.sensorManager.stop()
+                viewModel.locationManager.stopRecording()
+                viewModel.sensorTimer?.invalidate()
+                if let s = viewModel.currentWalkSession {
+                    s.endType = "abandoned"
+                    s.endTime = Date()
+                    PersistenceController.shared.save()
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    goToHistory()
+                }
+            } else {
+                isEnding = true
+                viewModel.endWalkAndNotify()
+            }
+        }
         .onAppear { viewModel.startWalk(isQuickLaunch: appState.isQuickLaunch) }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             viewModel.willResignActive()

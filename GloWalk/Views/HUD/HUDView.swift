@@ -252,16 +252,21 @@ struct HUDView: View {
             Text(L10n.isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
             Spacer()
             if viewModel.estimatedMinutesRemaining < 0 {
-                Text("🔋∞")
+                Text(L10n.isZh ? "🔋∞" : "🔋∞")
             } else {
-                Text("🔋\(viewModel.estimatedMinutesRemaining)min")
+                Text(L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min")
             }
             Spacer()
             Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
                 .font(.system(size: 12))
                 .foregroundColor(viewModel.gpsActive ? .green.opacity(0.6) : .red.opacity(0.35))
                 .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
-                .padding(.trailing, 6)
+            Button(action: { goToHistory() }) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gloGold.opacity(0.5))
+            }
+            .padding(.horizontal, 10)
             Button(action: { showSettings = true }) {
                 Image(systemName: "gearshape")
                     .font(.system(size: 14))

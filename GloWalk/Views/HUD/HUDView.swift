@@ -15,14 +15,34 @@ struct HUDView: View {
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
     @State private var isTorchPaused = false
+    @State private var hasShownCameraAlert = false
+    @State private var showCameraDeniedAlert = false
     @GestureState private var isLongPressing = false
 
     var body: some View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
 
-            // Moon phase image — top-left corner, below status row
-            VStack {
+            // Top area — camera denied warning + moon phase decoration
+            VStack(spacing: 0) {
+                // Camera denied warning — top banner
+                Button(action: {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "camera.fill").font(.gloBody(11))
+                        Text(L10n.hudCameraDenied).font(.gloBody(11))
+                        Image(systemName: "chevron.right").font(.gloBody(9))
+                    }
+                    .foregroundColor(.gloAmber)
+                    .padding(.vertical, 6).padding(.horizontal, 14)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloAmber.opacity(0.12)))
+                }
+                .padding(.top, 48)
+                .opacity(viewModel.cameraDeniedForAmbient ? 1 : 0)
+
                 HStack {
                     if isNightTime,
                    let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
@@ -33,7 +53,7 @@ struct HUDView: View {
                             .clipShape(Circle())
                             .opacity(0.45)
                             .padding(.leading, 12)
-                            .padding(.top, 48)
+                            .padding(.top, 8)
                     }
                     Spacer()
                 }
@@ -130,6 +150,9 @@ struct HUDView: View {
 
                 // Bottom bar — flush with screen bottom
                 bottomBar
+
+                // Service attribution
+                attributionStrip
             }
         }
         .gloWalkHUD()
@@ -159,6 +182,22 @@ struct HUDView: View {
         .fullScreenCover(isPresented: $viewModel.showArrivalSummary) {
             ArrivalSummaryView(viewModel: viewModel, onComplete: goToHistory)
                 .transition(.opacity.combined(with: .scale(scale: 0.95)))
+        }
+        .onChange(of: viewModel.cameraDeniedForAmbient) { denied in
+            if denied && !hasShownCameraAlert {
+                hasShownCameraAlert = true
+                showCameraDeniedAlert = true
+            }
+        }
+        .alert(L10n.hudCameraDeniedTitle, isPresented: $showCameraDeniedAlert) {
+            Button(L10n.hudCameraDeniedSettings) {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button(L10n.hudCameraDeniedDismiss, role: .cancel) {}
+        } message: {
+            Text(L10n.hudCameraDeniedMessage)
         }
     }
 
@@ -195,14 +234,14 @@ struct HUDView: View {
         return Button(action: { viewModel.toggleFactor(id: cell.id) }) {
             VStack(spacing: 1) {
                 Text(cell.label)
-                    .font(.system(size: 9))
+                    .font(.gloBody(9))
                     .lineLimit(1)
                     .foregroundColor(cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7)))
                 HStack(spacing: 2) {
                     Image(systemName: cell.icon)
                         .font(.system(size: 8))
                     Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
-                        .font(.system(size: 10).monospacedDigit())
+                        .font(.gloMono(10))
                 }
                 .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(min(0.25 * boost, 0.6)))
             }
@@ -276,8 +315,43 @@ struct HUDView: View {
         .font(.gloMono(11))
         .foregroundColor(.gloGold.opacity(0.55 * viewModel.uiBrightnessBoost))
         .padding(.horizontal, 20)
-        .padding(.bottom, 28)
+        .padding(.bottom, 2)
         .padding(.top, 6)
         .background(Color.black.opacity(0.6))
+    }
+
+    // MARK: - Attribution Strip
+
+    /// Weather data source acknowledgment — always visible at the very bottom.
+    ///  Weather links to Apple's legal attribution page;
+    /// Open-Meteo links to their homepage.
+    private var attributionStrip: some View {
+        HStack(spacing: 4) {
+            Spacer()
+            Button(action: {
+                if let url = URL(string: "https://weatherkit.apple.com/legal-attribution.html") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                Text("\u{F8FF} Weather")
+                    .font(.gloBody(8))
+                    .foregroundColor(.gloGold.opacity(0.35 * viewModel.uiBrightnessBoost))
+            }
+            Text("·")
+                .font(.gloBody(8))
+                .foregroundColor(.gloGold.opacity(0.25 * viewModel.uiBrightnessBoost))
+            Button(action: {
+                if let url = URL(string: "https://open-meteo.com/") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                Text("Open-Meteo")
+                    .font(.gloBody(8))
+                    .foregroundColor(.gloGold.opacity(0.35 * viewModel.uiBrightnessBoost))
+            }
+            Spacer()
+        }
+        .padding(.bottom, 10)
+        .padding(.top, 2)
     }
 }

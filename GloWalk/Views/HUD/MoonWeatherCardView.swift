@@ -15,10 +15,10 @@ struct FactorCardView: View {
                 Image(systemName: icon)
                     .font(.system(size: 9))
                 Text(label)
-                    .font(.system(size: 9))
+                    .font(.gloBody(9))
                     .lineLimit(1)
                 Text(brightnessDelta > 0 ? "+\(brightnessDelta)%" : "\(brightnessDelta)%")
-                    .font(.system(size: 9))
+                    .font(.gloBody(9))
                     .foregroundColor(brightnessDelta != 0 ? .gloAmber : .white.opacity(0.3))
             }
             .padding(.horizontal, 5).padding(.vertical, 3)

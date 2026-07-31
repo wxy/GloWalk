@@ -12,11 +12,19 @@ enum L10n {
 
     static var cameraTitle: LocalizedStringKey { "camera.title" }
     static var cameraDescription: LocalizedStringKey { "camera.description" }
-    static var cameraAllow: LocalizedStringKey { "camera.allow" }
-    static var cameraDeny: LocalizedStringKey { "camera.deny" }
+    static var cameraContinue: LocalizedStringKey { "camera.continue" }
+
+    static var locationTitle: LocalizedStringKey { "location.title" }
+    static var locationDescription: LocalizedStringKey { "location.description" }
+    static var locationContinue: LocalizedStringKey { "location.continue" }
 
     static var hudDoubleTapToEnd: LocalizedStringKey { "hud.doubleTapToEnd" }
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
+    static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
+    static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
+    static var hudCameraDeniedMessage: LocalizedStringKey { "hud.cameraDeniedMessage" }
+    static var hudCameraDeniedSettings: LocalizedStringKey { "hud.cameraDeniedSettings" }
+    static var hudCameraDeniedDismiss: LocalizedStringKey { "hud.cameraDeniedDismiss" }
     static var hudGPSUnavailable: LocalizedStringKey { "hud.gpsUnavailable" }
     static var hudGPS: LocalizedStringKey { "hud.gps" }
     static var hudEnding: LocalizedStringKey { "hud.ending" }
@@ -55,6 +63,11 @@ enum L10n {
     static var settingsClearMessage: LocalizedStringKey { "settings.clearMessage" }
     static var settingsCancel: LocalizedStringKey { "settings.cancel" }
     static var settingsClear: LocalizedStringKey { "settings.clear" }
+
+    static var aboutWeatherLegal: LocalizedStringKey { "about.weatherLegal" }
+    static var aboutWebsite: LocalizedStringKey { "about.website" }
+    static var aboutFontLicense: LocalizedStringKey { "about.fontLicense" }
+    static var aboutGitHub: LocalizedStringKey { "about.gitHub" }
 
     static var permissionsCamera: LocalizedStringKey { "permissions.camera" }
     static var permissionsLocation: LocalizedStringKey { "permissions.location" }

@@ -1,8 +1,9 @@
 import SwiftUI
 import AVFoundation
+import CoreLocation
 
 enum AppScreen {
-    case privacy, cameraPermission, splash, hud, history
+    case privacy, cameraPermission, locationPermission, splash, hud, history
 }
 
 struct ContentView: View {
@@ -11,6 +12,7 @@ struct ContentView: View {
     @StateObject private var appState = AppState()
     @State private var screen: AppScreen = .privacy
     @State private var hudID = UUID()
+    @Environment(\.scenePhase) private var scenePhase
 
     /// The effective locale derived from user's language preference,
     /// injected into the view hierarchy so all Text(LocalizedStringKey) resolves correctly.
@@ -29,6 +31,10 @@ struct ContentView: View {
                 PrivacyConsentView()
             case .cameraPermission:
                 CameraPermissionView { _ in
+                    checkLocationThenProceed()
+                }
+            case .locationPermission:
+                LocationPermissionView { _ in
                     screen = .splash
                 }
             case .splash:
@@ -46,14 +52,12 @@ struct ContentView: View {
         .environment(\.locale, resolvedLocale)
         .onAppear {
             if hasCompletedOnboarding {
-                let status = AVCaptureDevice.authorizationStatus(for: .video)
-                screen = (status == .notDetermined) ? .cameraPermission : .splash
+                checkPermissionsThenProceed()
             }
         }
         .onChange(of: hasCompletedOnboarding) { done in
             if done {
-                let status = AVCaptureDevice.authorizationStatus(for: .video)
-                screen = (status == .notDetermined) ? .cameraPermission : .splash
+                checkPermissionsThenProceed()
             }
         }
         .onChange(of: language) { newLang in
@@ -63,6 +67,34 @@ struct ContentView: View {
             } else {
                 UserDefaults.standard.set([newLang], forKey: "AppleLanguages")
             }
+        }
+        .onChange(of: scenePhase) { phase in
+            // Re-check permissions when returning from Settings, so if the user
+            // granted a previously-denied permission, we pick it up.
+            if phase == .active, hasCompletedOnboarding,
+               screen != .hud, screen != .history {
+                checkPermissionsThenProceed()
+            }
+        }
+    }
+
+    // MARK: - Permission Flow
+
+    private func checkPermissionsThenProceed() {
+        let camStatus = AVCaptureDevice.authorizationStatus(for: .video)
+        if camStatus == .notDetermined {
+            screen = .cameraPermission
+            return
+        }
+        checkLocationThenProceed()
+    }
+
+    private func checkLocationThenProceed() {
+        let locStatus = CLLocationManager().authorizationStatus
+        if locStatus == .notDetermined {
+            screen = .locationPermission
+        } else {
+            screen = .splash
         }
     }
 }
@@ -86,16 +118,70 @@ struct CameraPermissionView: View {
                     .font(.gloHeadline(22)).foregroundColor(.white)
                 Text(L10n.cameraDescription)
                     .font(.gloBody(14)).foregroundColor(.white.opacity(0.7)).multilineTextAlignment(.center)
-                HStack(spacing: 24) {
-                    Button(L10n.cameraDeny) { onDecision(false) }.foregroundColor(.white.opacity(0.5))
-                    Button(L10n.cameraAllow) {
-                        Task {
-                            _ = await AVCaptureDevice.requestAccess(for: .video)
-                            await MainActor.run { onDecision(true) }
+                Button(L10n.cameraContinue) {
+                    Task {
+                        _ = await AVCaptureDevice.requestAccess(for: .video)
+                        await MainActor.run { onDecision(true) }
+                    }
+                }
+                .foregroundColor(.gloAmber).font(.gloHeadline(17))
+                .padding(.horizontal, 40).padding(.vertical, 12)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gloAmber.opacity(0.4), lineWidth: 1))
+            }.padding(32)
+        }
+    }
+}
+
+// MARK: - Location Permission
+
+/// Thin delegate wrapper that retains the CLLocationManager while the
+/// system permission dialog is visible, then calls the completion block.
+private final class LocationPermissionRequester: NSObject, CLLocationManagerDelegate {
+    let manager = CLLocationManager()
+    private let onComplete: () -> Void
+
+    init(onComplete: @escaping () -> Void) {
+        self.onComplete = onComplete
+        super.init()
+        manager.delegate = self
+    }
+
+    func request() {
+        manager.requestWhenInUseAuthorization()
+    }
+
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        onComplete()
+    }
+}
+
+struct LocationPermissionView: View {
+    let onDecision: (Bool) -> Void
+    @State private var requester: LocationPermissionRequester?
+
+    var body: some View {
+        ZStack {
+            Color.gloBlack.ignoresSafeArea()
+            VStack(spacing: 24) {
+                Image(systemName: "location.fill")
+                    .font(.gloBody(48)).foregroundColor(.gloAmber)
+                Text(L10n.locationTitle)
+                    .font(.gloHeadline(22)).foregroundColor(.white)
+                Text(L10n.locationDescription)
+                    .font(.gloBody(14)).foregroundColor(.white.opacity(0.7)).multilineTextAlignment(.center)
+                Button(L10n.locationContinue) {
+                    let r = LocationPermissionRequester {
+                        DispatchQueue.main.async {
+                            requester = nil
+                            onDecision(true)
                         }
                     }
-                    .foregroundColor(.gloAmber).font(.gloHeadline(17))
+                    requester = r
+                    r.request()
                 }
+                .foregroundColor(.gloAmber).font(.gloHeadline(17))
+                .padding(.horizontal, 40).padding(.vertical, 12)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gloAmber.opacity(0.4), lineWidth: 1))
             }.padding(32)
         }
     }

@@ -25,6 +25,24 @@ struct HUDView: View {
 
             // Top area — camera denied warning + moon phase decoration
             VStack(spacing: 0) {
+                // Walk-independent controls — very top right, not in the moon row.
+                HStack {
+                    Spacer()
+                    Button(action: { goToHistory() }) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gloGold.opacity(0.7))
+                    }
+                    .padding(.horizontal, 8)
+                    Button(action: { showSettings = true }) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 16))
+                            .foregroundColor(.gloGold.opacity(0.7))
+                    }
+                    .padding(.trailing, 16)
+                }
+                .padding(.top, 12)
+
                 // Camera denied warning — top banner
                 Button(action: {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
@@ -40,7 +58,7 @@ struct HUDView: View {
                     .padding(.vertical, 6).padding(.horizontal, 14)
                     .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloAmber.opacity(0.12)))
                 }
-                .padding(.top, 48)
+                .padding(.top, 8)
                 .opacity(viewModel.cameraDeniedForAmbient ? 1 : 0)
 
                 HStack {
@@ -151,9 +169,6 @@ struct HUDView: View {
 
                 // Bottom bar — flush with screen bottom
                 bottomBar
-
-                // Service attribution
-                attributionStrip
             }
         }
         .gloWalkHUD()
@@ -296,22 +311,24 @@ struct HUDView: View {
             } else {
                 Text(L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min")
             }
-            Spacer()
-            Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
-                .font(.system(size: 12))
-                .foregroundColor(viewModel.gpsActive ? .green.opacity(0.6) : .red.opacity(0.35))
-                .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
-            Button(action: { goToHistory() }) {
-                Image(systemName: "clock.arrow.circlepath")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gloGold.opacity(0.5))
+            // GPS signal-quality indicator: arrow rotates with the compass
+            // heading; its color reflects fix accuracy (green good / yellow
+            // marginal / red weak or no fix), with an optional ±m readout.
+            HStack(spacing: 4) {
+                Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
+                    .font(.system(size: 12))
+                    .foregroundColor(viewModel.gpsQualityColor)
+                    .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
+                if let acc = viewModel.gpsAccuracyLabel {
+                    Text(acc)
+                        .font(.gloMono(9))
+                        .foregroundColor(viewModel.gpsQualityColor.opacity(0.8))
+                }
             }
-            .padding(.horizontal, 10)
-            Button(action: { showSettings = true }) {
-                Image(systemName: "gearshape")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gloGold.opacity(0.6))
-            }
+            .padding(.leading, 8)
+            // Weather provider actually in use — rightmost, only the active one.
+            weatherServiceLabel
+                .padding(.leading, 8)
         }
         .font(.gloMono(11))
         .foregroundColor(.gloGold.opacity(min(0.55 * viewModel.uiBrightnessBoost, 1.0)))
@@ -321,31 +338,16 @@ struct HUDView: View {
         .background(Color.black.opacity(0.6))
     }
 
-    // MARK: - Attribution Strip
+    // MARK: - Weather Provider Label
 
-    /// Weather data source acknowledgment — always visible at the very bottom.
-    ///  Weather links to Apple's legal attribution page;
-    /// Open-Meteo links to their homepage.
-    private var attributionStrip: some View {
-        // Highlight whichever weather provider is actually in use; dim the
-        // other. provider == .none (weather unavailable) keeps both neutral.
-        let provider = viewModel.weatherCard.provider
-        let appleOpacity: Double
-        let openMeteoOpacity: Double
-        switch provider {
+    /// Shows only the weather provider actually in use, rightmost in the bottom
+    /// bar.  Weather links to Apple's legal attribution page; Open-Meteo links
+    /// to their homepage. Nothing is shown when no weather data is available
+    /// (flexible, not a reserved slot — reserving width caused layout issues).
+    @ViewBuilder
+    private var weatherServiceLabel: some View {
+        switch viewModel.weatherCard.provider {
         case .apple:
-            appleOpacity = 0.65
-            openMeteoOpacity = 0.15
-        case .openMeteo:
-            appleOpacity = 0.15
-            openMeteoOpacity = 0.65
-        case .none:
-            appleOpacity = 0.35
-            openMeteoOpacity = 0.35
-        }
-
-        return HStack(spacing: 4) {
-            Spacer()
             Button(action: {
                 if let url = URL(string: "https://weatherkit.apple.com/legal-attribution.html") {
                     UIApplication.shared.open(url)
@@ -353,11 +355,9 @@ struct HUDView: View {
             }) {
                 Text("\u{F8FF} Weather")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(min(appleOpacity * viewModel.uiBrightnessBoost, 1.0)))
+                    .foregroundColor(.gloGold.opacity(min(0.6 * viewModel.uiBrightnessBoost, 1.0)))
             }
-            Text("·")
-                .font(.gloBody(8))
-                .foregroundColor(.gloGold.opacity(min(0.25 * viewModel.uiBrightnessBoost, 1.0)))
+        case .openMeteo:
             Button(action: {
                 if let url = URL(string: "https://open-meteo.com/") {
                     UIApplication.shared.open(url)
@@ -365,11 +365,10 @@ struct HUDView: View {
             }) {
                 Text("Open-Meteo")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(min(openMeteoOpacity * viewModel.uiBrightnessBoost, 1.0)))
+                    .foregroundColor(.gloGold.opacity(min(0.6 * viewModel.uiBrightnessBoost, 1.0)))
             }
-            Spacer()
+        case .none:
+            EmptyView()
         }
-        .padding(.bottom, 10)
-        .padding(.top, 2)
     }
 }

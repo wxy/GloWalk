@@ -61,11 +61,18 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             estimatedLon = lon + (strideMeters / (111_320 * cos(lat * .pi / 180))) * sin(rad)
 
             totalDistance += strideMeters
+            // Advance the recorded anchor to the dead-reckoned estimate. Without
+            // this, a recovering GPS fix measures from the stale pre-outage
+            // coordinate and re-adds the distance already counted here (the
+            // outage stretch is counted twice).
+            let estLat = estimatedLat!
+            let estLon = estimatedLon!
+            lastRecordedCoord = CLLocationCoordinate2D(latitude: estLat, longitude: estLon)
 
             // Save estimated point to Core Data
             let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
-                _ = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
+                _ = PathPoint.create(in: ctx, lat: estLat, lon: estLon,
                                      ambientLight: currentAmbientLight,
                                      torchBrightness: currentTorchBrightness,
                                      session: session)

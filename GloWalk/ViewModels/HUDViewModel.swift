@@ -19,6 +19,10 @@ final class HUDViewModel: ObservableObject {
     @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
+    /// GPS fix accuracy in meters (CLLocation.horizontalAccuracy), nil when no
+    /// fix is available. Drives the HUD signal-strength indicator — path points
+    /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
+    @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
     /// UI brightness boost factor: 1.0 (dark) → 2.5 (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
@@ -188,6 +192,9 @@ final class HUDViewModel: ObservableObject {
         gpsActive = locationManager.isRecording &&
             (locationManager.authorizationStatus == .authorizedWhenInUse ||
              locationManager.authorizationStatus == .authorizedAlways)
+        gpsAccuracyMeters = locationManager.isRecording
+            ? locationManager.currentLocation?.horizontalAccuracy
+            : nil
         pathPoints = currentWalkSession?.pathPointsArray ?? []
         elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime ?? Date()) / 60)
 
@@ -302,6 +309,24 @@ final class HUDViewModel: ObservableObject {
         lightEngine.setManualOffset(level - lightEngine.targetBrightness)
     }
     func resetToAutoBrightness() { lightEngine.resetManualOffset() }
+
+    // MARK: - GPS Signal Quality (HUD indicator)
+
+    /// "±12m" readout for the HUD, nil when no fix is available.
+    var gpsAccuracyLabel: String? {
+        guard let acc = gpsAccuracyMeters, acc > 0 else { return nil }
+        return "±\(Int(acc))m"
+    }
+
+    /// Color-codes GPS fix quality: green (accurate ≤15m), yellow (marginal
+    /// ≤50m), red (weak or no fix). Path points are recorded only when
+    /// accuracy < 30m, so red/yellow means drawing lags behind the step count.
+    var gpsQualityColor: Color {
+        guard let acc = gpsAccuracyMeters, acc > 0 else { return .red.opacity(0.35) }
+        if acc <= 15 { return .green.opacity(0.6) }
+        if acc <= 50 { return .yellow.opacity(0.7) }
+        return .red.opacity(0.6)
+    }
 
     var enteredBackground = false
     func willResignActive() {

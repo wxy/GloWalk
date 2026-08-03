@@ -222,23 +222,26 @@ struct HUDView: View {
     /// 5-factor row weighted by influence: ambient 40%, rest 15% each
     private var topStatusRow: some View {
         GeometryReader { geo in
-            let total = geo.size.width
+            // Reserve the 4 inter-factor gaps (4 × 3pt) so the factors fill the
+            // row exactly — otherwise the content overflows by 12pt and the
+            // right margin collapses (left looks wider).
+            let slot = geo.size.width - 12
             HStack(spacing: 3) {
                 factorCol(FactorCell(icon: "eye.fill", label: L10n.factorAmbient,
                                       delta: ambDelta, active: ambActive, id: "ambient"))
-                    .frame(width: total * 0.40)
+                    .frame(width: slot * 0.40)
                 factorCol(FactorCell(icon: "iphone", label: L10n.factorPosture,
                                       delta: posDelta, active: posActive, id: "posture"))
-                    .frame(width: total * 0.15)
+                    .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.factorDark,
                                       delta: darkDelta, active: darkActive, id: "dark"))
-                    .frame(width: total * 0.15)
+                    .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
                                       delta: moonDelta, active: moonActive, id: "moon"))
-                    .frame(width: total * 0.15)
+                    .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
                                       delta: weatherDelta, active: weatherActive, id: "weather"))
-                    .frame(width: total * 0.15)
+                    .frame(width: slot * 0.15)
             }
         }
         .frame(height: 38)
@@ -301,41 +304,58 @@ struct HUDView: View {
     // MARK: - Bottom Bar
 
     private var bottomBar: some View {
-        HStack(spacing: 0) {
-            Text(L10n.isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount) steps")
-            Text(" · \(viewModel.elapsedDistance)")
-            Text(L10n.isZh ? " · ⏱\(viewModel.elapsedMinutes)分钟" : " · ⏱\(viewModel.elapsedMinutes)min")
-            Spacer()
-            if viewModel.estimatedMinutesRemaining < 0 {
-                Text(L10n.isZh ? "🔋∞" : "🔋∞")
-            } else {
-                Text(L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min")
+        // Six fixed-width cells at 16% each (96% total) with a 2% margin on each
+        // side. Fixed widths (not .frame(maxWidth: .infinity)) can't expand and
+        // overflow, so the row settles on first render; long text scales down.
+        GeometryReader { geo in
+            // Five stats at 16% each + the weather cell at 20% (the remaining 4%)
+            // so longer provider names like "Open-Meteo" fit without shrinking.
+            let cell = geo.size.width * 0.16
+            let weatherCell = geo.size.width * 0.20
+            HStack(spacing: 0) {
+                // Uniform cell height so the GPS icon and the weather placeholder
+                // line up with the plain-text cells.
+                Text(L10n.isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount)")
+                    .frame(width: cell, height: 16, alignment: .center)
+                Text("📏\(viewModel.elapsedDistance)")
+                    .frame(width: cell, height: 16, alignment: .center)
+                Text(L10n.isZh ? "⏱\(viewModel.elapsedMinutes)分钟" : "⏱\(viewModel.elapsedMinutes)min")
+                    .frame(width: cell, height: 16, alignment: .center)
+                Text(viewModel.estimatedMinutesRemaining < 0
+                     ? "🔋∞"
+                     : (L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min"))
+                    .frame(width: cell, height: 16, alignment: .center)
+                gpsIndicator
+                    .frame(width: cell, height: 16, alignment: .center)
+                weatherServiceLabel
+                    .frame(width: weatherCell, height: 16, alignment: .center)
             }
-            // GPS signal-quality indicator: arrow rotates with the compass
-            // heading; its color reflects fix accuracy (green good / yellow
-            // marginal / red weak or no fix), with an optional ±m readout.
-            HStack(spacing: 4) {
-                Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
-                    .font(.system(size: 12))
-                    .foregroundColor(viewModel.gpsQualityColor)
-                    .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
-                if let acc = viewModel.gpsAccuracyLabel {
-                    Text(acc)
-                        .font(.gloMono(9))
-                        .foregroundColor(viewModel.gpsQualityColor.opacity(0.8))
-                }
-            }
-            .padding(.leading, 8)
-            // Weather provider actually in use — rightmost, only the active one.
-            weatherServiceLabel
-                .padding(.leading, 8)
+            .font(.gloMono(10))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .foregroundColor(.gloGold.opacity(min(0.55 * viewModel.uiBrightnessBoost, 1.0)))
         }
-        .font(.gloMono(11))
-        .foregroundColor(.gloGold.opacity(min(0.55 * viewModel.uiBrightnessBoost, 1.0)))
-        .padding(.horizontal, 20)
+        .frame(height: 38)
+        .padding(.horizontal, 8)
         .padding(.bottom, 2)
         .padding(.top, 6)
         .background(Color.black.opacity(0.6))
+    }
+
+    /// GPS signal-quality indicator: arrow rotates with the compass heading;
+    /// its color reflects fix accuracy (green good / yellow marginal / red weak
+    /// or no fix), with an optional ±m readout.
+    private var gpsIndicator: some View {
+        HStack(spacing: 4) {
+            Image(systemName: viewModel.gpsActive ? "location.north.line.fill" : "location.slash")
+                .font(.system(size: 10))  // match the row's 10pt text height
+                .foregroundColor(viewModel.gpsQualityColor)
+                .rotationEffect(.degrees(viewModel.gpsActive ? viewModel.currentHeading : 0))
+            if let acc = viewModel.gpsAccuracyLabel {
+                Text(acc)
+                    .foregroundColor(viewModel.gpsQualityColor.opacity(0.8))
+            }
+        }
     }
 
     // MARK: - Weather Provider Label
@@ -353,8 +373,8 @@ struct HUDView: View {
                     UIApplication.shared.open(url)
                 }
             }) {
+                // No font override — inherits the bottom bar's uniform size.
                 Text("\u{F8FF} Weather")
-                    .font(.gloBody(8))
                     .foregroundColor(.gloGold.opacity(min(0.6 * viewModel.uiBrightnessBoost, 1.0)))
             }
         case .openMeteo:
@@ -364,11 +384,13 @@ struct HUDView: View {
                 }
             }) {
                 Text("Open-Meteo")
-                    .font(.gloBody(8))
                     .foregroundColor(.gloGold.opacity(min(0.6 * viewModel.uiBrightnessBoost, 1.0)))
             }
         case .none:
-            EmptyView()
+            // Placeholder keeps the cell at text height (Color.clear would expand
+            // and make the cell tall) and signals weather is still loading.
+            Text("···")
+                .foregroundColor(.gloGold.opacity(min(0.25 * viewModel.uiBrightnessBoost, 0.5)))
         }
     }
 }

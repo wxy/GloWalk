@@ -71,12 +71,12 @@ struct HUDView: View {
                         Haptic.heavy()
                         if viewModel.stepCount == 0 {
                             isEndingZeroStep = true
+                            viewModel.isActive = false
                             viewModel.sensorManager.stop()
                             viewModel.locationManager.stopRecording()
                             viewModel.sensorTimer?.invalidate()
                             if let s = viewModel.currentWalkSession {
-                                s.endType = "abandoned"
-                                s.endTime = Date()
+                                PersistenceController.shared.container.viewContext.delete(s)
                                 PersistenceController.shared.save()
                             }
                             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -208,13 +208,13 @@ struct HUDView: View {
         GeometryReader { geo in
             let total = geo.size.width
             HStack(spacing: 3) {
-                factorCol(FactorCell(icon: "eye.fill", label: L10n.isZh ? "环境光" : "Ambient",
+                factorCol(FactorCell(icon: "eye.fill", label: L10n.factorAmbient,
                                       delta: ambDelta, active: ambActive, id: "ambient"))
                     .frame(width: total * 0.40)
-                factorCol(FactorCell(icon: "iphone", label: L10n.isZh ? "姿态" : "Posture",
+                factorCol(FactorCell(icon: "iphone", label: L10n.factorPosture,
                                       delta: posDelta, active: posActive, id: "posture"))
                     .frame(width: total * 0.15)
-                factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.isZh ? "暗适应" : "Adapt",
+                factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.factorDark,
                                       delta: darkDelta, active: darkActive, id: "dark"))
                     .frame(width: total * 0.15)
                 factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
@@ -313,7 +313,7 @@ struct HUDView: View {
             }
         }
         .font(.gloMono(11))
-        .foregroundColor(.gloGold.opacity(0.55 * viewModel.uiBrightnessBoost))
+        .foregroundColor(.gloGold.opacity(min(0.55 * viewModel.uiBrightnessBoost, 1.0)))
         .padding(.horizontal, 20)
         .padding(.bottom, 2)
         .padding(.top, 6)
@@ -335,11 +335,11 @@ struct HUDView: View {
             }) {
                 Text("\u{F8FF} Weather")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(0.35 * viewModel.uiBrightnessBoost))
+                    .foregroundColor(.gloGold.opacity(min(0.35 * viewModel.uiBrightnessBoost, 1.0)))
             }
             Text("·")
                 .font(.gloBody(8))
-                .foregroundColor(.gloGold.opacity(0.25 * viewModel.uiBrightnessBoost))
+                .foregroundColor(.gloGold.opacity(min(0.25 * viewModel.uiBrightnessBoost, 1.0)))
             Button(action: {
                 if let url = URL(string: "https://open-meteo.com/") {
                     UIApplication.shared.open(url)
@@ -347,7 +347,7 @@ struct HUDView: View {
             }) {
                 Text("Open-Meteo")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(0.35 * viewModel.uiBrightnessBoost))
+                    .foregroundColor(.gloGold.opacity(min(0.35 * viewModel.uiBrightnessBoost, 1.0)))
             }
             Spacer()
         }

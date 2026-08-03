@@ -203,15 +203,15 @@ final class HUDViewModel: ObservableObject {
         )
         factorCards = [
             FactorCardData(id: "ambient", icon: "eye.fill",
-                label: L10n.isZh ? "环境光" : "Ambient",
+                label: L10n.factorAmbient,
                 brightnessDelta: d.ambientDelta,
                 isActive: lightEngine.ambientFactorActive),
             FactorCardData(id: "posture", icon: "iphone",
-                label: L10n.isZh ? "姿态" : "Posture",
+                label: L10n.factorPosture,
                 brightnessDelta: d.postureDelta,
                 isActive: lightEngine.postureFactorActive),
             FactorCardData(id: "dark", icon: "moon.zzz.fill",
-                label: L10n.isZh ? "暗适应" : "Adapt",
+                label: L10n.factorDark,
                 brightnessDelta: d.darkDelta,
                 isActive: lightEngine.darkAdaptationActive),
         ]

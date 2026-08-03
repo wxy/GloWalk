@@ -18,16 +18,17 @@ struct SettingsView: View {
                     Section { languageSection } header: { sectionHeader(L10n.settingsLanguage) }
                     Section {
                         NavigationLink { HelpView() } label: {
-                            Text(L10n.isZh ? "使用帮助" : "Help").font(.gloBody(14)).foregroundColor(.white)
+                            Text(L10n.settingsHelp).font(.gloBody(14)).foregroundColor(.white)
                         }
-                    } header: { sectionHeader(Text(L10n.isZh ? "帮助" : "Help")) }
+                    } header: { sectionHeader(L10n.settingsHelpSection) }
                     Section { dataSection } header: { sectionHeader(L10n.settingsData) }
                     Section { taglineSection } header: { sectionHeader(Text("")) }
                     Section {
                         HStack {
                             Text(L10n.settingsVersion).font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
                             Spacer()
-                            Text(L10n.settingsVersionValue).font(.gloBody(13)).foregroundColor(.white.opacity(0.3))
+                            Text(verbatim: versionBuildString)
+                                .font(.gloBody(13)).foregroundColor(.white.opacity(0.3))
                         }
                         attributionRow(icon: "applelogo", label: "\u{F8FF} Weather",
                                        linkLabel: L10n.aboutWeatherLegal,
@@ -108,6 +109,14 @@ struct SettingsView: View {
     }
 
     // MARK: - Helpers
+
+    /// e.g. "1.0 (42) · GloWalk" / "1.0 (42) · 随行路灯"
+    private var versionBuildString: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        let name = L10n.isZh ? "随行路灯" : "GloWalk"
+        return "\(version) (\(build)) · \(name)"
+    }
 
     private func sectionHeader(_ text: LocalizedStringKey) -> some View {
         Text(text).font(.gloBody(12)).foregroundColor(.white.opacity(0.4))

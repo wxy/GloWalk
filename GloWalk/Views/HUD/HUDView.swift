@@ -17,7 +17,6 @@ struct HUDView: View {
     @State private var isTorchPaused = false
     @State private var hasShownCameraAlert = false
     @State private var showCameraDeniedAlert = false
-    @GestureState private var isLongPressing = false
 
     var body: some View {
         ZStack {
@@ -107,15 +106,16 @@ struct HUDView: View {
                     )
                     .simultaneousGesture(
                         LongPressGesture(minimumDuration: 0.8)
-                            .updating($isLongPressing) { value, state, _ in state = value }
+                            // Haptic when the long press is recognized, fired via
+                            // the gesture's own callback — observing @GestureState
+                            // with .onChange caused "action tried to update multiple
+                            // times per frame" during repeated long presses.
+                            .onChanged { _ in Haptic.medium() }
                             .onEnded { _ in
                                 viewModel.torchPaused.toggle()
                                 Haptic.medium()
                             }
                     )
-                    .onChange(of: isLongPressing) { pressing in
-                        if pressing { Haptic.medium() }
-                    }
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
                     points: viewModel.pathPoints,
@@ -326,7 +326,24 @@ struct HUDView: View {
     ///  Weather links to Apple's legal attribution page;
     /// Open-Meteo links to their homepage.
     private var attributionStrip: some View {
-        HStack(spacing: 4) {
+        // Highlight whichever weather provider is actually in use; dim the
+        // other. provider == .none (weather unavailable) keeps both neutral.
+        let provider = viewModel.weatherCard.provider
+        let appleOpacity: Double
+        let openMeteoOpacity: Double
+        switch provider {
+        case .apple:
+            appleOpacity = 0.65
+            openMeteoOpacity = 0.15
+        case .openMeteo:
+            appleOpacity = 0.15
+            openMeteoOpacity = 0.65
+        case .none:
+            appleOpacity = 0.35
+            openMeteoOpacity = 0.35
+        }
+
+        return HStack(spacing: 4) {
             Spacer()
             Button(action: {
                 if let url = URL(string: "https://weatherkit.apple.com/legal-attribution.html") {
@@ -335,7 +352,7 @@ struct HUDView: View {
             }) {
                 Text("\u{F8FF} Weather")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(min(0.35 * viewModel.uiBrightnessBoost, 1.0)))
+                    .foregroundColor(.gloGold.opacity(min(appleOpacity * viewModel.uiBrightnessBoost, 1.0)))
             }
             Text("·")
                 .font(.gloBody(8))
@@ -347,7 +364,7 @@ struct HUDView: View {
             }) {
                 Text("Open-Meteo")
                     .font(.gloBody(8))
-                    .foregroundColor(.gloGold.opacity(min(0.35 * viewModel.uiBrightnessBoost, 1.0)))
+                    .foregroundColor(.gloGold.opacity(min(openMeteoOpacity * viewModel.uiBrightnessBoost, 1.0)))
             }
             Spacer()
         }

@@ -47,6 +47,7 @@ enum L10n {
     static var historyEmptyHint3: LocalizedStringKey { "history.emptyHint3" }
     static var historyNewWalk: LocalizedStringKey { "history.newWalk" }
     static var historyStartWalk: LocalizedStringKey { "history.startWalk" }
+    static var historyResumeWalk: LocalizedStringKey { "history.resumeWalk" }
 
     static var settingsTitle: LocalizedStringKey { "settings.title" }
     static var settingsDone: LocalizedStringKey { "settings.done" }

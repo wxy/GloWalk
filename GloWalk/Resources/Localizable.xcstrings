@@ -487,6 +487,23 @@
         }
       }
     },
+    "history.resumeWalk" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume Walk"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回到步行"
+          }
+        }
+      }
+    },
     "history.startWalk" : {
       "extractionState" : "manual",
       "localizations" : {

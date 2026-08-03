@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct HUDView: View {
-    @StateObject private var viewModel = HUDViewModel()
+    /// Owned by ContentView so the walk survives navigating to History.
+    @ObservedObject var viewModel: HUDViewModel
     @EnvironmentObject var appState: AppState
     let goToHistory: () -> Void
 

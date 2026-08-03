@@ -17,21 +17,38 @@ final class WeatherService: ObservableObject {
     @Published var currentCondition: String?
     @Published var provider: Provider = .none
 
+    /// Consecutive WeatherKit failures before we stop retrying it for the rest
+    /// of the walk. WeatherKit JWT generation is done internally by the
+    /// framework from the app's entitlement and can fail persistently on some
+    /// devices/regions (a known Apple-side issue — not a code or entitlement
+    /// problem). Once it fails twice in a walk we skip it and go straight to
+    /// Open-Meteo to avoid repeated token-generation attempts and log noise.
+    private var weatherKitFailures = 0
+    private let weatherKitMaxFailures = 2
+
     func fetch(at location: CLLocation) async {
         // Try Apple WeatherKit first (richer data, restricted in China)
         if #available(iOS 16, *) {
-            if let condition = await tryWeatherKit(at: location) {
+            if weatherKitFailures >= weatherKitMaxFailures {
+                print("[Weather] WeatherKit skipped — \(weatherKitFailures) consecutive failures this walk, using Open-Meteo")
+            } else if let condition = await tryWeatherKit(at: location) {
                 currentCondition = condition
                 provider = .apple
+                weatherKitFailures = 0
+                print("[Weather] Apple WeatherKit success: \(condition)")
                 return
+            } else {
+                weatherKitFailures += 1
             }
         }
         // Fall back to Open-Meteo (free, works globally including China)
         if let condition = await tryOpenMeteo(at: location) {
             currentCondition = condition
             provider = .openMeteo
+            print("[Weather] Open-Meteo success: \(condition)")
         } else {
             provider = .none
+            print("[Weather] No weather available — WeatherKit and Open-Meteo both failed")
         }
     }
 

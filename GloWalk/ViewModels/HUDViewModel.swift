@@ -57,6 +57,7 @@ final class HUDViewModel: ObservableObject {
         hasStarted = true
         isActive = true
         sessionStartTime = Date()
+        print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
         // Prevent screen sleep and auto-dim during walk
         UIApplication.shared.isIdleTimerDisabled = true
@@ -103,10 +104,13 @@ final class HUDViewModel: ObservableObject {
 
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
+        // Timer's block is @Sendable; hop to MainActor explicitly instead of
+        // MainActor.assumeIsolated, which emits "unsafeForcedSync called from
+        // Swift Concurrent context" because the runtime treats the block as a
+        // concurrent context even though it fires on the main run loop.
         sensorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            MainActor.assumeIsolated {
-                self.tick()
+            Task { @MainActor in
+                self?.tick()
             }
         }
     }
@@ -238,6 +242,7 @@ final class HUDViewModel: ObservableObject {
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
+        print("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
 
         if let s = currentWalkSession {
             s.endTime = Date()
@@ -309,6 +314,9 @@ final class HUDViewModel: ObservableObject {
         guard enteredBackground else { return }
         enteredBackground = false
         UIApplication.shared.isIdleTimerDisabled = true
+        // iOS stops the camera capture session while backgrounded — restart it
+        // so the ambient-light factor keeps working after returning.
+        sensorManager.resumeSessionIfNeeded()
         brightness = lightEngine.targetBrightness
     }
 

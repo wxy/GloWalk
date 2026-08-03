@@ -14,6 +14,10 @@ final class SensorManager: ObservableObject {
 
     private let motionManager = CMMotionManager()
     private let pedometer = CMPedometer()
+    /// Serial queue for AVCaptureSession start/stop — AVCaptureSession is not
+    /// thread-safe and startRunning() blocks, so every session transition is
+    /// serialized here to avoid concurrent start/stop races.
+    private let sessionQueue = DispatchQueue(label: "glowalk.camera", qos: .userInitiated)
     private var captureSession: AVCaptureSession?
     private var captureDevice: AVCaptureDevice?
     private var captureDelegate: AmbientLightDelegate?
@@ -40,11 +44,20 @@ final class SensorManager: ObservableObject {
     func stop() {
         turnOffTorch()
         stopProximityMonitoring()
-        captureSession?.stopRunning()
+        // Serialize with any in-flight startRunning() on sessionQueue.
+        nonisolated(unsafe) let session = captureSession
+        sessionQueue.async {
+            if let session {
+                print("[Sensor] Camera stopRunning begin")
+                session.stopRunning()
+                print("[Sensor] Camera stopRunning done")
+            }
+        }
         captureSession = nil
         captureDevice = nil
         motionManager.stopDeviceMotionUpdates()
         pedometer.stopUpdates()
+        print("[Sensor] SensorManager stop() — torch off, camera stop queued, motion/pedometer stopped")
     }
 
     // MARK: - Torch Control
@@ -89,6 +102,7 @@ final class SensorManager: ObservableObject {
     private func startAmbientLightSampling() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
             isManualMode = true
+            print("[Sensor] Ambient sampling skipped — camera not authorized, manual mode")
             return
         }
 
@@ -99,12 +113,16 @@ final class SensorManager: ObservableObject {
                                                     for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else {
             isManualMode = true
+            print("[Sensor] Ambient sampling skipped — no back camera or input creation failed")
             return
         }
 
         captureDevice = device
         session.addInput(input)
         let output = AVCaptureVideoDataOutput()
+        // Request BGRA explicitly — without this, iOS delivers the device-native
+        // format (NV12 on iPhones) and AmbientLightDelegate drops every frame.
+        output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
         let delegate = AmbientLightDelegate { [weak self] level in
             Task { @MainActor in
                 self?.ambientLightLevel = level
@@ -115,9 +133,33 @@ final class SensorManager: ObservableObject {
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
         captureSession = session
+        print("[Sensor] Ambient camera configured (BGRA requested), starting capture")
         nonisolated(unsafe) let s = session
-        DispatchQueue.global(qos: .userInitiated).async {
+        sessionQueue.async {
+            print("[Sensor] Camera startRunning begin")
             s.startRunning()
+            print("[Sensor] Camera startRunning done — isRunning=\(s.isRunning)")
+        }
+    }
+
+    /// Restarts the capture session if iOS stopped it (e.g. the app was
+    /// backgrounded). Called from HUDViewModel.didBecomeActive.
+    func resumeSessionIfNeeded() {
+        guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
+            print("[Sensor] Resume skipped — camera not authorized")
+            return
+        }
+        guard let session = captureSession, !session.isRunning else {
+            print("[Sensor] Resume skipped — no session or already running (isRunning=\(captureSession?.isRunning ?? false))")
+            return
+        }
+        print("[Sensor] Resume requested — camera not running after background, restarting")
+        nonisolated(unsafe) let s = session
+        sessionQueue.async {
+            if !s.isRunning {
+                s.startRunning()
+                print("[Sensor] Camera resumed after background — isRunning=\(s.isRunning)")
+            }
         }
     }
 
@@ -179,6 +221,8 @@ final class SensorManager: ObservableObject {
 private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let onSample: (Double) -> Void
     private var lastEmitTime: Date = .distantPast
+    private var bgraSampleCount: Int = 0
+    private var droppedCount: Int = 0
 
     init(onSample: @escaping (Double) -> Void) {
         self.onSample = onSample
@@ -197,7 +241,16 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
 
         let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
-        guard pixelFormat == kCVPixelFormatType_32BGRA else { return }
+        if bgraSampleCount == 0 {
+            print("[Sensor] First ambient frame — format \(pixelFormat) (expect BGRA=\(kCVPixelFormatType_32BGRA))")
+        }
+        guard pixelFormat == kCVPixelFormatType_32BGRA else {
+            droppedCount += 1
+            if droppedCount == 1 || droppedCount % 50 == 0 {
+                print("[Sensor] Dropping ambient frame — format \(pixelFormat) != BGRA (total dropped \(droppedCount))")
+            }
+            return
+        }
         guard let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else { return }
         let width  = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
@@ -219,6 +272,13 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         }
 
         guard count > 0 else { return }
-        onSample(total / Double(count))
+        bgraSampleCount += 1
+        let level = total / Double(count)
+        // Log the first few samples, then one every 30 (≈ every 15s) — enough
+        // to confirm the ambient light factor is live without flooding the log.
+        if bgraSampleCount <= 3 || bgraSampleCount % 30 == 0 {
+            print("[Sensor] Ambient sample #\(bgraSampleCount) = \(String(format: "%.3f", level))")
+        }
+        onSample(level)
     }
 }

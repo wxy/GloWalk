@@ -63,8 +63,10 @@ struct GlowCircleView: View {
 
             // Brightness percentage — with strikethrough overlay when paused
             Text("\(Int(brightness * 100))%")
+                // .gloDisplay is already "LXGW WenKai Light" — do NOT add
+                // .fontWeight(.light), it re-weights the descriptor and logs
+                // "Unable to update Font Descriptor's weight".
                 .font(.gloDisplay(22))
-                .fontWeight(.light)
                 .foregroundColor(isPaused ? .white.opacity(0.25)
                                  : isManual ? .white : Color.gloTorchCore)
                 .shadow(color: isPaused ? .clear

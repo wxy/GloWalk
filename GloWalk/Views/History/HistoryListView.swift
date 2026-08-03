@@ -72,14 +72,13 @@ struct HistoryListView: View {
                                                     .font(.gloBody(13)).foregroundColor(.white.opacity(0.4))
                                             }
                                             HStack(spacing: 10) {
-                                                Text(L10n.isZh ?"🦶\(session.totalSteps)步" : "🦶\(session.totalSteps) steps")
+                                                Text("🦶\(session.totalSteps)\(L10n.historyUnitSteps)")
                                                     .font(.gloBody(12))
-                                                Text(L10n.isZh
-                                                     ? "📏\(String(format: "%.0f", session.totalDistance))米"
-                                                     : "📏\(String(format: "%.0f", session.totalDistance))m").font(.gloBody(12))
+                                                Text("📏\(String(format: "%.0f", session.totalDistance))\(L10n.historyUnitMeters)")
+                                                    .font(.gloBody(12))
                                                 if let end = session.endTime {
                                                     let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
-                                                    Text(L10n.isZh ?"⏱\(min)分钟" : "⏱\(min)min").font(.gloBody(12))
+                                                    Text("⏱\(min)\(L10n.historyUnitMinutes)").font(.gloBody(12))
                                                 }
                                             }
                                             .foregroundColor(.white.opacity(0.4))

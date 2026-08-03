@@ -6,7 +6,7 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = L10n.isZh ? "0米" : "0m"
+    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0)
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
@@ -226,9 +226,9 @@ final class HUDViewModel: ObservableObject {
         updateBatteryEstimate()
         let displayDist = displayDistance
         if displayDist < 1000 {
-            elapsedDistance = String(format: L10n.isZh ? "%.0f米" : "%.0fm", displayDist)
+            elapsedDistance = String(format: L10n.hudDistanceMeters, displayDist)
         } else {
-            elapsedDistance = String(format: L10n.isZh ? "%.1f公里" : "%.1fkm", displayDist / 1000)
+            elapsedDistance = String(format: L10n.hudDistanceKm, displayDist / 1000)
         }
 
         // Batch Core Data saves: every 5 ticks instead of every second

@@ -315,15 +315,15 @@ struct HUDView: View {
                 // Uniform cell height so the GPS icon and the weather placeholder
                 // line up with the plain-text cells. Emoji is followed by a space
                 // so the icon and value have a small consistent gap.
-                Text(L10n.isZh ? "🦶 \(viewModel.stepCount)步" : "🦶 \(viewModel.stepCount)")
+                Text("🦶 \(viewModel.stepCount)\(L10n.hudUnitSteps)")
                     .frame(width: cell, height: 16, alignment: .center)
                 Text("📏 \(viewModel.elapsedDistance)")
                     .frame(width: cell, height: 16, alignment: .center)
-                Text(L10n.isZh ? "⏱ \(viewModel.elapsedMinutes)分钟" : "⏱ \(viewModel.elapsedMinutes)min")
+                Text("⏱ \(viewModel.elapsedMinutes)\(L10n.hudUnitMinutes)")
                     .frame(width: cell, height: 16, alignment: .center)
                 Text(viewModel.estimatedMinutesRemaining < 0
                      ? "🔋 ∞"
-                     : (L10n.isZh ? "🔋 \(viewModel.estimatedMinutesRemaining)分钟" : "🔋 \(viewModel.estimatedMinutesRemaining)min"))
+                     : "🔋 \(viewModel.estimatedMinutesRemaining)\(L10n.hudUnitMinutes)")
                     .frame(width: cell, height: 16, alignment: .center)
                 gpsIndicator
                     .frame(width: cell, height: 16, alignment: .center)

@@ -84,12 +84,8 @@ struct GlowCircleView: View {
 
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
-                Text(L10n.isZh
-                     ? "双击结束步行    长按开关灯光"
-                     : "Double-tap to end, long-press for torch")
-                Text(L10n.isZh
-                     ? "滑动调整亮度    单击恢复自动"
-                     : "Swipe to adjust, tap to restore")
+                Text(L10n.hintEndWalk)
+                Text(L10n.hintAdjust)
             }
             .font(.gloBody(11))
             .foregroundColor(.white.opacity(0.5))

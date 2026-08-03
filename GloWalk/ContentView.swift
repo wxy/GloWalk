@@ -23,6 +23,7 @@ struct ContentView: View {
         switch language {
         case "en": return Locale(identifier: "en")
         case "zh-Hans": return Locale(identifier: "zh-Hans")
+        case "zh-Hant": return Locale(identifier: "zh-Hant")
         default: return .autoupdatingCurrent
         }
     }

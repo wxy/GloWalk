@@ -13,7 +13,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: 随行路灯"
+            "value" : "随行路灯"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨行路燈"
           }
         }
       }

@@ -328,6 +328,10 @@ final class HUDViewModel: ObservableObject {
         if state == .charging || state == .full {
             batteryPercentage = 100
             estimatedMinutesRemaining = -1  // -1 means unlimited
+            // Clear any low-battery cap so the torch isn't dimmed the whole
+            // time the phone is plugged in (the cap would otherwise only reset
+            // on a non-charging tick).
+            lightEngine.batterySaverCap = 1.0
             return
         }
         let level = UIDevice.current.batteryLevel

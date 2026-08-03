@@ -87,7 +87,12 @@ final class SensorManager: ObservableObject {
     }
 
     private func turnOffTorch() {
-        guard let device = captureDevice, device.hasTorch else { return }
+        // Mirror _setTorchDirect's fallback: when camera permission is denied
+        // captureDevice stays nil but the torch is still turned on via the
+        // default device — so turn it off the same way, or it would stay lit.
+        guard let device = captureDevice ?? AVCaptureDevice.default(.builtInWideAngleCamera,
+                                                                   for: .video, position: .back),
+              device.hasTorch, device.isTorchAvailable else { return }
         do {
             try device.lockForConfiguration()
             device.torchMode = .off

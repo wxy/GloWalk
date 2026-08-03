@@ -1,12 +1,8 @@
 import UIKit
 
 final class PosterGenerator {
-    enum PosterError: Error {
-        case noImage, renderingFailed
-    }
-
     @MainActor
-    static func generate(session: WalkSession) async throws -> UIImage {
+    static func generate(session: WalkSession) async -> UIImage {
         let size = UIScreen.main.nativeBounds.size
         let moonImage = loadMoonImage(phase: session.wrappedMoonPhase)
         // Render the heavy UIGraphics pass on a background executor so the

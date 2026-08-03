@@ -24,7 +24,7 @@ final class HUDViewModel: ObservableObject {
     /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
     @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
-    /// UI brightness boost factor: 1.0 (dark) → 2.5 (bright daylight). Adjusts element visibility.
+    /// UI brightness boost factor: 1.0 (dark) → 3.0 (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
@@ -55,7 +55,7 @@ final class HUDViewModel: ObservableObject {
 
     // MARK: - Start Walk
 
-    func startWalk(isQuickLaunch: Bool = false) {
+    func startWalk() {
         guard !hasStarted else { return }
         hasStarted = true
         isActive = true
@@ -134,8 +134,6 @@ final class HUDViewModel: ObservableObject {
             ambientLight: sensorManager.ambientLightLevel,
             devicePitch: sensorManager.devicePitch,
             deviceRoll: sensorManager.deviceRoll,
-            screenBrightness: UIScreen.main.brightness,
-            isWalking: sensorManager.isWalking,
             moonIllumination: moonIllum,
             weather: weatherService.currentCondition,
             darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0
@@ -301,8 +299,6 @@ final class HUDViewModel: ObservableObject {
         }
         Haptic.selection()
     }
-    func toggleMoonFactor() { lightEngine.toggleMoonFactor() }
-    func toggleWeatherFactor() { lightEngine.toggleWeatherFactor() }
     func setManualBrightness(_ level: Double) {
         lightEngine.setManualOffset(level - lightEngine.targetBrightness)
     }
@@ -397,7 +393,7 @@ struct WeatherCardData {
 }
 
 struct FactorCardData: Identifiable {
-    let id: String          // "ambient", "posture", "screen", "dark"
+    let id: String          // "ambient", "posture", "dark", "moon", "weather"
     let icon: String        // SF Symbol name
     let label: String       // factor name
     let brightnessDelta: Int

@@ -214,8 +214,7 @@ struct HistoryPosterView: View {
             }
         }
         .task {
-            do { posterImage = try await PosterGenerator.generate(session: session) }
-            catch { print("History poster error: \(error)") }
+            posterImage = await PosterGenerator.generate(session: session)
         }
     }
 }

@@ -19,7 +19,6 @@ final class LightEngine: ObservableObject {
         var weatherCondition: String = ""
         var ambientDelta: Int = 0
         var postureDelta: Int = 0
-        var screenDelta: Int = 0
         var darkDelta: Int = 0
         var moonDelta: Int = 0
         var weatherDelta: Int = 0
@@ -107,7 +106,7 @@ final class LightEngine: ObservableObject {
         let weathDelta = attr(weathShortfall)
 
         updateFactorDetails(sensors: sensors,
-                            ambDelta: ambDelta, posDelta: posDelta, scrDelta: 0,
+                            ambDelta: ambDelta, posDelta: posDelta,
                             darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
     }
 
@@ -125,11 +124,10 @@ final class LightEngine: ObservableObject {
     // MARK: - Factor Details for HUD
 
     private func updateFactorDetails(sensors: SensorSnapshot,
-                                      ambDelta: Int, posDelta: Int, scrDelta: Int,
+                                      ambDelta: Int, posDelta: Int,
                                       darkDelta: Int, moonDelta: Int, weathDelta: Int) {
         factorDetails.ambientDelta = ambDelta
         factorDetails.postureDelta = posDelta
-        factorDetails.screenDelta = scrDelta
         factorDetails.darkDelta = darkDelta
         factorDetails.moonDelta = moonDelta
         factorDetails.weatherDelta = weathDelta
@@ -155,10 +153,6 @@ final class LightEngine: ObservableObject {
     func toggleMoonFactor()     { moonFactorActive.toggle() }
     func toggleWeatherFactor()  { weatherFactorActive.toggle() }
 
-    // MARK: - Safety Fallback
-
-    func enterSafetyFallback() { targetBrightness = 1.0 }
-    func resumeFromFallback(completion: @escaping (Double) -> Void) { completion(targetBrightness) }
 }
 
 // MARK: - Sensor Snapshot
@@ -167,8 +161,6 @@ struct SensorSnapshot {
     let ambientLight: Double
     let devicePitch: Double
     let deviceRoll: Double
-    let screenBrightness: Double
-    let isWalking: Bool
     let moonIllumination: Double
     let weather: String?
     let darkAdaptationMinutes: Double

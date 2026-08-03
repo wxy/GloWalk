@@ -9,7 +9,6 @@ enum AppScreen {
 struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("language") private var language: String = "system"
-    @StateObject private var appState = AppState()
     @State private var screen: AppScreen = .privacy
     @State private var hudID = UUID()
     /// Owned here (not by HUDView) so the walk survives navigating to History —
@@ -42,12 +41,11 @@ struct ContentView: View {
                     screen = .splash
                 }
             case .splash:
-                SplashView(isQuickLaunch: appState.isQuickLaunch) {
+                SplashView {
                     screen = .hud
                 }
             case .hud:
                 HUDView(viewModel: hudViewModel, goToHistory: { screen = .history })
-                    .environmentObject(appState)
                     .id(hudID)
             case .history:
                 HistoryListView(
@@ -111,10 +109,6 @@ struct ContentView: View {
             screen = .splash
         }
     }
-}
-
-class AppState: ObservableObject {
-    @Published var isQuickLaunch = false
 }
 
 // MARK: - Camera Permission

@@ -3,7 +3,6 @@ import SwiftUI
 struct HUDView: View {
     /// Owned by ContentView so the walk survives navigating to History.
     @ObservedObject var viewModel: HUDViewModel
-    @EnvironmentObject var appState: AppState
     let goToHistory: () -> Void
 
     /// Moon phase decoration only appears at night (18:00–05:59).
@@ -172,7 +171,7 @@ struct HUDView: View {
             }
         }
         .gloWalkHUD()
-        .onAppear { viewModel.startWalk(isQuickLaunch: appState.isQuickLaunch) }
+        .onAppear { viewModel.startWalk() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             viewModel.willResignActive()
         }
@@ -314,16 +313,17 @@ struct HUDView: View {
             let weatherCell = geo.size.width * 0.20
             HStack(spacing: 0) {
                 // Uniform cell height so the GPS icon and the weather placeholder
-                // line up with the plain-text cells.
-                Text(L10n.isZh ? "🦶\(viewModel.stepCount)步" : "🦶\(viewModel.stepCount)")
+                // line up with the plain-text cells. Emoji is followed by a space
+                // so the icon and value have a small consistent gap.
+                Text(L10n.isZh ? "🦶 \(viewModel.stepCount)步" : "🦶 \(viewModel.stepCount)")
                     .frame(width: cell, height: 16, alignment: .center)
-                Text("📏\(viewModel.elapsedDistance)")
+                Text("📏 \(viewModel.elapsedDistance)")
                     .frame(width: cell, height: 16, alignment: .center)
-                Text(L10n.isZh ? "⏱\(viewModel.elapsedMinutes)分钟" : "⏱\(viewModel.elapsedMinutes)min")
+                Text(L10n.isZh ? "⏱ \(viewModel.elapsedMinutes)分钟" : "⏱ \(viewModel.elapsedMinutes)min")
                     .frame(width: cell, height: 16, alignment: .center)
                 Text(viewModel.estimatedMinutesRemaining < 0
-                     ? "🔋∞"
-                     : (L10n.isZh ? "🔋\(viewModel.estimatedMinutesRemaining)分钟" : "🔋\(viewModel.estimatedMinutesRemaining)min"))
+                     ? "🔋 ∞"
+                     : (L10n.isZh ? "🔋 \(viewModel.estimatedMinutesRemaining)分钟" : "🔋 \(viewModel.estimatedMinutesRemaining)min"))
                     .frame(width: cell, height: 16, alignment: .center)
                 gpsIndicator
                     .frame(width: cell, height: 16, alignment: .center)

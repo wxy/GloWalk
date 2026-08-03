@@ -62,9 +62,7 @@ struct ArrivalSummaryView: View {
 
     private func generatePoster() async {
         guard let session = viewModel.currentWalkSession else { isGenerating = false; return }
-        do {
-            posterImage = try await PosterGenerator.generate(session: session)
-        } catch { print("Poster error: \(error)") }
+        posterImage = await PosterGenerator.generate(session: session)
         isGenerating = false
     }
 

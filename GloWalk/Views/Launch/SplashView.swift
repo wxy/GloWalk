@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct SplashView: View {
-    let isQuickLaunch: Bool
     let onComplete: () -> Void
 
     @State private var opacity: Double = 1.0
@@ -36,7 +35,6 @@ struct SplashView: View {
         }
         .opacity(opacity)
         .onAppear {
-            if isQuickLaunch { onComplete(); return }
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                 withAnimation(.easeOut(duration: 0.5)) { opacity = 0 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onComplete() }

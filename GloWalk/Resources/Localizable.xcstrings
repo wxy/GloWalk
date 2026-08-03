@@ -19,7 +19,7 @@
     "👣" : {
 
     },
-    "📏%@" : {
+    "📏 %@" : {
 
     },
     "🦶" : {
@@ -623,23 +623,6 @@
         }
       }
     },
-    "hud.doubleTapToEnd" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Double-tap to dim"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "双击熄灭"
-          }
-        }
-      }
-    },
     "hud.drawing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -657,23 +640,6 @@
         }
       }
     },
-    "hud.ending" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dimming the lantern…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在结束..."
-          }
-        }
-      }
-    },
     "hud.occluded" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -687,23 +653,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "闪光灯被遮挡，已自动关闭"
-          }
-        }
-      }
-    },
-    "hud.steps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "steps"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "步"
           }
         }
       }
@@ -1472,23 +1421,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "版本"
-          }
-        }
-      }
-    },
-    "settings.versionValue" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1.0 · GloWalk"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1.0 · 随行路灯"
           }
         }
       }

@@ -18,7 +18,6 @@ enum L10n {
     static var locationDescription: LocalizedStringKey { "location.description" }
     static var locationContinue: LocalizedStringKey { "location.continue" }
 
-    static var hudDoubleTapToEnd: LocalizedStringKey { "hud.doubleTapToEnd" }
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
     static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
     static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
@@ -28,10 +27,8 @@ enum L10n {
     static var factorAmbient: String { isZh ? "环境光" : "Ambient" }
     static var factorPosture: String { isZh ? "姿态" : "Posture" }
     static var factorDark: String { isZh ? "暗适应" : "Adapt" }
-    static var hudEnding: LocalizedStringKey { "hud.ending" }
     static var hudDrawing: LocalizedStringKey { "hud.drawing" }
     static var hudZeroStep: LocalizedStringKey { "hud.zeroStep" }
-    static var hudSteps: LocalizedStringKey { "hud.steps" }
 
     static var posterShare: LocalizedStringKey { "poster.share" }
     static var posterSave: LocalizedStringKey { "poster.save" }
@@ -60,7 +57,6 @@ enum L10n {
     static var settingsCleared: LocalizedStringKey { "settings.cleared" }
     static var settingsRefreshTagline: LocalizedStringKey { "settings.refreshTagline" }
     static var settingsVersion: LocalizedStringKey { "settings.version" }
-    static var settingsVersionValue: LocalizedStringKey { "settings.versionValue" }
     static var settingsHelp: LocalizedStringKey { "settings.help" }
     static var settingsHelpSection: LocalizedStringKey { "settings.helpSection" }
     static var settingsClearTitle: LocalizedStringKey { "settings.clearTitle" }

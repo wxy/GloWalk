@@ -7,10 +7,8 @@ final class SensorManager: ObservableObject {
     @Published var ambientLightLevel: Double = 0.5
     @Published var devicePitch: Double = 45.0
     @Published var deviceRoll: Double = 0.0
-    @Published var isWalking: Bool = false
     @Published var stepCount: Int = 0
     @Published var isOccluded: Bool = false
-    @Published var isManualMode: Bool = false
 
     private let motionManager = CMMotionManager()
     private let pedometer = CMPedometer()
@@ -21,16 +19,6 @@ final class SensorManager: ObservableObject {
     private var captureSession: AVCaptureSession?
     private var captureDevice: AVCaptureDevice?
     private var captureDelegate: AmbientLightDelegate?
-
-    // MARK: - Camera Permission
-
-    static var cameraAuthorizationStatus: AVAuthorizationStatus {
-        AVCaptureDevice.authorizationStatus(for: .video)
-    }
-
-    static func requestCameraPermission() async -> Bool {
-        await AVCaptureDevice.requestAccess(for: .video)
-    }
 
     // MARK: - Start / Stop
 
@@ -106,7 +94,6 @@ final class SensorManager: ObservableObject {
 
     private func startAmbientLightSampling() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            isManualMode = true
             print("[Sensor] Ambient sampling skipped — camera not authorized, manual mode")
             return
         }
@@ -117,7 +104,6 @@ final class SensorManager: ObservableObject {
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                     for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else {
-            isManualMode = true
             print("[Sensor] Ambient sampling skipped — no back camera or input creation failed")
             return
         }
@@ -190,7 +176,6 @@ final class SensorManager: ObservableObject {
             guard let data = data else { return }
             Task { @MainActor in
                 self?.stepCount = data.numberOfSteps.intValue
-                self?.isWalking = data.numberOfSteps.intValue > 0
             }
         }
     }

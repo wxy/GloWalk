@@ -32,9 +32,4 @@ enum MoonPhase {
 
         return MoonData(phase: phase, illumination: illumination)
     }
-
-    /// Returns brightness factor: 1.0 = full brightness needed, ~0.7 = full moon
-    static func brightnessFactor(illumination: Double) -> Double {
-        1.0 - (illumination * 0.3)
-    }
 }

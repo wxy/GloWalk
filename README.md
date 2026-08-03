@@ -19,7 +19,7 @@
 - **Night Walk Posters** — When your walk ends, GloWalk generates a poster with your path, the night's moon phase, and a poetic tagline. Share it or save it to your photo library.
 - **Dark Interface** — Every pixel is designed for night use. Amber-on-black HUD, no white flashes.
 - **Bilingual** — Full English and Chinese (Simplified) support. Language switching at runtime.
-- **Privacy First** — All data stays on-device. No account required. No analytics. No tracking.
+- **Privacy First** — Walk data stays on-device, no account, no analytics, no tracking. Only your location is sent to Apple WeatherKit and Open-Meteo for current weather.
 
 ## Screens
 
@@ -103,7 +103,7 @@ See [PRIVACY.md](PRIVACY.md).
 - **夜路海报** — 步行结束后自动生成海报，包含路径轨迹、当晚月相照片和诗意格言，可分享或保存
 - **深色界面** — 每一像素都为夜间设计，琥珀金配色
 - **中英双语** — 完整的中英文支持，运行时可切换
-- **隐私优先** — 所有数据仅存本机，无需账号，无分析，无追踪
+- **隐私优先** — 步行数据仅存本机，无需账号，无分析，无追踪；仅位置信息会发送给 Apple WeatherKit 和 Open-Meteo 获取当前天气
 
 ### 使用指南
 

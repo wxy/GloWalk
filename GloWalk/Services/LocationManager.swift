@@ -7,7 +7,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     @Published var totalDistance: Double = 0
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isRecording: Bool = false
-    @Published var placeName: String?
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
@@ -16,7 +15,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private var lastGPSRecordedStepCount: Int = 0
     private var estimatedLat: Double?
     private var estimatedLon: Double?
-    private var hasGeocoded = false
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
     /// Real sensor values at recording time, injected each tick by HUDViewModel.
     var currentAmbientLight: Double = 0.5
@@ -165,17 +163,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                                  torchBrightness: currentTorchBrightness,
                                  session: session)
             PersistenceController.shared.save()
-        }
-
-        // Reverse geocode once on first good GPS fix
-        if !hasGeocoded && location.horizontalAccuracy < 30 {
-            hasGeocoded = true
-            CLGeocoder().reverseGeocodeLocation(location) { [weak self] marks, _ in
-                guard let place = marks?.first else { return }
-                Task { @MainActor in
-                    self?.placeName = place.locality ?? place.administrativeArea
-                }
-            }
         }
     }
 }

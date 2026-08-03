@@ -748,13 +748,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk records your walking path to draw constellation trails on your night poster.\n\nAll path data stays on your device — never uploaded.\n\nYou can still walk without it; the path will be coarser."
+            "value" : "GloWalk records your walking path to draw constellation trails on your night poster.\n\nAll path data stays on your device. Your location is sent to Apple WeatherKit and Open-Meteo only for current weather.\n\nYou can still walk without it; the path will be coarser."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 记录你的步行路径，用于在夜路海报上绘制星座般的足迹。\n\n所有路径数据仅存于本机，不会上传。\n\n拒绝后仍可步行，但路径精度会降低。"
+            "value" : "GloWalk 记录你的步行路径，用于在夜路海报上绘制星座般的足迹。\n\n所有路径数据仅存于本机。位置信息仅用于向 Apple WeatherKit 和 Open-Meteo 获取当前天气。\n\n拒绝后仍可步行，但路径精度会降低。"
           }
         }
       }
@@ -921,13 +921,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "City Name"
+            "value" : "Weather"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "城市名称"
+            "value" : "天气"
           }
         }
       }
@@ -1108,13 +1108,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Path data stored only on your device — never uploaded"
+            "value" : "Path data stays on your device; your location is sent to Apple WeatherKit and Open-Meteo only for current weather"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "路径数据只存于你的手机，不会上传到任何服务器"
+            "value" : "路径数据只存于你的手机；位置信息仅用于向 Apple WeatherKit 和 Open-Meteo 获取当前天气"
           }
         }
       }
@@ -1125,13 +1125,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No ads, no tracking, no third-party SDKs"
+            "value" : "No ads, no tracking, no analytics"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有广告、没有追踪、没有第三方 SDK"
+            "value" : "没有广告、没有追踪、没有分析"
           }
         }
       }

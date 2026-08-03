@@ -26,7 +26,6 @@ final class HUDViewModel: ObservableObject {
     @Published var currentHeading: Double = 0
     /// UI brightness boost factor: 1.0 (dark) → 2.5 (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
-    @Published var placeName: String = ""
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
     @Published var factorCards: [FactorCardData] = []
@@ -186,7 +185,6 @@ final class HUDViewModel: ObservableObject {
         )
         let ambient = sensorManager.ambientLightLevel
         uiBrightnessBoost = 1.0 + ambient * 2.0
-        placeName = locationManager.placeName ?? ""
         lunarDateStr = LunarDate.display()
         gregorianDateStr = LunarDate.gregorianShort()
         gpsActive = locationManager.isRecording &&

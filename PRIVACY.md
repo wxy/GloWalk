@@ -5,7 +5,7 @@
 ## Data That Stays On Your Device
 
 - **Camera** — The rear camera is used exclusively to sample ambient brightness. No photos or video are captured, stored, or transmitted.
-- **Location** — GPS coordinates are recorded locally to draw your walking path on the night poster. This data never leaves your device.
+- **Location** — GPS coordinates are recorded locally to draw your walking path on the night poster. For weather lookup, your coordinates are also sent to Apple WeatherKit and Open-Meteo (see Third-Party Services below). Your walk path data itself stays on-device.
 - **Motion Sensors** — Accelerometer and gyroscope data are used to detect walking state and phone posture for adaptive brightness. No raw sensor data is stored.
 - **Step Count** — Pedometer data is used to track walking progress and estimate battery life.
 

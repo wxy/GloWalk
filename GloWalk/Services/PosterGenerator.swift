@@ -1,18 +1,26 @@
 import UIKit
 
 final class PosterGenerator {
-    enum PosterError: Error {
-        case noImage, renderingFailed
+    @MainActor
+    static func generate(session: WalkSession) async -> UIImage {
+        let size = UIScreen.main.nativeBounds.size
+        let moonImage = loadMoonImage(phase: session.wrappedMoonPhase)
+        // Render the heavy UIGraphics pass on a background executor so the
+        // main thread isn't blocked during the end-of-walk transition. The
+        // session data is fully loaded (the walk just ended, no concurrent
+        // Core Data writes), so reading it off-main is safe here.
+        nonisolated(unsafe) let s = session
+        return await Task.detached(priority: .userInitiated) {
+            render(session: s, size: size, moonImage: moonImage)
+        }.value
     }
 
-    @MainActor
-    static func generate(session: WalkSession) async throws -> UIImage {
-        let size = UIScreen.main.nativeBounds.size
+    /// The actual UIGraphicsImageRenderer pass — runs off the main thread.
+    nonisolated private static func render(session: WalkSession,
+                                           size: CGSize,
+                                           moonImage: UIImage?) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
         let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
-
-        // Load moon phase image for corner decoration
-        let moonImage = loadMoonImage(phase: session.wrappedMoonPhase)
 
         return renderer.image { ctx in
             // Night sky background

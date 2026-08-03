@@ -66,7 +66,8 @@ struct SettingsView: View {
         Picker(L10n.settingsLanguage, selection: $prefs.language) {
             Text(L10n.settingsFollowSystem).tag("system")
             Text("English").tag("en")
-            Text("中文").tag("zh-Hans")
+            Text(L10n.settingsLanguageSimplified).tag("zh-Hans")
+            Text(L10n.settingsLanguageTraditional).tag("zh-Hant")
         }
         .font(.gloBody(14)).foregroundColor(.white)
     }
@@ -110,11 +111,11 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    /// e.g. "1.0 (42) · GloWalk" / "1.0 (42) · 随行路灯"
+    /// e.g. "1.0 (42) · GloWalk" / "1.0 (42) · 隨行路燈"
     private var versionBuildString: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
-        let name = L10n.isZh ? "随行路灯" : "GloWalk"
+        let name = L10n.versionName
         return "\(version) (\(build)) · \(name)"
     }
 

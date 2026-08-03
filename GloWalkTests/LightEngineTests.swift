@@ -242,7 +242,6 @@ final class LightEngineTests: XCTestCase {
         posturePitch: Double = 45,
         postureRoll: Double = 0,
         posture: Double = 1.0,
-        screen: Double = 0.5,
         moonIllumination: Double = 0.5,
         weather: String? = nil,
         darkMinutes: Double = 0
@@ -251,8 +250,6 @@ final class LightEngineTests: XCTestCase {
             ambientLight: ambient,
             devicePitch: posturePitch,
             deviceRoll: postureRoll,
-            screenBrightness: screen,
-            isWalking: true,
             moonIllumination: moonIllumination,
             weather: weather,
             darkAdaptationMinutes: darkMinutes

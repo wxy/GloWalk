@@ -14,10 +14,8 @@ public class WalkSession: NSManagedObject, Identifiable {
     @NSManaged public var endType: String?
     @NSManaged public var pathPoints: Set<PathPoint>?
 
-    var wrappedId: UUID { id ?? UUID() }
     var wrappedStartTime: Date { startTime ?? Date() }
     var wrappedMoonPhase: String { moonPhase ?? "unknown" }
-    var wrappedEndType: String { endType ?? "interrupted" }
 
     var pathPointsArray: [PathPoint] {
         pathPoints?.sorted { ($0.timestamp ?? Date()) < ($1.timestamp ?? Date()) } ?? []

@@ -6,7 +6,7 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = L10n.isZh ? "0米" : "0m"
+    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0)
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
@@ -19,10 +19,13 @@ final class HUDViewModel: ObservableObject {
     @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
+    /// GPS fix accuracy in meters (CLLocation.horizontalAccuracy), nil when no
+    /// fix is available. Drives the HUD signal-strength indicator — path points
+    /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
+    @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
-    /// UI brightness boost factor: 1.0 (dark) → 2.5 (bright daylight). Adjusts element visibility.
+    /// UI brightness boost factor: 1.0 (dark) → 3.0 (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
-    @Published var placeName: String = ""
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
     @Published var factorCards: [FactorCardData] = []
@@ -52,11 +55,12 @@ final class HUDViewModel: ObservableObject {
 
     // MARK: - Start Walk
 
-    func startWalk(isQuickLaunch: Bool = false) {
+    func startWalk() {
         guard !hasStarted else { return }
         hasStarted = true
         isActive = true
         sessionStartTime = Date()
+        print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
         // Prevent screen sleep and auto-dim during walk
         UIApplication.shared.isIdleTimerDisabled = true
@@ -103,10 +107,13 @@ final class HUDViewModel: ObservableObject {
 
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
+        // Timer's block is @Sendable; hop to MainActor explicitly instead of
+        // MainActor.assumeIsolated, which emits "unsafeForcedSync called from
+        // Swift Concurrent context" because the runtime treats the block as a
+        // concurrent context even though it fires on the main run loop.
         sensorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            MainActor.assumeIsolated {
-                self.tick()
+            Task { @MainActor in
+                self?.tick()
             }
         }
     }
@@ -127,8 +134,6 @@ final class HUDViewModel: ObservableObject {
             ambientLight: sensorManager.ambientLightLevel,
             devicePitch: sensorManager.devicePitch,
             deviceRoll: sensorManager.deviceRoll,
-            screenBrightness: UIScreen.main.brightness,
-            isWalking: sensorManager.isWalking,
             moonIllumination: moonIllum,
             weather: weatherService.currentCondition,
             darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0
@@ -178,12 +183,14 @@ final class HUDViewModel: ObservableObject {
         )
         let ambient = sensorManager.ambientLightLevel
         uiBrightnessBoost = 1.0 + ambient * 2.0
-        placeName = locationManager.placeName ?? ""
         lunarDateStr = LunarDate.display()
         gregorianDateStr = LunarDate.gregorianShort()
         gpsActive = locationManager.isRecording &&
             (locationManager.authorizationStatus == .authorizedWhenInUse ||
              locationManager.authorizationStatus == .authorizedAlways)
+        gpsAccuracyMeters = locationManager.isRecording
+            ? locationManager.currentLocation?.horizontalAccuracy
+            : nil
         pathPoints = currentWalkSession?.pathPointsArray ?? []
         elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime ?? Date()) / 60)
 
@@ -219,9 +226,9 @@ final class HUDViewModel: ObservableObject {
         updateBatteryEstimate()
         let displayDist = displayDistance
         if displayDist < 1000 {
-            elapsedDistance = String(format: L10n.isZh ? "%.0f米" : "%.0fm", displayDist)
+            elapsedDistance = String(format: L10n.hudDistanceMeters, displayDist)
         } else {
-            elapsedDistance = String(format: L10n.isZh ? "%.1f公里" : "%.1fkm", displayDist / 1000)
+            elapsedDistance = String(format: L10n.hudDistanceKm, displayDist / 1000)
         }
 
         // Batch Core Data saves: every 5 ticks instead of every second
@@ -238,6 +245,7 @@ final class HUDViewModel: ObservableObject {
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
+        print("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
 
         if let s = currentWalkSession {
             s.endTime = Date()
@@ -291,12 +299,28 @@ final class HUDViewModel: ObservableObject {
         }
         Haptic.selection()
     }
-    func toggleMoonFactor() { lightEngine.toggleMoonFactor() }
-    func toggleWeatherFactor() { lightEngine.toggleWeatherFactor() }
     func setManualBrightness(_ level: Double) {
         lightEngine.setManualOffset(level - lightEngine.targetBrightness)
     }
     func resetToAutoBrightness() { lightEngine.resetManualOffset() }
+
+    // MARK: - GPS Signal Quality (HUD indicator)
+
+    /// "±12m" readout for the HUD, nil when no fix is available.
+    var gpsAccuracyLabel: String? {
+        guard let acc = gpsAccuracyMeters, acc > 0 else { return nil }
+        return "±\(Int(acc))m"
+    }
+
+    /// Color-codes GPS fix quality: green (accurate ≤15m), yellow (marginal
+    /// ≤50m), red (weak or no fix). Path points are recorded only when
+    /// accuracy < 30m, so red/yellow means drawing lags behind the step count.
+    var gpsQualityColor: Color {
+        guard let acc = gpsAccuracyMeters, acc > 0 else { return .red.opacity(0.35) }
+        if acc <= 15 { return .green.opacity(0.6) }
+        if acc <= 50 { return .yellow.opacity(0.7) }
+        return .red.opacity(0.6)
+    }
 
     var enteredBackground = false
     func willResignActive() {
@@ -309,6 +333,9 @@ final class HUDViewModel: ObservableObject {
         guard enteredBackground else { return }
         enteredBackground = false
         UIApplication.shared.isIdleTimerDisabled = true
+        // iOS stops the camera capture session while backgrounded — restart it
+        // so the ambient-light factor keeps working after returning.
+        sensorManager.resumeSessionIfNeeded()
         brightness = lightEngine.targetBrightness
     }
 
@@ -320,6 +347,10 @@ final class HUDViewModel: ObservableObject {
         if state == .charging || state == .full {
             batteryPercentage = 100
             estimatedMinutesRemaining = -1  // -1 means unlimited
+            // Clear any low-battery cap so the torch isn't dimmed the whole
+            // time the phone is plugged in (the cap would otherwise only reset
+            // on a non-charging tick).
+            lightEngine.batterySaverCap = 1.0
             return
         }
         let level = UIDevice.current.batteryLevel
@@ -362,7 +393,7 @@ struct WeatherCardData {
 }
 
 struct FactorCardData: Identifiable {
-    let id: String          // "ambient", "posture", "screen", "dark"
+    let id: String          // "ambient", "posture", "dark", "moon", "weather"
     let icon: String        // SF Symbol name
     let label: String       // factor name
     let brightnessDelta: Int

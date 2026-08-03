@@ -9,24 +9,6 @@ final class MoonPhaseTests: XCTestCase {
         XCTAssertLessThan(result.illumination, 0.05)
     }
 
-    func testNewMoonBrightnessFactor() {
-        let factor = MoonPhase.brightnessFactor(illumination: 0.0)
-        XCTAssertEqual(factor, 1.0, accuracy: 0.01)
-    }
-
-    func testFullMoonBrightnessFactor() {
-        let factor = MoonPhase.brightnessFactor(illumination: 1.0)
-        XCTAssertEqual(factor, 0.7, accuracy: 0.01)
-    }
-
-    func testBrightnessFactorIsBetween07And1() {
-        for illum in stride(from: 0.0, through: 1.0, by: 0.1) {
-            let factor = MoonPhase.brightnessFactor(illumination: illum)
-            XCTAssertGreaterThanOrEqual(factor, 0.7)
-            XCTAssertLessThanOrEqual(factor, 1.0)
-        }
-    }
-
     func testPhaseCyclesThroughAllPhases() {
         let synodicMonth: TimeInterval = 29.53058867 * 24 * 3600
         let start = Date(timeIntervalSince1970: 947192040)

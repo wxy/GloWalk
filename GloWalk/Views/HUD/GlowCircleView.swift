@@ -63,8 +63,10 @@ struct GlowCircleView: View {
 
             // Brightness percentage — with strikethrough overlay when paused
             Text("\(Int(brightness * 100))%")
+                // .gloDisplay is already "LXGW WenKai Light" — do NOT add
+                // .fontWeight(.light), it re-weights the descriptor and logs
+                // "Unable to update Font Descriptor's weight".
                 .font(.gloDisplay(22))
-                .fontWeight(.light)
                 .foregroundColor(isPaused ? .white.opacity(0.25)
                                  : isManual ? .white : Color.gloTorchCore)
                 .shadow(color: isPaused ? .clear
@@ -82,12 +84,8 @@ struct GlowCircleView: View {
 
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
-                Text(L10n.isZh
-                     ? "双击结束步行    长按开关灯光"
-                     : "Double-tap to end, long-press for torch")
-                Text(L10n.isZh
-                     ? "滑动调整亮度    单击恢复自动"
-                     : "Swipe to adjust, tap to restore")
+                Text(L10n.hintEndWalk)
+                Text(L10n.hintAdjust)
             }
             .font(.gloBody(11))
             .foregroundColor(.white.opacity(0.5))

@@ -18,20 +18,16 @@ enum L10n {
     static var locationDescription: LocalizedStringKey { "location.description" }
     static var locationContinue: LocalizedStringKey { "location.continue" }
 
-    static var hudDoubleTapToEnd: LocalizedStringKey { "hud.doubleTapToEnd" }
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
     static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
     static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
     static var hudCameraDeniedMessage: LocalizedStringKey { "hud.cameraDeniedMessage" }
     static var hudCameraDeniedSettings: LocalizedStringKey { "hud.cameraDeniedSettings" }
     static var hudCameraDeniedDismiss: LocalizedStringKey { "hud.cameraDeniedDismiss" }
-    static var factorAmbient: String { isZh ? "环境光" : "Ambient" }
-    static var factorPosture: String { isZh ? "姿态" : "Posture" }
-    static var factorDark: String { isZh ? "暗适应" : "Adapt" }
-    static var hudEnding: LocalizedStringKey { "hud.ending" }
     static var hudDrawing: LocalizedStringKey { "hud.drawing" }
     static var hudZeroStep: LocalizedStringKey { "hud.zeroStep" }
-    static var hudSteps: LocalizedStringKey { "hud.steps" }
+    static var hintEndWalk: LocalizedStringKey { "hud.hint.endWalk" }
+    static var hintAdjust: LocalizedStringKey { "hud.hint.adjust" }
 
     static var posterShare: LocalizedStringKey { "poster.share" }
     static var posterSave: LocalizedStringKey { "poster.save" }
@@ -47,10 +43,13 @@ enum L10n {
     static var historyEmptyHint3: LocalizedStringKey { "history.emptyHint3" }
     static var historyNewWalk: LocalizedStringKey { "history.newWalk" }
     static var historyStartWalk: LocalizedStringKey { "history.startWalk" }
+    static var historyResumeWalk: LocalizedStringKey { "history.resumeWalk" }
 
     static var settingsTitle: LocalizedStringKey { "settings.title" }
     static var settingsDone: LocalizedStringKey { "settings.done" }
     static var settingsLanguage: LocalizedStringKey { "settings.language" }
+    static var settingsLanguageSimplified: LocalizedStringKey { "settings.language.simplified" }
+    static var settingsLanguageTraditional: LocalizedStringKey { "settings.language.traditional" }
     static var settingsData: LocalizedStringKey { "settings.data" }
     static var settingsAbout: LocalizedStringKey { "settings.about" }
     static var settingsFollowSystem: LocalizedStringKey { "settings.followSystem" }
@@ -59,7 +58,6 @@ enum L10n {
     static var settingsCleared: LocalizedStringKey { "settings.cleared" }
     static var settingsRefreshTagline: LocalizedStringKey { "settings.refreshTagline" }
     static var settingsVersion: LocalizedStringKey { "settings.version" }
-    static var settingsVersionValue: LocalizedStringKey { "settings.versionValue" }
     static var settingsHelp: LocalizedStringKey { "settings.help" }
     static var settingsHelpSection: LocalizedStringKey { "settings.helpSection" }
     static var settingsClearTitle: LocalizedStringKey { "settings.clearTitle" }
@@ -104,39 +102,68 @@ enum L10n {
 
     // MARK: - String helpers for UIKit / data-model contexts
     // LocalizedStringKey only works inside SwiftUI Text views.
-    // These return plain String for use in PosterGenerator, LightEngine, etc.
+    // These return plain String from the string catalog (NSLocalizedString), so
+    // they follow Bundle's effective language (incl. the in-app override) and
+    // support every language added to Localizable.xcstrings.
 
-    /// Whether the effective language is Chinese (user pref → system fallback)
-    static var isZh: Bool {
+    /// Resolved language code ("en" / "zh-Hans" / "zh-Hant") from the user preference.
+    static var languageCode: String {
         switch UserPreferences.shared.language {
-        case "en": return false
-        case "zh-Hans": return true
-        default: return Locale.preferredLanguages.first?.hasPrefix("zh") ?? false
+        case "en": return "en"
+        case "zh-Hans": return "zh-Hans"
+        case "zh-Hant": return "zh-Hant"
+        default:
+            let lang = Locale.preferredLanguages.first ?? "en"
+            if lang.hasPrefix("zh") {
+                return lang.contains("Hant") ? "zh-Hant" : "zh-Hans"
+            }
+            return "en"
         }
     }
+
+    /// Whether the effective language is a Chinese variant (simplified or traditional).
+    static var isZh: Bool {
+        languageCode.hasPrefix("zh")
+    }
+
+    /// Catalog lookup that resolves against the user's explicit language's .lproj
+    /// bundle. Bundle.main's preferredLocalizations can be stale after in-app
+    /// switching, which would otherwise fall back to English/simplified.
+    private static func str(_ key: String) -> String {
+        let code = languageCode
+        if let path = Bundle.main.path(forResource: code, ofType: "lproj"),
+           let b = Bundle(path: path) {
+            return b.localizedString(forKey: key, value: key, table: nil)
+        }
+        return Bundle.main.localizedString(forKey: key, value: key, table: nil)
+    }
+
+    static var factorAmbient: String { str("factor.ambient") }
+    static var factorPosture: String { str("factor.posture") }
+    static var factorDark: String { str("factor.dark") }
 
     /// Localized moon phase name (simplified, for LightEngine HUD card)
     static func moonPhaseName(illumination: Double) -> String {
         switch illumination {
-        case 0..<0.05: return isZh ? "新月" : "New Moon"
-        case 0.05..<0.35: return isZh ? "蛾眉月" : "Crescent"
-        case 0.35..<0.65: return isZh ? "弦月" : "Quarter Moon"
-        case 0.65..<0.95: return isZh ? "盈凸月" : "Gibbous"
-        default: return isZh ? "满月" : "Full Moon"
+        case 0..<0.05: return str("moon.hud.newMoon")
+        case 0.05..<0.35: return str("moon.hud.crescent")
+        case 0.35..<0.65: return str("moon.hud.quarter")
+        case 0.65..<0.95: return str("moon.hud.gibbous")
+        default: return str("moon.hud.fullMoon")
         }
     }
 
     /// Localized moon phase name (detailed, for poster header)
     static func moonPhaseDisplayName(_ phase: String) -> String {
         switch phase {
-        case "new_moon": return isZh ? "新月" : "New Moon"
-        case "waxing_crescent": return isZh ? "蛾眉月" : "Waxing Crescent"
-        case "first_quarter": return isZh ? "上弦月" : "First Quarter"
-        case "waxing_gibbous": return isZh ? "盈凸月" : "Waxing Gibbous"
-        case "full_moon": return isZh ? "满月" : "Full Moon"
-        case "waning_gibbous": return isZh ? "亏凸月" : "Waning Gibbous"
-        case "last_quarter": return isZh ? "下弦月" : "Last Quarter"
-        case "waning_crescent": return isZh ? "残月" : "Waning Crescent"
+        case "new_moon": return str("moon.name.newMoon")
+        case "waxing_crescent": return str("moon.name.waxingCrescent")
+        case "first_quarter": return str("moon.name.firstQuarter")
+        case "waxing_gibbous": return str("moon.name.waxingGibbous")
+        case "full_moon": return str("moon.name.fullMoon")
+        case "waning_gibbous": return str("moon.name.waningGibbous")
+        case "last_quarter": return str("moon.name.lastQuarter")
+        case "waning_crescent": return str("moon.name.waningCrescent")
         default: return phase
         }
     }
@@ -144,21 +171,33 @@ enum L10n {
     /// Localized weather condition label
     static func weatherLabel(_ condition: String) -> String {
         switch condition.lowercased() {
-        case "rain": return isZh ? "小雨" : "Rain"
-        case "drizzle": return isZh ? "毛毛雨" : "Drizzle"
-        case "snow": return isZh ? "雪" : "Snow"
-        case "fog", "mist": return isZh ? "雾" : "Fog"
-        default: return isZh ? "云" : "Cloudy"
+        case "rain": return str("weather.rain")
+        case "drizzle": return str("weather.drizzle")
+        case "snow": return str("weather.snow")
+        case "fog", "mist": return str("weather.fog")
+        default: return str("weather.cloudy")
         }
     }
 
     /// Localized poster strings
-    static var posterStepsUnit: String { isZh ? " 步" : " steps" }
-    static var posterMetersUnit: String { isZh ? " 米" : " m" }
-    static var posterKmUnit: String { isZh ? " 公里" : " km" }
-    static var posterMinutesUnit: String { isZh ? " 分钟" : " min" }
-    static var posterDateFormat: String { isZh ? "M月d日" : "MMM d" }
-    static var posterFooter: String {
-        isZh ? "踽踽独行，脚下有光 — GloWalk" : "A solitary step, a lantern aglow — GloWalk"
-    }
+    static var posterStepsUnit: String { str("poster.unit.steps") }
+    static var posterMetersUnit: String { str("poster.unit.meters") }
+    static var posterKmUnit: String { str("poster.unit.km") }
+    static var posterMinutesUnit: String { str("poster.unit.minutes") }
+    static var posterDateFormat: String { str("poster.dateFormat") }
+    static var posterFooter: String { str("poster.footer") }
+
+    /// Localized HUD units / formats
+    static var hudUnitSteps: String { str("hud.unit.steps") }
+    static var hudUnitMinutes: String { str("hud.unit.minutes") }
+    static var hudDistanceMeters: String { str("hud.distance.meters") }
+    static var hudDistanceKm: String { str("hud.distance.km") }
+
+    /// Localized history-row units
+    static var historyUnitSteps: String { str("history.unit.steps") }
+    static var historyUnitMeters: String { str("history.unit.meters") }
+    static var historyUnitMinutes: String { str("history.unit.minutes") }
+
+    /// Localized app display name for the version line
+    static var versionName: String { str("settings.version.name") }
 }

@@ -13,7 +13,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: 随行路灯"
+            "value" : "随行路灯"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨行路燈"
           }
         }
       }
@@ -58,13 +64,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk records your walking path to generate night walk posters. Data stays on device."
+            "value" : "GloWalk uses your location to record your walking path and to fetch current weather (via Apple WeatherKit or Open-Meteo)."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 记录你的步行路径，用于生成夜路足迹海报。数据仅存于本机。"
+            "value" : "GloWalk 使用你的位置记录步行路径，并用于获取当前天气（通过 Apple WeatherKit 或 Open-Meteo）。"
           }
         }
       }

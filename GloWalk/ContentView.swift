@@ -9,9 +9,12 @@ enum AppScreen {
 struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @AppStorage("language") private var language: String = "system"
-    @StateObject private var appState = AppState()
     @State private var screen: AppScreen = .privacy
     @State private var hudID = UUID()
+    /// Owned here (not by HUDView) so the walk survives navigating to History —
+    /// peeking at history keeps the flashlight on and the walk recording, and a
+    /// "Resume Walk" entry returns to the same session. Replaced on a new walk.
+    @State private var hudViewModel = HUDViewModel()
     @Environment(\.scenePhase) private var scenePhase
 
     /// The effective locale derived from user's language preference,
@@ -20,6 +23,7 @@ struct ContentView: View {
         switch language {
         case "en": return Locale(identifier: "en")
         case "zh-Hans": return Locale(identifier: "zh-Hans")
+        case "zh-Hant": return Locale(identifier: "zh-Hant")
         default: return .autoupdatingCurrent
         }
     }
@@ -38,15 +42,24 @@ struct ContentView: View {
                     screen = .splash
                 }
             case .splash:
-                SplashView(isQuickLaunch: appState.isQuickLaunch) {
+                SplashView {
                     screen = .hud
                 }
             case .hud:
-                HUDView(goToHistory: { screen = .history; hudID = UUID() })
-                    .environmentObject(appState)
+                HUDView(viewModel: hudViewModel, goToHistory: { screen = .history })
                     .id(hudID)
             case .history:
-                HistoryListView(goToSplash: { screen = .splash })
+                HistoryListView(
+                    hasActiveWalk: hudViewModel.isActive,
+                    onResume: { screen = .hud },
+                    onNewWalk: {
+                        // Defensive: end any still-active walk before discarding it.
+                        if hudViewModel.isActive { hudViewModel.endWalkAbruptly() }
+                        hudViewModel = HUDViewModel()
+                        hudID = UUID()
+                        screen = .splash
+                    }
+                )
             }
         }
         .environment(\.locale, resolvedLocale)
@@ -97,10 +110,6 @@ struct ContentView: View {
             screen = .splash
         }
     }
-}
-
-class AppState: ObservableObject {
-    @Published var isQuickLaunch = false
 }
 
 // MARK: - Camera Permission

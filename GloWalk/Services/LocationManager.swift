@@ -7,7 +7,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     @Published var totalDistance: Double = 0
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
     @Published var isRecording: Bool = false
-    @Published var placeName: String?
 
     private let manager = CLLocationManager()
     private var currentSession: WalkSession?
@@ -16,7 +15,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private var lastGPSRecordedStepCount: Int = 0
     private var estimatedLat: Double?
     private var estimatedLon: Double?
-    private var hasGeocoded = false
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
     /// Real sensor values at recording time, injected each tick by HUDViewModel.
     var currentAmbientLight: Double = 0.5
@@ -61,11 +59,18 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             estimatedLon = lon + (strideMeters / (111_320 * cos(lat * .pi / 180))) * sin(rad)
 
             totalDistance += strideMeters
+            // Advance the recorded anchor to the dead-reckoned estimate. Without
+            // this, a recovering GPS fix measures from the stale pre-outage
+            // coordinate and re-adds the distance already counted here (the
+            // outage stretch is counted twice).
+            let estLat = estimatedLat!
+            let estLon = estimatedLon!
+            lastRecordedCoord = CLLocationCoordinate2D(latitude: estLat, longitude: estLon)
 
             // Save estimated point to Core Data
             let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
-                _ = PathPoint.create(in: ctx, lat: estimatedLat!, lon: estimatedLon!,
+                _ = PathPoint.create(in: ctx, lat: estLat, lon: estLon,
                                      ambientLight: currentAmbientLight,
                                      torchBrightness: currentTorchBrightness,
                                      session: session)
@@ -158,17 +163,6 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                                  torchBrightness: currentTorchBrightness,
                                  session: session)
             PersistenceController.shared.save()
-        }
-
-        // Reverse geocode once on first good GPS fix
-        if !hasGeocoded && location.horizontalAccuracy < 30 {
-            hasGeocoded = true
-            CLGeocoder().reverseGeocodeLocation(location) { [weak self] marks, _ in
-                guard let place = marks?.first else { return }
-                Task { @MainActor in
-                    self?.placeName = place.locality ?? place.administrativeArea
-                }
-            }
         }
     }
 }

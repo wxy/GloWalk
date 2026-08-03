@@ -18,28 +18,30 @@ struct SettingsView: View {
                     Section { languageSection } header: { sectionHeader(L10n.settingsLanguage) }
                     Section {
                         NavigationLink { HelpView() } label: {
-                            Text(L10n.isZh ? "使用帮助" : "Help").font(.gloBody(14)).foregroundColor(.white)
+                            Text(L10n.settingsHelp).font(.gloBody(14)).foregroundColor(.white)
                         }
-                    } header: { sectionHeader(Text(L10n.isZh ? "帮助" : "Help")) }
+                    } header: { sectionHeader(L10n.settingsHelpSection) }
                     Section { dataSection } header: { sectionHeader(L10n.settingsData) }
                     Section { taglineSection } header: { sectionHeader(Text("")) }
                     Section {
                         HStack {
                             Text(L10n.settingsVersion).font(.gloBody(14)).foregroundColor(.white.opacity(0.5))
                             Spacer()
-                            Text(L10n.settingsVersionValue).font(.gloBody(13)).foregroundColor(.white.opacity(0.3))
+                            Text(verbatim: versionBuildString)
+                                .font(.gloBody(13)).foregroundColor(.white.opacity(0.3))
                         }
-                        Button(action: {
-                            if let url = URL(string: "https://weatherkit.apple.com/legal-attribution.html") {
-                                UIApplication.shared.open(url)
-                            }
-                        }) {
-                            HStack {
-                                Text("\u{F8FF} Weather").font(.gloBody(12)).foregroundColor(.white.opacity(0.4))
-                                Spacer()
-                                Text("Legal").font(.gloBody(11)).foregroundColor(.gloGold.opacity(0.5))
-                            }
-                        }
+                        attributionRow(icon: "applelogo", label: "\u{F8FF} Weather",
+                                       linkLabel: L10n.aboutWeatherLegal,
+                                       url: "https://weatherkit.apple.com/legal-attribution.html")
+                        attributionRow(icon: "globe", label: "Open-Meteo",
+                                       linkLabel: L10n.aboutWebsite,
+                                       url: "https://open-meteo.com/")
+                        attributionRow(icon: "textformat", label: "LXGW WenKai (霞鹜文楷)",
+                                       linkLabel: L10n.aboutFontLicense,
+                                       url: "https://github.com/lxgw/LxgwWenKai")
+                        attributionRow(icon: "doc.text", label: "Apache 2.0",
+                                       linkLabel: L10n.aboutGitHub,
+                                       url: "https://github.com/wxy/GloWalk")
                     } header: { sectionHeader(L10n.settingsAbout) }
                 }
             }
@@ -108,6 +110,14 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
+    /// e.g. "1.0 (42) · GloWalk" / "1.0 (42) · 随行路灯"
+    private var versionBuildString: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        let name = L10n.isZh ? "随行路灯" : "GloWalk"
+        return "\(version) (\(build)) · \(name)"
+    }
+
     private func sectionHeader(_ text: LocalizedStringKey) -> some View {
         Text(text).font(.gloBody(12)).foregroundColor(.white.opacity(0.4))
     }
@@ -123,6 +133,27 @@ struct SettingsView: View {
         clearDone = true
         Haptic.medium()
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { clearDone = false }
+    }
+
+    private func attributionRow(icon: String, label: String, linkLabel: LocalizedStringKey,
+                                url: String) -> some View {
+        Button(action: {
+            if let u = URL(string: url) { UIApplication.shared.open(u) }
+        }) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.35))
+                    .frame(width: 20)
+                Text(verbatim: label)
+                    .font(.gloBody(12))
+                    .foregroundColor(.white.opacity(0.4))
+                Spacer()
+                Text(linkLabel)
+                    .font(.gloBody(11))
+                    .foregroundColor(.gloGold.opacity(0.5))
+            }
+        }
     }
 }
 

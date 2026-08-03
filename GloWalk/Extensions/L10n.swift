@@ -12,13 +12,22 @@ enum L10n {
 
     static var cameraTitle: LocalizedStringKey { "camera.title" }
     static var cameraDescription: LocalizedStringKey { "camera.description" }
-    static var cameraAllow: LocalizedStringKey { "camera.allow" }
-    static var cameraDeny: LocalizedStringKey { "camera.deny" }
+    static var cameraContinue: LocalizedStringKey { "camera.continue" }
+
+    static var locationTitle: LocalizedStringKey { "location.title" }
+    static var locationDescription: LocalizedStringKey { "location.description" }
+    static var locationContinue: LocalizedStringKey { "location.continue" }
 
     static var hudDoubleTapToEnd: LocalizedStringKey { "hud.doubleTapToEnd" }
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
-    static var hudGPSUnavailable: LocalizedStringKey { "hud.gpsUnavailable" }
-    static var hudGPS: LocalizedStringKey { "hud.gps" }
+    static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
+    static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
+    static var hudCameraDeniedMessage: LocalizedStringKey { "hud.cameraDeniedMessage" }
+    static var hudCameraDeniedSettings: LocalizedStringKey { "hud.cameraDeniedSettings" }
+    static var hudCameraDeniedDismiss: LocalizedStringKey { "hud.cameraDeniedDismiss" }
+    static var factorAmbient: String { isZh ? "环境光" : "Ambient" }
+    static var factorPosture: String { isZh ? "姿态" : "Posture" }
+    static var factorDark: String { isZh ? "暗适应" : "Adapt" }
     static var hudEnding: LocalizedStringKey { "hud.ending" }
     static var hudDrawing: LocalizedStringKey { "hud.drawing" }
     static var hudZeroStep: LocalizedStringKey { "hud.zeroStep" }
@@ -51,10 +60,17 @@ enum L10n {
     static var settingsRefreshTagline: LocalizedStringKey { "settings.refreshTagline" }
     static var settingsVersion: LocalizedStringKey { "settings.version" }
     static var settingsVersionValue: LocalizedStringKey { "settings.versionValue" }
+    static var settingsHelp: LocalizedStringKey { "settings.help" }
+    static var settingsHelpSection: LocalizedStringKey { "settings.helpSection" }
     static var settingsClearTitle: LocalizedStringKey { "settings.clearTitle" }
     static var settingsClearMessage: LocalizedStringKey { "settings.clearMessage" }
     static var settingsCancel: LocalizedStringKey { "settings.cancel" }
     static var settingsClear: LocalizedStringKey { "settings.clear" }
+
+    static var aboutWeatherLegal: LocalizedStringKey { "about.weatherLegal" }
+    static var aboutWebsite: LocalizedStringKey { "about.website" }
+    static var aboutFontLicense: LocalizedStringKey { "about.fontLicense" }
+    static var aboutGitHub: LocalizedStringKey { "about.gitHub" }
 
     static var permissionsCamera: LocalizedStringKey { "permissions.camera" }
     static var permissionsLocation: LocalizedStringKey { "permissions.location" }
@@ -68,6 +84,23 @@ enum L10n {
     static var permissionsLocationFeature2: LocalizedStringKey { "permissions.locationFeature2" }
     static var permissionsLocationFeature3: LocalizedStringKey { "permissions.locationFeature3" }
     static var permissionsOpenSettings: LocalizedStringKey { "permissions.openSettings" }
+
+    // Help items — 7 sections
+    static var helpAutoTitle: LocalizedStringKey { "help.autoTitle" }
+    static var helpAutoDesc: LocalizedStringKey { "help.autoDesc" }
+    static var helpDragTitle: LocalizedStringKey { "help.dragTitle" }
+    static var helpDragDesc: LocalizedStringKey { "help.dragDesc" }
+    static var helpLongPressTitle: LocalizedStringKey { "help.longPressTitle" }
+    static var helpLongPressDesc: LocalizedStringKey { "help.longPressDesc" }
+    static var helpTogglesTitle: LocalizedStringKey { "help.togglesTitle" }
+    static var helpTogglesDesc: LocalizedStringKey { "help.togglesDesc" }
+    static var helpEndTitle: LocalizedStringKey { "help.endTitle" }
+    static var helpEndDesc: LocalizedStringKey { "help.endDesc" }
+    static var helpDismissTitle: LocalizedStringKey { "help.dismissTitle" }
+    static var helpDismissDesc: LocalizedStringKey { "help.dismissDesc" }
+    static var helpHistoryTitle: LocalizedStringKey { "help.historyTitle" }
+    static var helpHistoryDesc: LocalizedStringKey { "help.historyDesc" }
+    static var helpNavTitle: LocalizedStringKey { "help.navTitle" }
 
     // MARK: - String helpers for UIKit / data-model contexts
     // LocalizedStringKey only works inside SwiftUI Text views.

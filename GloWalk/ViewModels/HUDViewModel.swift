@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 import CoreLocation
 
 @MainActor
@@ -12,6 +13,8 @@ final class HUDViewModel: ObservableObject {
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
+    /// True when camera permission is denied — ambient light sensing unavailable.
+    @Published var cameraDeniedForAmbient: Bool = false
     /// Long-press to temporarily turn off torch without ending walk
     @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
@@ -136,6 +139,7 @@ final class HUDViewModel: ObservableObject {
         } else if !sensorManager.isOccluded && isTorchOccluded {
             isTorchOccluded = false
         }
+        cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
         if !isTorchOccluded && !torchPaused {
             lightEngine.update(sensors: snap)
             brightness = lightEngine.targetBrightness
@@ -199,15 +203,15 @@ final class HUDViewModel: ObservableObject {
         )
         factorCards = [
             FactorCardData(id: "ambient", icon: "eye.fill",
-                label: L10n.isZh ? "环境光" : "Ambient",
+                label: L10n.factorAmbient,
                 brightnessDelta: d.ambientDelta,
                 isActive: lightEngine.ambientFactorActive),
             FactorCardData(id: "posture", icon: "iphone",
-                label: L10n.isZh ? "姿态" : "Posture",
+                label: L10n.factorPosture,
                 brightnessDelta: d.postureDelta,
                 isActive: lightEngine.postureFactorActive),
             FactorCardData(id: "dark", icon: "moon.zzz.fill",
-                label: L10n.isZh ? "暗适应" : "Adapt",
+                label: L10n.factorDark,
                 brightnessDelta: d.darkDelta,
                 isActive: lightEngine.darkAdaptationActive),
         ]

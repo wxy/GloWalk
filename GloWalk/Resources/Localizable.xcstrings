@@ -7,6 +7,9 @@
     " · %@" : {
 
     },
+    "·" : {
+
+    },
     "· " : {
 
     },
@@ -22,36 +25,87 @@
     "🦶" : {
 
     },
-    "camera.allow" : {
+    "about.fontLicense" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Allow"
+            "value" : "SIL OFL"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "允许"
+            "value" : "SIL 开放字体许可"
           }
         }
       }
     },
-    "camera.deny" : {
+    "about.gitHub" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Decline"
+            "value" : "GitHub"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "拒绝"
+            "value" : "GitHub"
+          }
+        }
+      }
+    },
+    "about.weatherLegal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legal"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "法律声明"
+          }
+        }
+      }
+    },
+    "about.website" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Website"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站"
+          }
+        }
+      }
+    },
+    "camera.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
           }
         }
       }
@@ -92,6 +146,261 @@
     },
     "English" : {
 
+    },
+    "help.autoDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk senses ambient brightness via the rear camera and combines phone posture, dark adaptation, moon phase, and weather to compute optimal brightness in real time. No manual input needed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 通过后置摄像头感知环境明暗，结合手机姿态、暗适应、月相和天气，实时计算最合适的亮度。无需手动操作。"
+          }
+        }
+      }
+    },
+    "help.autoTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto Brightness"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动调光"
+          }
+        }
+      }
+    },
+    "help.dismissDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe down on the poster to dismiss it and return to walk history."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在海报页面向下滑动即可关闭，返回步行历史。"
+          }
+        }
+      }
+    },
+    "help.dismissTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss Poster"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭海报"
+          }
+        }
+      }
+    },
+    "help.dragDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag up or down on the glow circle to manually adjust brightness. The level holds after release. Tap the percentage number to return to auto mode."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在光晕区域上下滑动手指，可手动调节亮度。松开后保持当前亮度。单击光晕区域的百分比数字，恢复自动调光。"
+          }
+        }
+      }
+    },
+    "help.dragTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to Adjust"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "滑动调节亮度"
+          }
+        }
+      }
+    },
+    "help.endDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double-tap the glow circle to end your walk and generate a night poster. Walks with zero steps are not recorded."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双击光晕区域结束本次步行，自动生成夜路海报。若步数为零，步行不会记录。"
+          }
+        }
+      }
+    },
+    "help.endTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double Tap to End"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "双击结束步行"
+          }
+        }
+      }
+    },
+    "help.historyDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap any walk in your history to view and share its night poster again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步行历史中点击任意记录，可重新查看和分享该次步行的夜路海报。"
+          }
+        }
+      }
+    },
+    "help.historyTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Past Posters"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "查看历史海报"
+          }
+        }
+      }
+    },
+    "help.longPressDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long-press the glow circle for 0.8 seconds to temporarily turn off the flashlight without ending your walk. Long-press again to resume. The percentage shows a strikethrough when paused."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长按光晕区域 0.8 秒，可临时关闭手电筒，不结束步行。再次长按恢复。关灯时百分比显示删除线。"
+          }
+        }
+      }
+    },
+    "help.longPressTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press to Pause"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长按关灯"
+          }
+        }
+      }
+    },
+    "help.navTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用帮助"
+          }
+        }
+      }
+    },
+    "help.togglesDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap any of the five factor cards at the bottom to toggle it. When off, it no longer affects brightness and its delta goes to zero. Card width reflects weight — Ambient is widest (40%), others 15% each."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "底部五个因素卡片均可点击开关。关闭后该因素不再影响亮度计算，数值归零变灰。卡片宽度反映其在亮度决策中的权重——环境光最宽（40%），其余四个各 15%。"
+          }
+        }
+      }
+    },
+    "help.togglesTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Factor Toggles"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因素开关"
+          }
+        }
+      }
     },
     "history.empty" : {
       "extractionState" : "manual",
@@ -212,6 +521,91 @@
         }
       }
     },
+    "hud.cameraDenied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access denied — auto-brightness unavailable"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机权限未开启，无法自动调光"
+          }
+        }
+      }
+    },
+    "hud.cameraDeniedDismiss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Anyway"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂不设置"
+          }
+        }
+      }
+    },
+    "hud.cameraDeniedMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk relies on the rear camera to sense ambient light and automatically adjust brightness. Without it, you'll need to control brightness manually."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 通过后置摄像头感知环境光并自动调节亮度。没有相机权限，你需要手动控制亮度。"
+          }
+        }
+      }
+    },
+    "hud.cameraDeniedSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "前往设置"
+          }
+        }
+      }
+    },
+    "hud.cameraDeniedTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera Access Needed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要相机权限"
+          }
+        }
+      }
+    },
     "hud.doubleTapToEnd" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -314,7 +708,58 @@
         }
       }
     },
-    "Legal" : {
+    "location.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        }
+      }
+    },
+    "location.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk records your walking path to draw constellation trails on your night poster.\n\nAll path data stays on your device — never uploaded.\n\nYou can still walk without it; the path will be coarser."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 记录你的步行路径，用于在夜路海报上绘制星座般的足迹。\n\n所有路径数据仅存于本机，不会上传。\n\n拒绝后仍可步行，但路径精度会降低。"
+          }
+        }
+      }
+    },
+    "location.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Location Access"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置访问"
+          }
+        }
+      }
+    },
+    "Open-Meteo" : {
 
     },
     "permissions.authorized" : {
@@ -891,6 +1336,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "跟随系统"
+          }
+        }
+      }
+    },
+    "settings.help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用帮助"
+          }
+        }
+      }
+    },
+    "settings.helpSection" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帮助"
           }
         }
       }

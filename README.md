@@ -1,8 +1,10 @@
 # GloWalk: Path of Light
 
-> A smart flashlight that reads the night. Six sensors, one gentle glow.
+> A smart flashlight that reads the night. Five sensors, one gentle glow.
 
-**GloWalk** is an iOS night-walking flashlight that adapts its brightness in real time to your surroundings — ambient light, phone posture, screen brightness, dark adaptation, moon phase, and weather. Record your path as a golden constellation trail and weave it into a shareable poster when you arrive.
+[![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
+
+**GloWalk** is an iOS night-walking flashlight that adapts its brightness in real time to your surroundings — ambient light, phone posture, dark adaptation, moon phase, and weather. Record your path as a golden constellation trail and weave it into a shareable poster when you arrive.
 
 ---
 
@@ -12,7 +14,7 @@
 
 ## Features
 
-- **6-Axis Adaptive Brightness** — Ambient light, posture, screen, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
+- **5-Axis Adaptive Brightness** — Ambient light, posture, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
 - **Constellation Path Recording** — GPS walking paths are rendered as golden bezier trails with footprint markers. Occasionally, a nocturnal animal silhouette appears.
 - **Night Walk Posters** — When your walk ends, GloWalk generates a poster with your path, the night's moon phase, and a poetic tagline. Share it or save it to your photo library.
 - **Dark Interface** — Every pixel is designed for night use. Amber-on-black HUD, no white flashes.
@@ -52,7 +54,7 @@ GloWalk/
 ### Brightness Engine
 
 ```
-brightness = ambient(40%) + posture(25%) + screen(10%) + darkAdapt(10%) + moon(10%) + weather(5%)
+brightness = ambient(40%) + posture(15%) + darkAdapt(15%) + moon(15%) + weather(15%)
 ```
 
 All five factors contribute proportionally to the gap from optimal brightness. Toggle any factor to see its real-time impact.
@@ -73,7 +75,7 @@ All five factors contribute proportionally to the gap from optimal brightness. T
 ## Getting Started
 
 ```bash
-git clone https://github.com/xingyuwang/GloWalk.git
+git clone https://github.com/wxy/GloWalk.git
 cd GloWalk
 open GloWalk.xcodeproj
 ```
@@ -92,11 +94,11 @@ See [PRIVACY.md](PRIVACY.md).
 
 ## 中文介绍
 
-**GloWalk: 随行路灯** 是一款为夜间步行设计的智能手电筒。六维感知、一束柔光。
+**GloWalk: 随行路灯** 是一款为夜间步行设计的智能手电筒。五维感知、一束柔光。
 
 ### 功能
 
-- **六维自适应亮度** — 环境光、手机姿态、屏幕亮度、暗适应、月相、天气，六个因素实时计算最合适的亮度，每个因素可独立开关
+- **五维自适应亮度** — 环境光、手机姿态、暗适应、月相、天气，五个因素实时计算最合适的亮度，每个因素可独立开关
 - **星座路径记录** — GPS 步行路径以金色贝塞尔曲线呈现，起终点有脚印标记，偶尔出现夜行动物剪影彩蛋
 - **夜路海报** — 步行结束后自动生成海报，包含路径轨迹、当晚月相照片和诗意格言，可分享或保存
 - **深色界面** — 每一像素都为夜间设计，琥珀金配色
@@ -125,7 +127,7 @@ See [PRIVACY.md](PRIVACY.md).
 ### 快速开始
 
 ```bash
-git clone https://github.com/xingyuwang/GloWalk.git
+git clone https://github.com/wxy/GloWalk.git
 cd GloWalk
 open GloWalk.xcodeproj
 ```

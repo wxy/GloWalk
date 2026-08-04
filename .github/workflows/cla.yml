@@ -1,0 +1,90 @@
+name: CLA
+
+# Runs on pull_request_target (not pull_request) so the check works for
+# first-time contributors. It only checks out the repository's default branch —
+# never the pull request's code — and reads PR metadata via the GitHub API, so
+# no untrusted code from the PR is executed.
+"on":
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  cla:
+    name: Contributor License Agreement
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Check CLA signature
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const author = context.payload.pull_request.user.login;
+            const repo = context.repo;
+
+            // Maintainers are exempt — they are the ones enforcing the CLA.
+            const isOwner = author === repo.owner;
+            let perm = 'none';
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: repo.owner,
+                repo: repo.repo,
+                username: author,
+              });
+              perm = data.permission;
+            } catch {}
+            if (isOwner || perm === 'admin' || perm === 'write') {
+              console.log(`@${author} is a maintainer — CLA not required.`);
+              return;
+            }
+
+            // A PR that only adds/edits signature files is the act of signing.
+            const { data: files } = await github.rest.pulls.listFiles({
+              owner: repo.owner,
+              repo: repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const onlySignatures = files.length > 0 &&
+              files.every((f) => f.filename.startsWith('CLA-signatures/'));
+            if (onlySignatures) {
+              console.log('Signature-only PR — allowed.');
+              return;
+            }
+
+            // Require a signature file on the default branch.
+            const fs = require('fs');
+            if (fs.existsSync(`CLA-signatures/${author}.md`)) {
+              console.log(`@${author} has signed the CLA.`);
+              return;
+            }
+
+            // Not signed — post instructions and fail the check.
+            const base = `https://github.com/${repo.owner}/${repo.repo}/blob/${context.payload.repository.default_branch}`;
+            await github.rest.issues.createComment({
+              owner: repo.owner,
+              repo: repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: [
+                `Thanks for the contribution, @${author}!`,
+                '',
+                `Before this can be merged, please sign the **Individual Contributor License Agreement** — see ` +
+                `[CLA.md](${base}/CLA.md) and [CONTRIBUTING.md](${base}/CONTRIBUTING.md).`,
+                '',
+                `To sign, open a small pull request adding the file \`CLA-signatures/${author}.md\` containing:`,
+                '',
+                '````markdown',
+                `I, ${author}, agree to the GloWalk Individual Contributor License Agreement in CLA.md.`,
+                '````',
+                '',
+                'Once a maintainer merges it, this check will pass on your other pull requests.',
+              ].join('\n'),
+            });
+            core.setFailed(
+              `@${author} has not signed the CLA. Please sign it — see CLA.md / CONTRIBUTING.md.`
+            );

@@ -41,10 +41,10 @@ jobs:
           # --no-merges: on a pull_request event the checkout is the auto-generated
           # merge commit ("Merge <sha> into <sha>"), which has no conventional prefix.
           bad="$(git log --no-merges --format=%s "$base"..HEAD \
-            | grep -Ev '^(feat|fix|chore|docs|refactor|test|perf|style)(\([^)]+\))?!?: ' \
+            | grep -Ev '^(feat|fix|chore|docs|refactor|test|perf|style|ci|build|revert)(\([^)]+\))?!?: ' \
             || true)"
           if [ -n "$bad" ]; then
-            echo "Commit subjects must use a conventional prefix: feat|fix|chore|docs|refactor|test|perf|style"
+            echo "Commit subjects must use a conventional prefix: feat|fix|chore|docs|refactor|test|perf|style|ci|build|revert"
             echo "See CONTRIBUTING.md for the commit convention."
             printf '%s\n' "$bad"
             exit 1

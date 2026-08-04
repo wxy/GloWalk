@@ -47,6 +47,9 @@ refactor:  code change that fixes no bug and adds no feature
 test:      adding or updating tests
 perf:      performance improvement
 style:     formatting, whitespace, no code change
+ci:        CI configuration and scripts
+build:     build system changes (rare)
+revert:    reverting a previous commit
 ```
 
 Examples: `feat: add lunar calendar card`, `fix: GPS distance double-count`,

@@ -9,6 +9,25 @@ final class SensorManager: ObservableObject {
     @Published var deviceRoll: Double = 0.0
     @Published var stepCount: Int = 0
     @Published var isOccluded: Bool = false
+    /// Debounced "bright daylight" state from the front-camera exposure — stable
+    /// against the auto-exposure convergence at startup and scene changes.
+    @Published var isDaylight: Bool = false
+
+    // Daylight-detector state (warm-up + debounce):
+    private var warmupSamples = 8            // ~4s at 2Hz — let auto-exposure converge
+    private var brightStreak = 0
+    private var darkStreak = 0
+    private let brightSustain = 3            // samples of "bright" to enter daylight
+    private let darkSustain = 3              // samples of "not bright" to exit daylight
+    /// Schmitt-trigger hysteresis for the "bright" decision: enter above the
+    /// enter threshold, stay bright until the reading drops below the exit
+    /// threshold. A value hovering at the threshold (e.g. 0.45–0.63) latches
+    /// bright instead of toggling, so the sustain streak completes and daylight
+    /// is confirmed — otherwise a genuinely bright room never turns the torch
+    /// off while the HUD label already reads "bright".
+    private let brightEnterThreshold = 0.5
+    private let brightExitThreshold = 0.45
+    private var brightLatched = false
 
     private let motionManager = CMMotionManager()
     private let pedometer = CMPedometer()
@@ -19,6 +38,12 @@ final class SensorManager: ObservableObject {
     private var captureSession: AVCaptureSession?
     private var captureDevice: AVCaptureDevice?
     private var captureDelegate: AmbientLightDelegate?
+    private var exposureRefreshTimer: Timer?
+    /// Monotonic generation counter for the capture session. Bumped on every
+    /// start/stop so in-flight frames or restore callbacks from an older session
+    /// (stop→start within a throttle window) can't mutate the detector state of
+    /// the current one.
+    private var sessionEpoch = 0
 
     // MARK: - Start / Stop
 
@@ -31,21 +56,24 @@ final class SensorManager: ObservableObject {
 
     func stop() {
         turnOffTorch()
+        exposureRefreshTimer?.invalidate()
+        exposureRefreshTimer = nil
         stopProximityMonitoring()
+        // Invalidate any in-flight samples/restores from this capture session so
+        // they can't mutate detector state after teardown.
+        sessionEpoch += 1
+        captureDelegate = nil
         // Serialize with any in-flight startRunning() on sessionQueue.
         nonisolated(unsafe) let session = captureSession
         sessionQueue.async {
             if let session {
-                print("[Sensor] Camera stopRunning begin")
                 session.stopRunning()
-                print("[Sensor] Camera stopRunning done")
             }
         }
         captureSession = nil
         captureDevice = nil
         motionManager.stopDeviceMotionUpdates()
         pedometer.stopUpdates()
-        print("[Sensor] SensorManager stop() — torch off, camera stop queued, motion/pedometer stopped")
     }
 
     // MARK: - Torch Control
@@ -55,12 +83,16 @@ final class SensorManager: ObservableObject {
         _setTorchDirect(clamped)
     }
 
+    /// The back camera's torch device — independent of the front ambient camera,
+    /// which has no torch.
+    private var torchDevice: AVCaptureDevice? {
+        AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+    }
+
     /// Set torch directly on device (works even when session is interrupted).
     /// In background, iOS may still kill the torch — this is a best-effort approach.
     private func _setTorchDirect(_ level: Double) {
-        guard let device = captureDevice ?? AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                                     for: .video, position: .back),
-              device.hasTorch, device.isTorchAvailable else { return }
+        guard let device = torchDevice, device.hasTorch, device.isTorchAvailable else { return }
         do {
             try device.lockForConfiguration()
             if level < 0.01 {
@@ -75,12 +107,8 @@ final class SensorManager: ObservableObject {
     }
 
     private func turnOffTorch() {
-        // Mirror _setTorchDirect's fallback: when camera permission is denied
-        // captureDevice stays nil but the torch is still turned on via the
-        // default device — so turn it off the same way, or it would stay lit.
-        guard let device = captureDevice ?? AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                                   for: .video, position: .back),
-              device.hasTorch, device.isTorchAvailable else { return }
+        // Torch control is independent of the ambient camera — always the back device.
+        guard let device = torchDevice, device.hasTorch, device.isTorchAvailable else { return }
         do {
             try device.lockForConfiguration()
             device.torchMode = .off
@@ -94,29 +122,53 @@ final class SensorManager: ObservableObject {
 
     private func startAmbientLightSampling() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            print("[Sensor] Ambient sampling skipped — camera not authorized, manual mode")
             return
         }
 
         let session = AVCaptureSession()
         session.sessionPreset = .low
 
+        // Front camera for ambient sensing — it faces away from the back torch,
+        // so its reading isn't inflated by the flashlight's own reflection. That
+        // gives a reliable day/night signal (used to turn the torch off in
+        // bright daylight and to brighten the UI).
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                    for: .video, position: .back),
+                                                    for: .video, position: .front),
               let input = try? AVCaptureDeviceInput(device: device) else {
-            print("[Sensor] Ambient sampling skipped — no back camera or input creation failed")
             return
         }
 
         captureDevice = device
+        // Continuous auto-exposure so the camera naturally tracks the scene
+        // light between the periodic re-triggers.
+        do {
+            try device.lockForConfiguration()
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("[Sensor] Set continuous exposure failed: \(error)")
+        }
         session.addInput(input)
         let output = AVCaptureVideoDataOutput()
         // Request BGRA explicitly — without this, iOS delivers the device-native
         // format (NV12 on iPhones) and AmbientLightDelegate drops every frame.
         output.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
-        let delegate = AmbientLightDelegate { [weak self] level in
+        // Bump the epoch so any in-flight frames from a previous session are
+        // ignored by the detector, and reset the detector to a fresh warm-up —
+        // otherwise stale isDaylight/bright-latch from the last walk could carry
+        // into this one.
+        sessionEpoch += 1
+        let epoch = sessionEpoch
+        warmupSamples = 8
+        brightStreak = 0
+        darkStreak = 0
+        brightLatched = false
+        isDaylight = false
+        let delegate = AmbientLightDelegate(device: device) { [weak self] sample in
             Task { @MainActor in
-                self?.ambientLightLevel = level
+                self?.applyAmbientSample(sample, epoch: epoch)
             }
         }
         captureDelegate = delegate
@@ -124,12 +176,87 @@ final class SensorManager: ObservableObject {
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
         captureSession = session
-        print("[Sensor] Ambient camera configured (BGRA requested), starting capture")
         nonisolated(unsafe) let s = session
         sessionQueue.async {
-            print("[Sensor] Camera startRunning begin")
             s.startRunning()
-            print("[Sensor] Camera startRunning done — isRunning=\(s.isRunning)")
+        }
+        // Periodically re-trigger auto-exposure so the daylight detector doesn't
+        // stay stuck on a stale exposure — mirrors the re-evaluation that
+        // covering and uncovering the camera naturally triggers.
+        exposureRefreshTimer?.invalidate()
+        exposureRefreshTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshAutoExposure()
+            }
+        }
+    }
+
+    /// Force the auto-exposure to re-converge to the current scene. Setting
+    /// .autoExpose when already converged can be ignored by iOS, so perturb the
+    /// exposure first (a shorter custom exposure) and then restore auto.
+    ///
+    /// The perturb uses ¼ of the current exposure — NOT a fixed 1ms black frame.
+    /// A 1ms frame reads as spuriously "bright" via the light proxy (1/iso·t) for
+    /// several samples while auto-exposure climbs back up, which the debounce
+    /// can't distinguish from real daylight. A ¼-exposure frame re-converges in a
+    /// frame or two, and the delegate skips non-auto frames anyway (see
+    /// AmbientLightDelegate.captureOutput).
+    private func refreshAutoExposure() {
+        // Only re-trigger exposure while the capture session is actually running.
+        // On a stopped/idle device device.iso can read 0.0 (the crash we hit), and
+        // a forced exposure on a non-running camera is pointless anyway.
+        guard let device = captureDevice, captureSession?.isRunning == true else { return }
+        let epoch = sessionEpoch
+        do {
+            try device.lockForConfiguration()
+            if device.isExposureModeSupported(.custom) {
+                // setExposureModeCustom raises an ObjC NSException (NOT catchable
+                // by Swift's do/catch) for out-of-range parameters. device.iso can
+                // transiently read 0.0 (e.g. mid-reconfiguration or right after a
+                // session restart), which crashed here — so clamp both ISO and
+                // duration to the active format's supported range before calling.
+                let fmt = device.activeFormat
+                let iso = Double(device.iso)
+                let minISO = Double(fmt.minISO)
+                let maxISO = Double(fmt.maxISO)
+                let safeISO = iso.isFinite ? min(max(iso, minISO), maxISO) : minISO
+                let current = device.exposureDuration
+                guard current.seconds.isFinite, current.seconds > 0 else {
+                    device.unlockForConfiguration()
+                    return
+                }
+                var short = CMTimeMultiplyByFloat64(current, multiplier: 0.25)
+                if CMTimeCompare(short, fmt.minExposureDuration) < 0 {
+                    short = fmt.minExposureDuration
+                }
+                if CMTimeCompare(short, fmt.maxExposureDuration) > 0 {
+                    short = fmt.maxExposureDuration
+                }
+                device.setExposureModeCustom(duration: short, iso: Float(safeISO), completionHandler: nil)
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("[Sensor] Exposure refresh error: \(error)")
+        }
+        // Restore continuous auto-exposure after the brief custom window.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+            Task { @MainActor in
+                self?.restoreAutoExposure(epoch: epoch)
+            }
+        }
+    }
+
+    private func restoreAutoExposure(epoch: Int) {
+        // Ignore if the session was stopped/restarted while the delay was pending.
+        guard epoch == sessionEpoch, let device = captureDevice else { return }
+        do {
+            try device.lockForConfiguration()
+            if device.isExposureModeSupported(.continuousAutoExposure) {
+                device.exposureMode = .continuousAutoExposure
+            }
+            device.unlockForConfiguration()
+        } catch {
+            print("[Sensor] Exposure restore error: \(error)")
         }
     }
 
@@ -137,21 +264,76 @@ final class SensorManager: ObservableObject {
     /// backgrounded). Called from HUDViewModel.didBecomeActive.
     func resumeSessionIfNeeded() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
-            print("[Sensor] Resume skipped — camera not authorized")
             return
         }
         guard let session = captureSession, !session.isRunning else {
-            print("[Sensor] Resume skipped — no session or already running (isRunning=\(captureSession?.isRunning ?? false))")
             return
         }
-        print("[Sensor] Resume requested — camera not running after background, restarting")
         nonisolated(unsafe) let s = session
         sessionQueue.async {
             if !s.isRunning {
                 s.startRunning()
-                print("[Sensor] Camera resumed after background — isRunning=\(s.isRunning)")
             }
         }
+    }
+
+    // MARK: - Ambient Sample Processing (daylight debounce)
+
+    /// Handle one ambient sample from the camera delegate: warm up until the
+    /// auto-exposure converges, then debounce the daylight state (sustain runs
+    /// of consistent samples) so a transient scene change doesn't flip the torch.
+    /// While daylight is confirmed, boost the ambient reading so the LightEngine
+    /// gate and the HUD follow reliably.
+    private func applyAmbientSample(_ sample: AmbientSample, epoch: Int) {
+        // Ignore frames from an older capture session (e.g. a quick stop→start).
+        guard epoch == sessionEpoch else { return }
+
+        // If the proximity sensor reports an object over the camera (hand,
+        // pocket), the reading is of that object — not the ambient. Don't meter.
+        if isOccluded { return }
+
+        // Warm-up: ignore daylight decisions until auto-exposure settles.
+        if warmupSamples > 0 {
+            warmupSamples -= 1
+            ambientLightLevel = sample.level
+            return
+        }
+
+        // Brightness with hysteresis: latch on once above the enter threshold,
+        // drop out only below the exit threshold. This is what lets a hovering
+        // reading confirm — see brightEnterThreshold/brightExitThreshold.
+        let isBright: Bool
+        if brightLatched {
+            isBright = sample.level > brightExitThreshold || sample.lightProxy > brightExitThreshold
+        } else {
+            isBright = sample.level > brightEnterThreshold || sample.lightProxy > brightEnterThreshold
+        }
+        brightLatched = isBright
+
+        if isBright && !isDeepNight {
+            brightStreak += 1
+            darkStreak = 0
+            if brightStreak >= brightSustain { isDaylight = true }
+        } else {
+            darkStreak += 1
+            brightStreak = 0
+            if isDaylight && darkStreak >= darkSustain { isDaylight = false }
+        }
+
+        // Boost only after daylight is debounce-confirmed so the torch-off and
+        // the "bright light" notice happen together.
+        ambientLightLevel = isDaylight ? max(sample.level, 0.85) : sample.level
+    }
+
+    /// True during late-night hours — the window where the front camera's bright
+    /// edge-band reading can plausibly be a streetlight/lamp instead of daylight.
+    /// Blocks daylight confirmation then, so a bright lamp can't kill the torch
+    /// exactly when the user needs it (the flashlight's worst failure mode).
+    /// Deliberately narrower than HUDView.isNightTime so summer-evening daylight
+    /// (e.g. 19:00 in bright sun) still triggers.
+    private var isDeepNight: Bool {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour >= 20 || hour < 5
     }
 
     // MARK: - Motion
@@ -163,8 +345,14 @@ final class SensorManager: ObservableObject {
             guard let motion = motion else { return }
             let pitch = motion.attitude.pitch * 180 / .pi
             let roll  = motion.attitude.roll  * 180 / .pi
-            self?.devicePitch = abs(pitch)
-            self?.deviceRoll  = abs(roll)
+            // The callback is a Sendable concurrent context even though it fires
+            // on the main run loop — writing the MainActor-isolated properties
+            // directly trips the runtime "unsafeForcedSync called from Swift
+            // Concurrent context" log. Hop to MainActor like the other callbacks.
+            Task { @MainActor in
+                self?.devicePitch = abs(pitch)
+                self?.deviceRoll  = abs(roll)
+            }
         }
     }
 
@@ -195,7 +383,20 @@ final class SensorManager: ObservableObject {
 
     @objc private func proximityChanged() {
         Task { @MainActor in
-            self.isOccluded = UIDevice.current.proximityState
+            let newState = UIDevice.current.proximityState
+            guard newState != self.isOccluded else { return }
+            // Reset the daylight debounce across the occlusion gap: streak counts
+            // from before the cover are stale, and isDaylight frozen during
+            // occlusion would otherwise drive the wrong torch/screen state when
+            // the phone comes back out (torch briefly ON in daylight, or screen
+            // forced to 1.0 at night). Re-derive from fresh samples.
+            self.brightStreak = 0
+            self.darkStreak = 0
+            self.brightLatched = false
+            self.isOccluded = newState
+            if !newState {
+                self.isDaylight = false
+            }
         }
     }
 
@@ -208,19 +409,35 @@ final class SensorManager: ObservableObject {
 
 // MARK: - Camera Frame Delegate
 
+/// One ambient-light sample with the camera exposure data used to detect
+/// sunlight (auto-exposure compresses the average pixel brightness).
+private struct AmbientSample {
+    let level: Double
+    let lightProxy: Double
+}
+
 private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    private let onSample: (Double) -> Void
+    private let onSample: (AmbientSample) -> Void
+    private let device: AVCaptureDevice
     private var lastEmitTime: Date = .distantPast
-    private var bgraSampleCount: Int = 0
     private var droppedCount: Int = 0
 
-    init(onSample: @escaping (Double) -> Void) {
+    init(device: AVCaptureDevice, onSample: @escaping (AmbientSample) -> Void) {
+        self.device = device
         self.onSample = onSample
     }
 
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
+        // Skip frames captured while the exposure perturb is active (custom
+        // exposure). Their light proxy is meaningless, and the near-black frame
+        // would be misread as "bright" — the opposite of what the debounce
+        // expects. Only auto-exposure frames reflect the real scene. Checked
+        // before the throttle so the first auto frame after the perturb emits
+        // immediately instead of waiting out the 0.5s slot.
+        guard device.exposureMode == .continuousAutoExposure else { return }
+
         // Throttle to ~2 Hz to avoid flooding the main thread
         let now = Date()
         guard now.timeIntervalSince(lastEmitTime) > 0.5 else { return }
@@ -231,9 +448,6 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
 
         let pixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer)
-        if bgraSampleCount == 0 {
-            print("[Sensor] First ambient frame — format \(pixelFormat) (expect BGRA=\(kCVPixelFormatType_32BGRA))")
-        }
         guard pixelFormat == kCVPixelFormatType_32BGRA else {
             droppedCount += 1
             if droppedCount == 1 || droppedCount % 50 == 0 {
@@ -248,10 +462,19 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         let bytesPerPixel = 4
         let sampleStep = 8
 
+        // Sample the peripheral band only — the frame centre is dominated by the
+        // user's face (often in the phone's shadow), which doesn't track the
+        // ambient light. The edges show the surroundings, so this is a truer
+        // ambient reading that responds to daylight without needing the camera to
+        // be re-triggered.
+        let xInset = width / 4
+        let yInset = height / 4
         var total: Double = 0
         var count: Int = 0
         for y in stride(from: 0, to: height, by: sampleStep) {
+            let inCenterY = y >= yInset && y < height - yInset
             for x in stride(from: 0, to: width, by: sampleStep) {
+                if inCenterY && x >= xInset && x < width - xInset { continue }
                 let offset = y * bytesPerRow + x * bytesPerPixel
                 let r = Double(baseAddress.load(fromByteOffset: offset,   as: UInt8.self))
                 let g = Double(baseAddress.load(fromByteOffset: offset+1, as: UInt8.self))
@@ -262,13 +485,20 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         }
 
         guard count > 0 else { return }
-        bgraSampleCount += 1
-        let level = total / Double(count)
-        // Log the first few samples, then one every 30 (≈ every 15s) — enough
-        // to confirm the ambient light factor is live without flooding the log.
-        if bgraSampleCount <= 3 || bgraSampleCount % 30 == 0 {
-            print("[Sensor] Ambient sample #\(bgraSampleCount) = \(String(format: "%.3f", level))")
-        }
-        onSample(level)
+        let pixelAvg = total / Double(count)
+        // Auto-exposure compresses the average pixel brightness, so the raw
+        // average stays ~0.5 in sunlight. The camera encodes the true scene
+        // brightness in its exposure: bright scenes use a short duration and low
+        // ISO. Light proxy = 1/(exposure × ISO); the higher, the brighter.
+        let iso = Double(device.iso)
+        let exposureSec = Double(device.exposureDuration.seconds)
+        let lightProxy = 1.0 / max(exposureSec * iso, 1e-9)
+        // The peripheral pixel average (edges only — excludes the face) is the
+        // primary ambient signal; the exposure proxy is a secondary. The level
+        // is passed raw — the boost to 0.85 is applied in applyAmbientSample
+        // only once daylight is debounce-confirmed, so the torch-off and the
+        // notice stay in sync. The bright/not-bright decision itself is made in
+        // applyAmbientSample with hysteresis (see brightEnter/ExitThreshold).
+        onSample(AmbientSample(level: pixelAvg, lightProxy: lightProxy))
     }
 }

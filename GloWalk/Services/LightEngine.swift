@@ -70,7 +70,12 @@ final class LightEngine: ObservableObject {
 
         let denom = max(wAmbient + postureSignal * wPosture + wDark + wMoon + wWeather, 0.01)
         let base = weighted / denom
-        targetBrightness = min(max(base + manualOffset, 0.1), batterySaverCap)
+        // Daylight gate: when the debounced detector reports bright daylight the
+        // torch is pointless — turn it off (level 0), ignoring manual offset.
+        // The gate consumes the debounced isDaylight (not the raw ambient), so
+        // torch-off stays in sync with the HUD notice and no single bright frame
+        // (warm-up, streetlight) can kill the torch before the debounce confirms.
+        targetBrightness = sensors.isDaylight ? 0 : min(max(base + manualOffset, 0.1), batterySaverCap)
 
         // Proportional gap attribution
         let ambShortfall  = ambientFactorActive  ? (1.0 - ambientSignal) * wAmbient   : 0
@@ -164,4 +169,8 @@ struct SensorSnapshot {
     let moonIllumination: Double
     let weather: String?
     let darkAdaptationMinutes: Double
+    /// Debounced "bright daylight" from the front-camera detector — the single
+    /// source of truth for the torch-off gate (the raw ambientLight is used only
+    /// for the ambient brightness factor, not for the gate).
+    let isDaylight: Bool
 }

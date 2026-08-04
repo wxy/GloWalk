@@ -244,7 +244,8 @@ final class LightEngineTests: XCTestCase {
         posture: Double = 1.0,
         moonIllumination: Double = 0.5,
         weather: String? = nil,
-        darkMinutes: Double = 0
+        darkMinutes: Double = 0,
+        isDaylight: Bool = false
     ) -> SensorSnapshot {
         SensorSnapshot(
             ambientLight: ambient,
@@ -252,7 +253,8 @@ final class LightEngineTests: XCTestCase {
             deviceRoll: postureRoll,
             moonIllumination: moonIllumination,
             weather: weather,
-            darkAdaptationMinutes: darkMinutes
+            darkAdaptationMinutes: darkMinutes,
+            isDaylight: isDaylight
         )
     }
 }

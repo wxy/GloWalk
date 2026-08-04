@@ -19,6 +19,7 @@ enum L10n {
     static var locationContinue: LocalizedStringKey { "location.continue" }
 
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
+    static var hudDaylight: LocalizedStringKey { "hud.daylight" }
     static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
     static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
     static var hudCameraDeniedMessage: LocalizedStringKey { "hud.cameraDeniedMessage" }
@@ -141,6 +142,21 @@ enum L10n {
     static var factorAmbient: String { str("factor.ambient") }
     static var factorPosture: String { str("factor.posture") }
     static var factorDark: String { str("factor.dark") }
+
+    /// Localized ambient-brightness descriptor for the ambient factor card.
+    /// "明亮/Bright" is gated on the debounced daylight state (the same state
+    /// that turns the torch off), so the label never claims bright while the
+    /// torch is still on. Below that, the raw front-camera reading (which
+    /// auto-exposure compresses to roughly 0–0.5) is bucketed: ≥0.5 fairly
+    /// bright (bright but not yet daylight-confirmed), 0.2–0.5 dim, <0.2 dark.
+    static func ambientBrightnessLabel(_ level: Double, isDaylight: Bool) -> String {
+        if isDaylight { return str("ambient.level.bright") }
+        switch level {
+        case 0.5...: return str("ambient.level.fairlyBright")  // bright, not yet confirmed
+        case 0.2..<0.5: return str("ambient.level.dim")        // typical indoor
+        default: return str("ambient.level.dark")              // night / very dark
+        }
+    }
 
     /// Localized moon phase name (simplified, for LightEngine HUD card)
     static func moonPhaseName(illumination: Double) -> String {

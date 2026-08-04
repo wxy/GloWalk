@@ -10,6 +10,52 @@ struct HUDView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         return hour >= 18 || hour < 6
     }
+
+    /// Unified system notice bar at the top of the screen. Shows the
+    /// highest-priority notice: camera denied (tap → Settings) > occlusion
+    /// (torch off in pocket) > bright daylight (torch off). Reserves its height
+    /// so the layout doesn't jump when a notice appears.
+    private var topNoticeBar: some View {
+        let active = viewModel.cameraDeniedForAmbient || viewModel.occlusionNoticeVisible || viewModel.isDaylight
+        return VStack(spacing: 0) {
+            if viewModel.cameraDeniedForAmbient {
+                Button(action: {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "camera.fill").font(.gloBody(11))
+                        Text(L10n.hudCameraDenied).font(.gloBody(11))
+                        Image(systemName: "chevron.right").font(.gloBody(9))
+                    }
+                    .foregroundColor(.gloAmber)
+                    .padding(.vertical, 5).padding(.horizontal, 14)
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloAmber.opacity(0.12)))
+                }
+            } else if viewModel.occlusionNoticeVisible {
+                // Only claim "torch off in pocket" when the torch was actually on
+                // and the screen was dimmed — never when paused or in daylight.
+                noticeRow(icon: "exclamationmark.triangle.fill", text: L10n.hudOccluded)
+            } else if viewModel.isDaylight {
+                noticeRow(icon: "sun.max.fill", text: L10n.hudDaylight)
+            }
+        }
+        .frame(height: 30, alignment: .top)
+        .padding(.top, 8)
+        .animation(.easeInOut(duration: 0.25), value: active)
+    }
+
+    private func noticeRow(icon: String, text: LocalizedStringKey) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon).font(.gloBody(11))
+            Text(text).font(.gloBody(11))
+        }
+        .foregroundColor(.gloGold)
+        .padding(.vertical, 5).padding(.horizontal, 14)
+        .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
+    }
+
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
@@ -20,6 +66,10 @@ struct HUDView: View {
 
     var body: some View {
         ZStack {
+            // Always pure black. In bright daylight the foreground is brightened
+            // via uiBrightnessBoost, but the background stays black — a lighter
+            // surface would clash with the walk-data row and wash out the icon
+            // outlines, while black keeps every element in one consistent tone.
             Color.gloBlack.ignoresSafeArea()
 
             // Top area — camera denied warning + moon phase decoration
@@ -42,23 +92,8 @@ struct HUDView: View {
                 }
                 .padding(.top, 12)
 
-                // Camera denied warning — top banner
-                Button(action: {
-                    if let url = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(url)
-                    }
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "camera.fill").font(.gloBody(11))
-                        Text(L10n.hudCameraDenied).font(.gloBody(11))
-                        Image(systemName: "chevron.right").font(.gloBody(9))
-                    }
-                    .foregroundColor(.gloAmber)
-                    .padding(.vertical, 6).padding(.horizontal, 14)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloAmber.opacity(0.12)))
-                }
-                .padding(.top, 8)
-                .opacity(viewModel.cameraDeniedForAmbient ? 1 : 0)
+                // Unified system notice bar — camera denied / occlusion / daylight
+                topNoticeBar
 
                 HStack {
                     if isNightTime,
@@ -139,22 +174,11 @@ struct HUDView: View {
                     points: viewModel.pathPoints,
                     isActive: viewModel.isActive && viewModel.pathPoints.count >= 2
                 )
-                .frame(height: 140)
+                .frame(height: 170)
                 .padding(.horizontal, 32)
                 .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
 
                 Spacer().frame(height: 12)
-
-                // Occlusion warning — above the status row, not between cards and bar
-                HStack(spacing: 4) {
-                    Image(systemName: "exclamationmark.triangle.fill").font(.gloBody(11))
-                    Text(L10n.hudOccluded).font(.gloBody(11))
-                }
-                .foregroundColor(.gloGold)
-                .padding(.vertical, 4).padding(.horizontal, 12)
-                .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
-                .padding(.bottom, 2)
-                .opacity(viewModel.isTorchOccluded ? 1 : 0)
 
                 // Status row + bottom bar — tight grouping
                 topStatusRow
@@ -226,7 +250,7 @@ struct HUDView: View {
             // right margin collapses (left looks wider).
             let slot = geo.size.width - 12
             HStack(spacing: 3) {
-                factorCol(FactorCell(icon: "eye.fill", label: L10n.factorAmbient,
+                factorCol(FactorCell(icon: "eye.fill", label: ambientLabel,
                                       delta: ambDelta, active: ambActive, id: "ambient"))
                     .frame(width: slot * 0.40)
                 factorCol(FactorCell(icon: "iphone", label: L10n.factorPosture,
@@ -280,6 +304,15 @@ struct HUDView: View {
     }
 
     // Convenience accessors for factor card data
+    /// Ambient factor label — the descriptor is gated on the debounced daylight
+    /// state, so "明亮/Bright" only appears once the torch actually turns off
+    /// (below that, the raw reading maps to fairly-bright / dim / dark). Without
+    /// camera permission there is no reading, so the descriptor is omitted.
+    private var ambientLabel: String {
+        guard !viewModel.cameraDeniedForAmbient else { return L10n.factorAmbient }
+        return "\(L10n.factorAmbient) · \(L10n.ambientBrightnessLabel(viewModel.sensorManager.ambientLightLevel, isDaylight: viewModel.isDaylight))"
+    }
+
     private var ambDelta: Int { factorDelta("ambient") }
     private var posDelta: Int { factorDelta("posture") }
     private var darkDelta: Int { factorDelta("dark") }

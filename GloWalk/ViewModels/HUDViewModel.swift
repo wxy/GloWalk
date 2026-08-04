@@ -24,8 +24,11 @@ final class HUDViewModel: ObservableObject {
     /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
     @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
-    /// UI brightness boost factor: 1.0 (dark) → 3.0 (bright daylight). Adjusts element visibility.
+    /// UI brightness boost factor: 1.0 (dark) → 3.0+ (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
+    /// True when the front camera reports bright daylight — the torch stays off
+    /// and the UI is brightened for visibility in sunlight.
+    @Published var isDaylight: Bool = false
     @Published var lunarDateStr: String = ""
     @Published var gregorianDateStr: String = ""
     @Published var factorCards: [FactorCardData] = []
@@ -130,13 +133,20 @@ final class HUDViewModel: ObservableObject {
         }
         let (_, moonIllum) = cachedMoonPhase ?? ("full_moon", 0.5)
 
+        // Effective daylight: the debounced detector state, suppressed while the
+        // proximity sensor reports occlusion. Computed before the snapshot so the
+        // LightEngine gate and the UI (notice bar, screen brightness) consume the
+        // exact same value.
+        isDaylight = !sensorManager.isOccluded && sensorManager.isDaylight
+
         let snap = SensorSnapshot(
             ambientLight: sensorManager.ambientLightLevel,
             devicePitch: sensorManager.devicePitch,
             deviceRoll: sensorManager.deviceRoll,
             moonIllumination: moonIllum,
             weather: weatherService.currentCondition,
-            darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0
+            darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0,
+            isDaylight: isDaylight
         )
         if sensorManager.isOccluded && !isTorchOccluded {
             isTorchOccluded = true
@@ -182,7 +192,9 @@ final class HUDViewModel: ObservableObject {
             heading: currentHeading
         )
         let ambient = sensorManager.ambientLightLevel
-        uiBrightnessBoost = 1.0 + ambient * 2.0
+        // In bright daylight push the UI to full brightness so it stays readable.
+        uiBrightnessBoost = isDaylight ? 3.5 : (1.0 + ambient * 2.0)
+        updateScreenBrightness()
         lunarDateStr = LunarDate.display()
         gregorianDateStr = LunarDate.gregorianShort()
         gpsActive = locationManager.isRecording &&
@@ -242,6 +254,10 @@ final class HUDViewModel: ObservableObject {
     func endWalkAndNotify() {
         isActive = false
         UIApplication.shared.isIdleTimerDisabled = false
+        // Hand the user back their screen brightness before the sensor loop
+        // stops — otherwise a walk that ends while dimmed (pocket) or boosted
+        // (daylight) would leave the screen stuck at 0 or 1.0.
+        restoreScreenBrightness()
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
@@ -268,6 +284,8 @@ final class HUDViewModel: ObservableObject {
     func endWalkAbruptly() {
         isActive = false
         UIApplication.shared.isIdleTimerDisabled = false
+        // Same as endWalkAndNotify — never leave the screen dimmed/boosted.
+        restoreScreenBrightness()
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
@@ -322,10 +340,72 @@ final class HUDViewModel: ObservableObject {
         return .red.opacity(0.6)
     }
 
+    // MARK: - Screen Brightness (daylight boost / pocket dim)
+
+    private var originalScreenBrightness: CGFloat?
+
+    /// Whether the torch was actually on when occlusion set in — the "torch off
+    /// in pocket" notice and the pocket screen-dim share this truth, so the
+    /// notice never claims a pocket torch-off when the torch was off for another
+    /// reason (paused or daylight).
+    var occlusionNoticeVisible: Bool {
+        isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
+    }
+
+    /// Screen brightness priority:
+    /// 1. Pocket — occluded AND the torch was on → dim to 0 to save battery.
+    /// 2. Bright daylight → boost to 1.0 so the UI is readable against the sun.
+    /// 3. Otherwise → restore the user's brightness.
+    ///
+    /// The pocket dim only applies when the flashlight was actually on — if the
+    /// torch is off (paused or daylight), occlusion must NOT black out the screen.
+    private func updateScreenBrightness() {
+        guard isActive else {
+            // Not walking — always hand the user's brightness back. A walk may
+            // have ended while dimmed/boosted, and the sensor loop that would
+            // have restored it has stopped.
+            restoreScreenBrightness()
+            return
+        }
+        let desired: CGFloat?
+        if occlusionNoticeVisible {
+            if originalScreenBrightness == nil {
+                originalScreenBrightness = UIScreen.main.brightness
+            }
+            desired = 0
+        } else if isDaylight && !isTorchOccluded {
+            if originalScreenBrightness == nil {
+                originalScreenBrightness = UIScreen.main.brightness
+            }
+            desired = 1.0
+        } else {
+            desired = nil
+        }
+        if let desired {
+            // Only write when the value actually changes — otherwise the 1s tick
+            // would fight the user's Control Center brightness every second.
+            if abs(UIScreen.main.brightness - desired) > 0.001 {
+                UIScreen.main.brightness = desired
+            }
+        } else if let orig = originalScreenBrightness {
+            UIScreen.main.brightness = orig
+            originalScreenBrightness = nil
+        }
+    }
+
+    /// Restore the user's screen brightness (backgrounding).
+    private func restoreScreenBrightness() {
+        guard let orig = originalScreenBrightness else { return }
+        UIScreen.main.brightness = orig
+        originalScreenBrightness = nil
+    }
+
     var enteredBackground = false
     func willResignActive() {
         enteredBackground = true
         UIApplication.shared.isIdleTimerDisabled = false
+        // Give the user back their screen brightness in the background.
+        restoreScreenBrightness()
         // Let timer and GPS keep running — path points recorded in background
         // will naturally have torchBrightness=0 since iOS kills the flashlight.
     }
@@ -336,6 +416,8 @@ final class HUDViewModel: ObservableObject {
         // iOS stops the camera capture session while backgrounded — restart it
         // so the ambient-light factor keeps working after returning.
         sensorManager.resumeSessionIfNeeded()
+        // Re-apply the screen-brightness state (daylight boost / pocket dim).
+        updateScreenBrightness()
         brightness = lightEngine.targetBrightness
     }
 

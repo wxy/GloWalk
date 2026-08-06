@@ -142,7 +142,7 @@ final class PosterGenerator {
             // multiplied by the device scale gives identical visual weight
             // (the poster is ~3x the HUD's point resolution).
             let alpha = CGFloat(0.3 + avgTorch * 0.5)
-            let width = CGFloat((1.0 + avgTorch * 1.5) * UIScreen.main.scale)
+            let width = CGFloat((0.6 + avgTorch * 1.0) * UIScreen.main.scale)
 
             let path = UIBezierPath()
             path.move(to: pt1)

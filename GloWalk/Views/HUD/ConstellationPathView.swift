@@ -23,7 +23,7 @@ struct ConstellationPathView: View {
                 // and the poster multiplies the same formula by the device scale
                 // so both surfaces read with identical visual weight.
                 let alpha = 0.3 + avgTorch * 0.5
-                let width = 1.0 + avgTorch * 1.5
+                let width = 0.6 + avgTorch * 1.0
 
                 var path = Path()
                 path.move(to: pt1)

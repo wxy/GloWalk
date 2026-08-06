@@ -33,16 +33,28 @@ struct PathProjector {
 
     // MARK: - Simplification tunables
 
-    /// Douglas-Peucker tolerance as a fraction of the drawing area's shortest
-    /// side. A projected point is only kept when it deviates more than this
-    /// from the line between its neighbouring anchors — dense GPS/step logging
-    /// (~5 m per point, ~0.7 m while dead-reckoning) collapses into a handful
-    /// of anchors per block, which kills the GPS-jitter wobble and cuts the
-    /// per-frame Bézier count in the live HUD.
-    static var simplificationFactor: CGFloat = 0.006
-    /// Absolute floor (projected units) so a tiny drawing area never
-    /// over-simplifies an already-short path down to a straight line.
+    /// Douglas-Peucker tolerance as a fraction of the path's largest drawn
+    /// extent (the projected bounding box, not the area — HUD and poster
+    /// render the same shape at different resolutions, so area-based
+    /// thresholds simplified them by different *visual* amounts). A projected
+    /// point is only kept when it deviates more than this from the line
+    /// between its neighbouring anchors — dense GPS/step logging (~5 m per
+    /// point, ~0.7 m while dead-reckoning) collapses into a handful of anchors
+    /// per block, which kills the GPS-jitter wobble and cuts the per-frame
+    /// Bézier count in the live HUD.
+    static var simplificationFactor: CGFloat = 0.008
+    /// Absolute floor (projected units) so a tiny path never simplifies away.
     static var simplificationMin: CGFloat = 1.5
+    /// Pacing/scribble collapse radius as a fraction of the path's largest
+    /// drawn extent. Consecutive points that all fit inside a box of this size
+    /// (e.g. pacing back and forth in front of a door, which records a tight
+    /// zig-zag) collapse to the box's entry and exit points instead of a loop.
+    /// Chosen greater than 2× `simplificationFactor` so a pacing zone can be
+    /// collapsed even when Douglas-Peucker would have kept its points (the
+    /// zone's diameter is up to 2× the perpendicular deviation DP sees).
+    static var pacingFactor: CGFloat = 0.024
+    /// Absolute floor (projected units) for the pacing-collapse radius.
+    static var pacingMin: CGFloat = 2.0
 
     /// A path that has been simplified: the anchor points the curve passes
     /// through, plus one brightness value per segment (the mean torch of every
@@ -100,17 +112,35 @@ struct PathProjector {
         }
         guard pts.count >= 2 else { return }
 
+        // Thresholds adapt to the path's own drawn scale (its largest projected
+        // extent), not the area. The HUD and poster render the same geographic
+        // shape at different resolutions, so area-based thresholds made the
+        // poster (a wide, short band at ~3x scale) keep far more detail than
+        // the HUD. Extent-based fractions simplify both by the same visual
+        // amount regardless of the drawing area.
+        let drawnSize = pathDrawnExtent(pts)
+        let pacingR = max(Self.pacingMin, drawnSize * Self.pacingFactor)
+        let epsilon = max(Self.simplificationMin, drawnSize * Self.simplificationFactor)
+
+        // Collapse pacing scribbles first: consecutive points that all fit
+        // inside a box of `pacingR` — walking back and forth in one spot — are
+        // replaced by the box's entry/exit. Without this, pacing draws a tight
+        // zig-zag loop; with it, the zone becomes a short clean line.
+        let collapsed = pacingR > 0 ? collapsePacing(pts: pts, torch: torch, radius: pacingR)
+                                    : (pts, torch)
+        let cleanPts = collapsed.0
+        let cleanTorch = collapsed.1
+        guard cleanPts.count >= 2 else { return }
+
         // Simplify: keep only the anchors that actually shape the path, and
         // re-mean the torch over each removed run so the constellation colour
-        // still tracks the flashlight along the whole walk. This is the step
-        // that removes the "unexpected kinks" — a GPS or dead-reckoning wobble
-        // point is exactly what Douglas-Peucker drops, so the Bézier curve
-        // glides over a clean skeleton instead of piercing every jitter point.
-        let epsilon = max(Self.simplificationMin,
-                          min(area.width, area.height) * Self.simplificationFactor)
-        let simplified = epsilon > 0 ? simplify(pts: pts, torch: torch, epsilon: epsilon)
-                                     : SimplifiedPath(points: pts,
-                                                      segTorch: segmentTorchMeans(pts: pts, torch: torch, keptIdx: Array(pts.indices)))
+        // still tracks the flashlight along the whole walk. This removes the
+        // "unexpected kinks" — a GPS or dead-reckoning wobble point is exactly
+        // what Douglas-Peucker drops, so the Bézier curve glides over a clean
+        // skeleton instead of piercing every jitter point.
+        let simplified = epsilon > 0 ? simplify(pts: cleanPts, torch: cleanTorch, epsilon: epsilon)
+                                     : SimplifiedPath(points: cleanPts,
+                                                      segTorch: segmentTorchMeans(pts: cleanPts, torch: cleanTorch, keptIdx: Array(cleanPts.indices)))
         let aPts = simplified.points
         let aSegTorch = simplified.segTorch
         guard aPts.count >= 2 else { return }
@@ -193,6 +223,64 @@ struct PathProjector {
         if lenSq == 0 { return hypot(p.x - a.x, p.y - a.y) }
         let t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq
         return hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy))
+    }
+
+    // MARK: - Pacing scribble collapse
+
+    /// The largest side of the projected path's bounding box — the path's own
+    /// scale. Thresholds are expressed as fractions of this so the HUD and
+    /// poster — which draw the same geographic shape at different
+    /// resolutions — simplify by the same visual amount. (Using the smallest
+    /// side would let a pacing blob — the thinnest part of a long walk — pin
+    /// the thresholds near its own tiny size and never collapse itself.)
+    private func pathDrawnExtent(_ pts: [CGPoint]) -> CGFloat {
+        guard let first = pts.first else { return 0 }
+        var minX = first.x, maxX = first.x, minY = first.y, maxY = first.y
+        for p in pts {
+            minX = min(minX, p.x); maxX = max(maxX, p.x)
+            minY = min(minY, p.y); maxY = max(maxY, p.y)
+        }
+        return max(maxX - minX, maxY - minY)
+    }
+
+    /// Collapse "pacing scribbles": consecutive points that all fit inside a
+    /// box of side `radius` reduce to the box's entry and exit points. Walking
+    /// back and forth in one place records a tight zig-zag that would otherwise
+    /// draw as a loop; this keeps only where the zone was entered and left.
+    /// The whole run's torch is averaged onto both surviving points so the
+    /// collapsed zone keeps the flashlight colour it actually had.
+    private func collapsePacing(pts: [CGPoint], torch: [Double], radius: CGFloat) -> ([CGPoint], [Double]) {
+        guard pts.count >= 2 else { return (pts, torch) }
+        var out: [CGPoint] = []
+        var outTorch: [Double] = []
+        var i = 0
+        let n = pts.count
+        while i < n {
+            var minX = pts[i].x, maxX = pts[i].x
+            var minY = pts[i].y, maxY = pts[i].y
+            var j = i
+            // Extend the run while adding the next point keeps the whole run
+            // inside a box of side `radius`.
+            while j + 1 < n {
+                let p = pts[j + 1]
+                let nmx = min(minX, p.x), nMx = max(maxX, p.x)
+                let nmy = min(minY, p.y), nMy = max(maxY, p.y)
+                if nMx - nmx > radius || nMy - nmy > radius { break }
+                minX = nmx; maxX = nMx; minY = nmy; maxY = nMy
+                j += 1
+            }
+            var sum = 0.0
+            for k in i...j { sum += torch[k] }
+            let runMean = sum / Double(j - i + 1)
+            out.append(pts[i])
+            outTorch.append(runMean)
+            if j > i {
+                out.append(pts[j])
+                outTorch.append(runMean)
+            }
+            i = j + 1
+        }
+        return (out, outTorch)
     }
 
     func startPoint() -> CGPoint? {

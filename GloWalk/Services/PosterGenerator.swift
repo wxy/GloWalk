@@ -137,9 +137,12 @@ final class PosterGenerator {
               session.pathPointsArray.count >= 2 else { return }
 
         projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
-            // Brighter torch (flashlight) → brighter, thicker line.
+            // Brighter torch (flashlight) → brighter, slightly thicker line.
+            // Rendered in native pixels, so the same formula as the HUD
+            // multiplied by the device scale gives identical visual weight
+            // (the poster is ~3x the HUD's point resolution).
             let alpha = CGFloat(0.3 + avgTorch * 0.5)
-            let width = CGFloat(2.0 + avgTorch * 4.0)
+            let width = CGFloat((0.6 + avgTorch * 1.0) * UIScreen.main.scale)
 
             let path = UIBezierPath()
             path.move(to: pt1)

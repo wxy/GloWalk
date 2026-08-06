@@ -3,6 +3,9 @@ import SwiftUI
 struct ConstellationPathView: View {
     let points: [PathPoint]
     let isActive: Bool
+    /// Steps taken so far — the front footprint alternates left/right on each
+    /// step, so the marker reads as a walking gait instead of a static foot.
+    var stepCount: Int = 0
 
     var body: some View {
         Canvas { ctx, size in
@@ -39,12 +42,29 @@ struct ConstellationPathView: View {
                 ctx.draw(Text("👣").font(.system(size: 16)), at: sp)
             }
 
-            // End — 🦶 with glow aura, centered on the last point
+            // End — footprint with glow aura, centered on the last point. The
+            // emoji set ships one foot (🦶); a horizontally mirrored rendering
+            // of the same glyph is its opposite foot. The marker flips between
+            // the right-foot glyph and its mirrored left-foot twin as steps
+            // land, so it reads as a walking gait instead of a static foot.
             if let end = projector.endPoint(), points.count >= 2 {
                 let glowRect = CGRect(x: end.x - 10, y: end.y - 10, width: 20, height: 20)
                 ctx.fill(Path(ellipseIn: glowRect),
                          with: .color(Color.gloGold.opacity(0.18)))
-                ctx.draw(Text("🦶").font(.system(size: 16)), at: end)
+                let foot = Text("🦶").font(.system(size: 16))
+                if stepCount.isMultiple(of: 2) {
+                    // Mirror around `end`: T(end)·S(-1,1)·T(-end) flips the
+                    // glyph horizontally while keeping it centred on the point.
+                    let mirror = CGAffineTransform(translationX: end.x, y: end.y)
+                        .scaledBy(x: -1, y: 1)
+                        .translatedBy(x: -end.x, y: -end.y)
+                    ctx.drawLayer { layer in
+                        layer.transform = mirror
+                        layer.draw(foot, at: end)
+                    }
+                } else {
+                    ctx.draw(foot, at: end)
+                }
             }
 
             // Nocturnal animal easter egg — ~3% chance, appears mid-path

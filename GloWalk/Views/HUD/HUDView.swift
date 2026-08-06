@@ -172,7 +172,8 @@ struct HUDView: View {
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
                     points: viewModel.pathPoints,
-                    isActive: viewModel.isActive && viewModel.pathPoints.count >= 2
+                    isActive: viewModel.isActive && viewModel.pathPoints.count >= 2,
+                    stepCount: viewModel.stepCount
                 )
                 .frame(height: 170)
                 .padding(.horizontal, 32)

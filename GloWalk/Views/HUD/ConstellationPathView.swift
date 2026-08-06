@@ -39,32 +39,45 @@ struct ConstellationPathView: View {
 
             // Start — 👣 centered on the first point so it sits on the curve tip
             if let sp = projector.startPoint() {
-                ctx.draw(Text("👣").font(.system(size: 16)), at: sp)
+                ctx.draw(Text("👣").font(.system(size: 10)), at: sp)
             }
 
-            // End — footprint with glow aura, centered on the last point. The
-            // emoji set ships one foot (🦶); a horizontally mirrored rendering
-            // of the same glyph is its opposite foot. The marker flips between
-            // the right-foot glyph and its mirrored left-foot twin as steps
-            // land, so it reads as a walking gait instead of a static foot.
-            if let end = projector.endPoint(), points.count >= 2 {
-                let glowRect = CGRect(x: end.x - 10, y: end.y - 10, width: 20, height: 20)
-                ctx.fill(Path(ellipseIn: glowRect),
-                         with: .color(Color.gloGold.opacity(0.18)))
-                let foot = Text("🦶").font(.system(size: 16))
-                if stepCount.isMultiple(of: 2) {
-                    // Mirror around `end`: T(end)·S(-1,1)·T(-end) flips the
-                    // glyph horizontally while keeping it centred on the point.
-                    let mirror = CGAffineTransform(translationX: end.x, y: end.y)
-                        .scaledBy(x: -1, y: 1)
-                        .translatedBy(x: -end.x, y: -end.y)
-                    ctx.drawLayer { layer in
-                        layer.transform = mirror
-                        layer.draw(foot, at: end)
-                    }
+            // Footprint trail — the front foot flips between left and right as
+            // steps land, prints behind the walker fade out, and each is
+            // rotated so its toes point along the local path direction. Prints
+            // sit on the curve's own anchor points (the ones the Bézier passes
+            // through), so the front print is always exactly on the curve's
+            // end tip and the ones behind follow the redrawn path — not on raw
+            // GPS points that drift off the line. Real step spacing is
+            // sub-pixel at HUD scale, so consecutive prints keep a small gap
+            // and the older ones trail behind fainter.
+            let anchors = projector.anchors()
+            var trail: [CGPoint] = []
+            var lastPrint: CGPoint?
+            for p in anchors.reversed() {
+                if let l = lastPrint, hypot(p.x - l.x, p.y - l.y) < 4 { continue }
+                trail.append(p)
+                lastPrint = p
+                if trail.count >= 4 { break }
+            }
+            trail.reverse()
+            let frontIsLeft = stepCount.isMultiple(of: 2)
+            let alphas: [CGFloat] = [1.0, 0.6, 0.35, 0.18]
+            for (i, pos) in trail.enumerated() {
+                let fromFront = trail.count - 1 - i
+                let isLeft = frontIsLeft != (fromFront % 2 == 1)
+                // Travel direction through this print: toward the next (newer)
+                // one; the front print uses the last two prints' direction.
+                let angle: CGFloat
+                if i + 1 < trail.count {
+                    angle = atan2(trail[i + 1].y - pos.y, trail[i + 1].x - pos.x)
+                } else if trail.count > 1 {
+                    angle = atan2(pos.y - trail[i - 1].y, pos.x - trail[i - 1].x)
                 } else {
-                    ctx.draw(foot, at: end)
+                    angle = 0
                 }
+                drawFootprint(ctx: &ctx, at: pos, angle: angle,
+                              isLeft: isLeft, alpha: alphas[min(fromFront, 3)])
             }
 
             // Nocturnal animal easter egg — ~3% chance, appears mid-path
@@ -88,6 +101,64 @@ struct ConstellationPathView: View {
     /// Direction angle from pt1 to pt2 (radians, 0 = right)
     private func segmentDirection(from pt1: CGPoint, to pt2: CGPoint) -> CGFloat {
         atan2(pt2.y - pt1.y, pt2.x - pt1.x)
+    }
+
+    // MARK: - Footprint marker
+
+    /// The affine transform that draws a footprint glyph centred on `pos`,
+    /// rotated so its toes face `angle` (radians, 0 = right in y-down screen
+    /// space), and mirrored to the left foot when `isLeft`. Internal so the
+    /// transform math is unit-testable.
+    ///
+    /// The chained mutators PREPEND each new transform, so the glyph is first
+    /// rotated (and, for the left foot, mirrored) in its own local frame and
+    /// then translated to `pos` — the reverse order would swing the print
+    /// around the canvas origin and throw it off-screen.
+    static func footprintTransform(at pos: CGPoint, angle: CGFloat,
+                                   isLeft: Bool,
+                                   toeAngle: CGFloat = -0.7) -> CGAffineTransform {
+        if isLeft {
+            // R(−toe)·S(1,−1)·R(angle)·T(pos): mirror across the foot's own
+            // toe-heel axis (the x-axis once the glyph is rotated flat to
+            // toeAngle), then rotate so the toes point along `angle`, then
+            // move to `pos`. Mirroring across that axis flips the big-toe side
+            // without flipping the toe direction — a plain horizontal mirror
+            // would make the left foot point the opposite way to the right.
+            return CGAffineTransform.identity
+                .translatedBy(x: pos.x, y: pos.y)
+                .rotated(by: angle)
+                .scaledBy(x: 1, y: -1)
+                .rotated(by: -toeAngle)
+        } else {
+            return CGAffineTransform.identity
+                .translatedBy(x: pos.x, y: pos.y)
+                .rotated(by: angle - toeAngle)
+        }
+    }
+
+    /// Draw one footprint at `pos`, rotated so its toes face `angle`, and
+    /// faded by `alpha` so older prints trail behind the walker. The 🦶 glyph
+    /// ships one foot; its mirrored twin is the other foot.
+    private func drawFootprint(ctx: inout GraphicsContext, at pos: CGPoint,
+                               angle: CGFloat, isLeft: Bool, alpha: CGFloat) {
+        // Glow aura — same 12pt as the poster's 36px at 3×, scaled with the
+        // print's own alpha so the trail fades as one unit.
+        let glowRect = CGRect(x: pos.x - 6, y: pos.y - 6, width: 12, height: 12)
+        ctx.fill(Path(ellipseIn: glowRect),
+                 with: .color(Color.gloGold.opacity(0.18 * alpha)))
+
+        // The 🦶 glyph's toes point up-right by default (≈ −0.7 rad in y-down
+        // screen space); rotating the draw so they align with `angle` makes the
+        // foot face where the user is heading. Tweaking the constant rotates
+        // every print by the same amount — tune it against the glyph revision.
+        let transform = Self.footprintTransform(at: pos, angle: angle, isLeft: isLeft)
+
+        let foot = Text("🦶").font(.system(size: 10))
+        ctx.drawLayer { layer in
+            layer.opacity = Double(alpha)
+            layer.transform = transform
+            layer.draw(foot, at: .zero)
+        }
     }
 
     // MARK: - Animal Easter Eggs

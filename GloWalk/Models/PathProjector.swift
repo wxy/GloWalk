@@ -98,7 +98,31 @@ struct PathProjector {
     /// — the mean torch (flashlight) brightness of every original point the
     /// segment represents after simplification.
     func forEachSegment(_ drawSegment: (CGPoint, CGPoint, CGPoint, CGPoint, Double) -> Void) {
-        guard points.count >= 2 else { return }
+        guard let path = simplifiedPath() else { return }
+        let aPts = path.points
+        let aSegTorch = path.torch
+
+        for i in 0..<(aPts.count - 1) {
+            let p0 = aPts[max(i - 1, 0)]
+            let p1 = aPts[i]
+            let p2 = aPts[i + 1]
+            let p3 = aPts[min(i + 2, aPts.count - 1)]
+
+            let cp1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6.0,
+                              y: p1.y + (p2.y - p0.y) / 6.0)
+            let cp2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6.0,
+                              y: p2.y - (p3.y - p1.y) / 6.0)
+
+            drawSegment(p1, p2, cp1, cp2, aSegTorch[i])
+        }
+    }
+
+    /// Project, dedup, pacing-collapse, and Douglas-Peucker-simplify the points
+    /// once, returning the anchor array the curve is drawn through plus one
+    /// torch value per segment. Shared by the drawing pass and the footprint
+    /// markers so both describe exactly the same curve.
+    private func simplifiedPath() -> (points: [CGPoint], torch: [Double])? {
+        guard points.count >= 2 else { return nil }
 
         // Project once; drop points that land on the same spot (GPS jitter in
         // place) so they don't introduce zero-length wiggles in the curve.
@@ -110,7 +134,7 @@ struct PathProjector {
             pts.append(sp)
             torch.append(p.torchBrightness)
         }
-        guard pts.count >= 2 else { return }
+        guard pts.count >= 2 else { return nil }
 
         // Thresholds adapt to the path's own drawn scale (its largest projected
         // extent), not the area. The HUD and poster render the same geographic
@@ -128,9 +152,7 @@ struct PathProjector {
         // zig-zag loop; with it, the zone becomes a short clean line.
         let collapsed = pacingR > 0 ? collapsePacing(pts: pts, torch: torch, radius: pacingR)
                                     : (pts, torch)
-        let cleanPts = collapsed.0
-        let cleanTorch = collapsed.1
-        guard cleanPts.count >= 2 else { return }
+        guard collapsed.0.count >= 2 else { return nil }
 
         // Simplify: keep only the anchors that actually shape the path, and
         // re-mean the torch over each removed run so the constellation colour
@@ -138,26 +160,19 @@ struct PathProjector {
         // "unexpected kinks" — a GPS or dead-reckoning wobble point is exactly
         // what Douglas-Peucker drops, so the Bézier curve glides over a clean
         // skeleton instead of piercing every jitter point.
-        let simplified = epsilon > 0 ? simplify(pts: cleanPts, torch: cleanTorch, epsilon: epsilon)
-                                     : SimplifiedPath(points: cleanPts,
-                                                      segTorch: segmentTorchMeans(pts: cleanPts, torch: cleanTorch, keptIdx: Array(cleanPts.indices)))
-        let aPts = simplified.points
-        let aSegTorch = simplified.segTorch
-        guard aPts.count >= 2 else { return }
+        let simplified = epsilon > 0 ? simplify(pts: collapsed.0, torch: collapsed.1, epsilon: epsilon)
+                                     : SimplifiedPath(points: collapsed.0,
+                                                      segTorch: segmentTorchMeans(pts: collapsed.0, torch: collapsed.1, keptIdx: Array(collapsed.0.indices)))
+        guard simplified.points.count >= 2 else { return nil }
+        return (simplified.points, simplified.segTorch)
+    }
 
-        for i in 0..<(aPts.count - 1) {
-            let p0 = aPts[max(i - 1, 0)]
-            let p1 = aPts[i]
-            let p2 = aPts[i + 1]
-            let p3 = aPts[min(i + 2, aPts.count - 1)]
-
-            let cp1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6.0,
-                              y: p1.y + (p2.y - p0.y) / 6.0)
-            let cp2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6.0,
-                              y: p2.y - (p3.y - p1.y) / 6.0)
-
-            drawSegment(p1, p2, cp1, cp2, aSegTorch[i])
-        }
+    /// The projected anchor points the curve is drawn through — after dedup,
+    /// pacing collapse, and Douglas-Peucker simplification, in draw order. The
+    /// first and last original points always survive, so the front footprint
+    /// marker can sit exactly on the curve's end tip.
+    func anchors() -> [CGPoint] {
+        simplifiedPath()?.points ?? []
     }
 
     // MARK: - Douglas-Peucker simplification

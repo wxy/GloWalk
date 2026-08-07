@@ -159,25 +159,31 @@ final class SensorManager: ObservableObject {
     }
 
     /// With .inputPriority the session won't pick formats for us. Choose a
-    /// mid-resolution format (480–1280 wide) that supports 30fps — NOT the
-    /// smallest possible: tiny formats like 352×288 are 240fps slow-mo
-    /// formats, and two cameras at high frame rates blow the multi-cam
-    /// hardware cost budget (session fails to start with "Cannot record").
+    /// multi-cam-capable format: AVCaptureMultiCamSession only accepts the
+    /// subset of formats where AVCaptureDevice.Format.isMultiCamSupported is
+    /// true — picking any other format fails startRunning with
+    /// AVErrorUnsupportedDeviceActiveFormat (-11873). Prefer a mid-resolution
+    /// format (480–1280 wide) that supports 30fps, then pin 30fps so a
+    /// high-frame-rate-capable format can't blow the hardware cost budget.
     private func setMultiCamFormat(on device: AVCaptureDevice) {
-        let candidates = device.formats.filter {
-            let d = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
-            guard d.width >= 480, d.width <= 1280,
-                  d.height >= 360, d.height <= 720 else { return false }
-            return $0.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 30 && $0.maxFrameRate >= 30 }
+        let multiCam = device.formats.filter { $0.isMultiCamSupported }
+        let supports30 = { (fmt: AVCaptureDevice.Format) in
+            fmt.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 30 && $0.maxFrameRate >= 30 }
         }
-        print("[Sensor] setMultiCamFormat: \(device.position == .back ? "back" : "front") candidates=\(candidates.count)/\(device.formats.count)")
-        guard let fmt = candidates.min(by: {
+        let preferred = multiCam.filter { fmt in
+            let d = CMVideoFormatDescriptionGetDimensions(fmt.formatDescription)
+            return d.width >= 480 && d.width <= 1280 &&
+                   d.height >= 360 && d.height <= 720 && supports30(fmt)
+        }
+        let pool = preferred.isEmpty ? multiCam.filter(supports30) : preferred
+        print("[Sensor] setMultiCamFormat: \(device.position == .back ? "back" : "front") preferred=\(preferred.count)/\(multiCam.count)/\(device.formats.count) multiCamSupported=\(multiCam.count)")
+        guard let fmt = pool.min(by: {
             let a = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
             let b = CMVideoFormatDescriptionGetDimensions($1.formatDescription)
             return a.width * a.height < b.width * b.height
         }) else { return }
         let dims = CMVideoFormatDescriptionGetDimensions(fmt.formatDescription)
-        print("[Sensor] setMultiCamFormat: chosen \(dims.width)x\(dims.height)@30")
+        print("[Sensor] setMultiCamFormat: chosen \(dims.width)x\(dims.height)@30 multiCam=\(fmt.isMultiCamSupported)")
         do {
             try device.lockForConfiguration()
             device.activeFormat = fmt

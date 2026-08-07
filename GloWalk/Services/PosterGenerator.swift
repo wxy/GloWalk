@@ -116,25 +116,34 @@ final class PosterGenerator {
     // MARK: - Celestial Corner Decoration
 
     /// Large celestial body peeking into the top-left corner: the disc is
-    /// centred up-left of the canvas so only its lower-right arc is visible —
-    /// big enough to read as a backdrop, while staying clear of the centered
-    /// header (top) and the constellation track band (y ≥ ~0.22·height), so the
-    /// gold track never sits on the bright disc.
+    /// centred up-left of the canvas so only its lower-right arc is visible.
+    /// The visible arc spans ~0.54 of the poster width (the disc itself is
+    /// 1.6×), so the sun/moon reads as a prominent backdrop. A gold ring
+    /// frames the disc so even the nearly-black new moon stays visible.
+    /// The arc's rim falls in the track band's far-left corner — a dark part
+    /// of the disc — so the gold track stays readable without recolouring it.
     private static func drawCelestialCorner(_ image: UIImage?, size: CGSize,
                                              ctx: UIGraphicsRendererContext) {
-        guard let img = image else { return }
-
-        let radius = size.width * 0.42
-        let center = CGPoint(x: -radius * 0.30, y: -radius * 0.25)
+        let radius = size.width * 0.80
+        let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
         let celestialRect = CGRect(x: center.x - radius, y: center.y - radius,
                                    width: radius * 2, height: radius * 2)
 
+        // Gold ring — frames the disc and keeps a dark new moon visible on the
+        // black background.
+        let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
+        let ring = UIBezierPath(ovalIn: celestialRect)
+        gold.withAlphaComponent(0.40).setStroke()
+        ring.lineWidth = max(3, size.width * 0.004)
+        ring.stroke()
+
         // Clip to the disc itself so the image's black square corners never
         // show, then draw the lower-right arc over the night-sky background.
+        guard let img = image else { return }
         let clipPath = UIBezierPath(ovalIn: celestialRect)
         ctx.cgContext.saveGState()
         clipPath.addClip()
-        ctx.cgContext.setAlpha(0.50)
+        ctx.cgContext.setAlpha(0.55)
         img.draw(in: celestialRect)
         ctx.cgContext.restoreGState()
     }
@@ -194,7 +203,7 @@ final class PosterGenerator {
 
         drawCenteredText("\(dateStr)  \(moonName)",
             font: wenKaiMedium(28),
-            color: gold, y: 60, size: size, ctx: ctx)
+            color: gold, y: 60, size: size, ctx: ctx, shadow: true)
     }
 
     // MARK: - Stats Card
@@ -259,10 +268,18 @@ final class PosterGenerator {
     // MARK: - Helpers
 
     private static func drawCenteredText(_ text: String, font: UIFont, color: UIColor,
-                                          y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext) {
+                                          y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext,
+                                          shadow: Bool = false) {
         let margin = size.width * 0.08
         let p = NSMutableParagraphStyle(); p.alignment = .center
-        let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
+        var attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
+        if shadow {
+            let s = NSShadow()
+            s.shadowColor = UIColor.black.withAlphaComponent(0.85)
+            s.shadowBlurRadius = 6
+            s.shadowOffset = CGSize(width: 0, height: 2)
+            attrs[.shadow] = s
+        }
         (text as NSString).draw(in: CGRect(x: margin, y: y, width: size.width - margin * 2, height: 150),
                                 withAttributes: attrs)
     }

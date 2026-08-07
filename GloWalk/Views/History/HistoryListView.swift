@@ -173,77 +173,137 @@ struct HistoryListView: View {
 
 struct HistoryPosterView: View {
     /// All history records, newest first (same order as the list) — the poster
-    /// swipes left/right through them.
+    /// drags left/right through them like a photo album.
     let sessions: [WalkSession]
     @Environment(\.dismiss) private var dismiss
     @State private var index: Int
-    @State private var posterImage: UIImage?
+    /// Generated posters for the current record and its neighbours — keyed by
+    /// session index, capped to [index-1, index+1] so memory stays bounded.
+    @State private var posters: [Int: UIImage] = [:]
+    /// Follows the finger while dragging; springs back or slides the page out
+    /// on release.
+    @State private var dragOffset: CGFloat = 0
+    /// True while the slide-out/slide-in animation is running.
+    @State private var isSwitching = false
     @State private var showShareSheet = false
     @State private var savedToPhotos = false
+
+    private var screenWidth: CGFloat { UIScreen.main.bounds.width }
 
     init(sessions: [WalkSession], initialIndex: Int) {
         self.sessions = sessions
         _index = State(initialValue: min(max(initialIndex, 0), max(sessions.count - 1, 0)))
     }
 
-    private var currentSession: WalkSession { sessions[index] }
-
     var body: some View {
         ZStack {
             Color.gloBlack.ignoresSafeArea()
-            if let poster = posterImage {
+
+            if let current = posters[index] {
                 ZStack {
-                    Image(uiImage: poster).resizable().scaledToFill().ignoresSafeArea()
-                        .gesture(DragGesture(minimumDistance: 40).onEnded { v in
-                            // Down → back to the history list; left/right →
-                            // next/previous record (list order: newest first).
-                            if v.translation.height > 60 {
-                                dismiss()
-                            } else if v.translation.width < -60, index + 1 < sessions.count {
-                                switchTo(index + 1)
-                            } else if v.translation.width > 60, index > 0 {
-                                switchTo(index - 1)
-                            }
-                        })
-                    VStack {
-                        Spacer()
-                        HStack(spacing: 10) {
-                            HUDButton(icon: "square.and.arrow.up", label: L10n.posterShare,
-                                      bg: Color.gloGold, fg: .black) { showShareSheet = true }
-                            HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
-                                      label: savedToPhotos ? L10n.posterSaved : L10n.posterSave,
-                                      bg: .clear, fg: .gloGold, border: true) {
-                                guard let img = posterImage else { return }
-                                PHPhotoLibrary.shared().performChanges({
-                                    PHAssetChangeRequest.creationRequestForAsset(from: img)
-                                }) { success, _ in
-                                    DispatchQueue.main.async {
-                                        if success { savedToPhotos = true; Haptic.medium() }
-                                    }
+                    // Previous page peeking in from the left while dragging.
+                    if let prev = posters[index - 1] {
+                        Image(uiImage: prev).resizable().scaledToFill().ignoresSafeArea()
+                            .offset(x: dragOffset - screenWidth)
+                    }
+                    // Next page peeking in from the right.
+                    if let next = posters[index + 1] {
+                        Image(uiImage: next).resizable().scaledToFill().ignoresSafeArea()
+                            .offset(x: dragOffset + screenWidth)
+                    }
+                    // The page being dragged.
+                    Image(uiImage: current).resizable().scaledToFill().ignoresSafeArea()
+                        .offset(x: dragOffset)
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 20)
+                        .onChanged { v in
+                            guard !isSwitching else { return }
+                            dragOffset = v.translation.width
+                        }
+                        .onEnded(handleDrag)
+                )
+
+                VStack {
+                    Spacer()
+                    HStack(spacing: 10) {
+                        HUDButton(icon: "square.and.arrow.up", label: L10n.posterShare,
+                                  bg: Color.gloGold, fg: .black) { showShareSheet = true }
+                        HUDButton(icon: savedToPhotos ? "checkmark" : "square.and.arrow.down",
+                                  label: savedToPhotos ? L10n.posterSaved : L10n.posterSave,
+                                  bg: .clear, fg: .gloGold, border: true) {
+                            guard let img = posters[index] else { return }
+                            PHPhotoLibrary.shared().performChanges({
+                                PHAssetChangeRequest.creationRequestForAsset(from: img)
+                            }) { success, _ in
+                                DispatchQueue.main.async {
+                                    if success { savedToPhotos = true; Haptic.medium() }
                                 }
                             }
-                            HUDButton(icon: "checkmark", label: L10n.posterDone,
-                                      bg: .clear, fg: .white.opacity(0.6), border: true) { dismiss() }
                         }
-                        .padding(.horizontal, 20).padding(.bottom, 24)
+                        HUDButton(icon: "checkmark", label: L10n.posterDone,
+                                  bg: .clear, fg: .white.opacity(0.6), border: true) { dismiss() }
                     }
+                    .padding(.horizontal, 20).padding(.bottom, 24)
                 }
-                .sheet(isPresented: $showShareSheet) { ShareSheet(items: [poster]) }
             } else {
                 ProgressView().tint(.gloGold)
             }
         }
+        .sheet(isPresented: $showShareSheet) {
+            if let img = posters[index] { ShareSheet(items: [img]) }
+        }
         .task(id: index) {
-            posterImage = await PosterGenerator.generate(session: currentSession)
+            await loadPoster(for: index)
+            if index > 0 { await loadPoster(for: index - 1) }
+            if index + 1 < sessions.count { await loadPoster(for: index + 1) }
         }
     }
 
-    /// Swap to another record: clear the current poster so the progress
-    /// spinner shows while the new one renders, and forget the stale
-    /// "saved to photos" state.
-    private func switchTo(_ newIndex: Int) {
-        savedToPhotos = false
-        posterImage = nil
-        index = newIndex
+    /// Generate (or reuse) the poster for the session at `i`.
+    private func loadPoster(for i: Int) async {
+        guard posters[i] == nil else { return }
+        posters[i] = await PosterGenerator.generate(session: sessions[i])
+    }
+
+    /// Decide where the finger-release should land: down dismisses, a big
+    /// horizontal swipe slides to the next/previous record, anything else
+    /// springs the page back.
+    private func handleDrag(_ v: DragGesture.Value) {
+        let w = v.translation.width
+        if v.translation.height > 60 {
+            dismiss()
+            return
+        }
+        if w < -80, index + 1 < sessions.count {
+            slide(to: index + 1)
+        } else if w > 80, index > 0 {
+            slide(to: index - 1)
+        } else {
+            withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.86)) {
+                dragOffset = 0
+            }
+        }
+    }
+
+    /// Slide the current page out in the drag direction, swap the index, then
+    /// slide the new page in from the opposite side — the album feel.
+    private func slide(to newIndex: Int) {
+        isSwitching = true
+        let direction: CGFloat = newIndex > index ? -1 : 1
+        withAnimation(.easeOut(duration: 0.18)) {
+            dragOffset = direction * screenWidth
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            savedToPhotos = false
+            index = newIndex
+            // Keep only the pages we can still reach, so memory stays bounded.
+            posters = posters.filter { abs($0.key - newIndex) <= 1 }
+            dragOffset = -direction * screenWidth
+            withAnimation(.easeOut(duration: 0.22)) {
+                dragOffset = 0
+            }
+            isSwitching = false
+        }
     }
 }

@@ -67,6 +67,21 @@ final class HUDViewModel: ObservableObject {
     private let torchProbeLevel = 0.9
     private let torchProbeTicksNeeded = 3
     private let torchSetpoint = 0.4
+    /// Scene-brightness latch driven by the back camera's torch-off samples.
+    /// The very first back sample arrives before the loop has ever turned the
+    /// torch on, so it is a clean "how bright is the environment" reading. A
+    /// genuinely bright scene (e.g. a lit indoor room at night) needs no
+    /// flashlight at all — latch it and keep the torch off instead of seeding
+    /// 0.75 and freezing there while the posture gate is inactive. While
+    /// latched the torch stays off, so every sample remains a clean scene
+    /// reading; the latch releases when the scene darkens again (e.g. walking
+    /// out of a bright room into the night).
+    private var torchSceneChecked = false
+    private var torchSceneBright = false
+    private var torchSceneDarkStreak = 0
+    private let torchSceneBrightThreshold = 0.05
+    private let torchSceneDarkThreshold = 0.01
+    private let torchSceneDarkSustain = 3
     private var loggedBackFallback = false
     let sensorManager = SensorManager()
     let weatherService = WeatherService()
@@ -85,9 +100,12 @@ final class HUDViewModel: ObservableObject {
         sessionStartTime = Date()
         print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
-        // Seed the loop at the app's default level so the torch isn't forced to
-        // 0 while the posture gate is inactive, and reset the startup probe.
-        torchController.seed(level: 0.7)
+        // Reset the torch scene check + startup probe for this walk. Seeding
+        // happens on the first closed-loop tick, AFTER the torch-off scene
+        // sample decides whether the environment needs a flashlight at all.
+        torchSceneChecked = false
+        torchSceneBright = false
+        torchSceneDarkStreak = 0
         torchProbeState = .idle
         torchProbeTicks = 0
         torchCalibration = nil
@@ -191,23 +209,11 @@ final class HUDViewModel: ObservableObject {
                                 isOccluded: sensorManager.isOccluded,
                                 isDaylight: isDaylight,
                                 isTorchPaused: torchPaused)
-            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯，闭环冻结值不得覆盖
-            // （白天冻结在夜间最后一档会把手电亮着，必须强制归零）。
+            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
             if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
-            } else if torchProbeState != .calibrated, gate.isActive {
-                advanceTorchProbe(measured: y)
-                // The tick that completes the probe hands off to the controller
-                // so it can react to the freshly measured ceiling immediately.
-                brightness = torchProbeState == .calibrated
-                    ? torchController.step(setpoint: torchSetpoint,
-                                           measured: normalizedBackLuminance(y),
-                                           active: true)
-                    : torchProbeLevel
             } else {
-                brightness = torchController.step(setpoint: torchSetpoint,
-                                                  measured: normalizedBackLuminance(y),
-                                                  active: gate.isActive)
+                brightness = closedLoopBrightness(measured: y, gate: gate, snap: snap)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -314,6 +320,66 @@ final class HUDViewModel: ObservableObject {
 
     // MARK: - Torch Closed Loop (spike)
 
+    private func closedLoopBrightness(measured y: Double, gate: LoopGate, snap: SensorSnapshot) -> Double {
+        if !torchSceneChecked {
+            torchSceneChecked = true
+            // The first back sample is torch-off by construction (nothing has
+            // called setTorchLevel yet), so it doubles as the probe's floor.
+            let full = sensorManager.backFullFrameLuminance ?? 0
+            if y >= torchSceneBrightThreshold || full >= torchSceneBrightThreshold {
+                torchSceneBright = true
+                print("[Loop] scene bright (torch-off roi=\(y) full=\(full)) — torch stays off")
+            } else {
+                torchController.seed(level: 0.7)
+                torchCalibration = (floor: y, ceiling: y)
+            }
+        }
+        if torchSceneBright {
+            // Torch is off, so every sample is a clean scene reading. Release
+            // the latch when the scene darkens for a few ticks (e.g. walking
+            // out of a bright room into the night).
+            let full = sensorManager.backFullFrameLuminance ?? 0
+            if y < torchSceneDarkThreshold && full < torchSceneDarkThreshold {
+                torchSceneDarkStreak += 1
+                if torchSceneDarkStreak >= torchSceneDarkSustain {
+                    torchSceneBright = false
+                    torchSceneDarkStreak = 0
+                    torchController.seed(level: 0.7)
+                    print("[Loop] scene dark again — releasing bright latch")
+                }
+            } else {
+                torchSceneDarkStreak = 0
+            }
+            return 0
+        }
+        if gate.isActive {
+            if torchProbeState != .calibrated {
+                advanceTorchProbe(measured: y)
+                // The tick that completes the probe hands off to the controller
+                // so it can react to the freshly measured ceiling immediately.
+                if torchProbeState == .calibrated {
+                    return torchController.step(setpoint: torchSetpoint,
+                                                measured: normalizedBackLuminance(y),
+                                                active: true)
+                }
+                return torchProbePin
+            }
+            return torchController.step(setpoint: torchSetpoint,
+                                        measured: normalizedBackLuminance(y),
+                                        active: true)
+        }
+        // Not in walking posture: the back camera isn't looking at the ground
+        // the torch would illuminate (it may face the ceiling or sky), so fall
+        // back to the front-camera ambient model instead of freezing at the
+        // loop's last level.
+        lightEngine.update(sensors: snap)
+        return lightEngine.targetBrightness
+    }
+
+    private var torchProbePin: Double {
+        torchProbeState == .probing ? torchProbeLevel : 0
+    }
+
     /// Map the exposure-locked ROI onto the [0,1] scale measured by the startup
     /// probe: 0 = torch-off floor, 1 = torch-on ceiling.
     private func normalizedBackLuminance(_ y: Double) -> Double {
@@ -329,7 +395,11 @@ final class HUDViewModel: ObservableObject {
         case .idle:
             torchProbeState = .probing
             torchProbeTicks = 0
-            torchCalibration = (floor: y, ceiling: y)
+            // Keep the torch-off floor recorded by the scene check (tick 1);
+            // only fall back to the current reading if it never ran.
+            if torchCalibration == nil {
+                torchCalibration = (floor: y, ceiling: y)
+            }
         case .probing:
             if let cal = torchCalibration {
                 torchCalibration = (floor: cal.floor, ceiling: max(cal.ceiling, y))

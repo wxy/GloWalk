@@ -115,24 +115,26 @@ final class PosterGenerator {
 
     // MARK: - Celestial Corner Decoration
 
+    /// Large celestial body peeking into the top-left corner: the disc is
+    /// centred up-left of the canvas so only its lower-right arc is visible —
+    /// big enough to read as a backdrop, while staying clear of the centered
+    /// header (top) and the constellation track band (y ≥ ~0.22·height), so the
+    /// gold track never sits on the bright disc.
     private static func drawCelestialCorner(_ image: UIImage?, size: CGSize,
                                              ctx: UIGraphicsRendererContext) {
         guard let img = image else { return }
 
-        let celestialDim: CGFloat = 60
-        let padding: CGFloat = 16
-        let celestialRect = CGRect(
-            x: padding,
-            y: 100,
-            width: celestialDim,
-            height: celestialDim
-        )
+        let radius = size.width * 0.42
+        let center = CGPoint(x: -radius * 0.30, y: -radius * 0.25)
+        let celestialRect = CGRect(x: center.x - radius, y: center.y - radius,
+                                   width: radius * 2, height: radius * 2)
 
-        // Circular clip only — no ring
+        // Clip to the disc itself so the image's black square corners never
+        // show, then draw the lower-right arc over the night-sky background.
         let clipPath = UIBezierPath(ovalIn: celestialRect)
         ctx.cgContext.saveGState()
         clipPath.addClip()
-        ctx.cgContext.setAlpha(0.40)
+        ctx.cgContext.setAlpha(0.50)
         img.draw(in: celestialRect)
         ctx.cgContext.restoreGState()
     }

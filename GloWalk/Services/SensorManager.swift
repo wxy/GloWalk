@@ -367,13 +367,18 @@ final class SensorManager: ObservableObject {
             selector: #selector(sessionWasInterrupted(_:)),
             name: .AVCaptureSessionWasInterrupted,
             object: session)
-        // Periodically re-trigger auto-exposure so the daylight detector doesn't
-        // stay stuck on a stale exposure — mirrors the re-evaluation that
-        // covering and uncovering the camera naturally triggers.
-        exposureRefreshTimer?.invalidate()
-        exposureRefreshTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.refreshAutoExposure()
+        // Legacy (non-spike) path: periodically re-trigger auto-exposure so the
+        // old pixel-average daylight detector doesn't stay stuck on a stale
+        // exposure. The closed-loop spike deliberately disables this: each
+        // perturb shorts the exposure and the proxy spikes high while
+        // auto-exposure re-converges — every 4s that re-feeds the bright latch
+        // and keeps the torch off in a dark area for the whole walk.
+        if !FeatureFlags.torchClosedLoop {
+            exposureRefreshTimer?.invalidate()
+            exposureRefreshTimer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: true) { [weak self] _ in
+                Task { @MainActor in
+                    self?.refreshAutoExposure()
+                }
             }
         }
     }
@@ -539,8 +544,8 @@ final class SensorManager: ObservableObject {
         let rawLevel = isDaylight ? max(sample.level, 0.85) : sample.level
         // EMA smoothing: the exposure proxy jitters as auto-exposure hunts, and
         // the raw level would flicker the label and the 1-ambient torch
-        // fallback between ticks. Half-life ≈ one sample (~0.5s).
-        ambientLightLevel = ambientLightLevel * 0.5 + rawLevel * 0.5
+        // fallback between ticks. Time constant ≈ 1.4s at 2Hz.
+        ambientLightLevel = ambientLightLevel * 0.7 + rawLevel * 0.3
     }
 
     // MARK: - Motion

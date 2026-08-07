@@ -74,6 +74,10 @@ final class SensorManager: ObservableObject {
         // they can't mutate detector state after teardown.
         sessionEpoch += 1
         captureDelegate = nil
+        if let session = captureSession {
+            NotificationCenter.default.removeObserver(self,
+                name: .AVCaptureSessionRuntimeError, object: session)
+        }
         // Serialize with any in-flight startRunning() on sessionQueue.
         nonisolated(unsafe) let session = captureSession
         sessionQueue.async {
@@ -152,29 +156,37 @@ final class SensorManager: ObservableObject {
         return s
     }
 
-    /// With .inputPriority the session won't pick formats for us; keep each
-    /// camera cheap by choosing the smallest format whose height is 240…540
-    /// (≈ 480×360 on iPhones) — plenty for stride-8 sampling, and far less
-    /// pipeline bandwidth/heat than the camera's default 1080p/4K.
-    private func setSmallFormat(on device: AVCaptureDevice) {
+    /// With .inputPriority the session won't pick formats for us. Choose a
+    /// mid-resolution format (480–1280 wide) that supports 30fps — NOT the
+    /// smallest possible: tiny formats like 352×288 are 240fps slow-mo
+    /// formats, and two cameras at high frame rates blow the multi-cam
+    /// hardware cost budget (session fails to start with "Cannot record").
+    private func setMultiCamFormat(on device: AVCaptureDevice) {
         let candidates = device.formats.filter {
-            let dims = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
-            return dims.height >= 240 && dims.height <= 540
+            let d = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+            guard d.width >= 480, d.width <= 1280,
+                  d.height >= 360, d.height <= 720 else { return false }
+            return $0.videoSupportedFrameRateRanges.contains { $0.minFrameRate <= 30 && $0.maxFrameRate >= 30 }
         }
-        print("[Sensor] setSmallFormat: \(device.position == .back ? "back" : "front") candidates=\(candidates.count)/\(device.formats.count)")
+        print("[Sensor] setMultiCamFormat: \(device.position == .back ? "back" : "front") candidates=\(candidates.count)/\(device.formats.count)")
         guard let fmt = candidates.min(by: {
             let a = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
             let b = CMVideoFormatDescriptionGetDimensions($1.formatDescription)
             return a.width * a.height < b.width * b.height
         }) else { return }
         let dims = CMVideoFormatDescriptionGetDimensions(fmt.formatDescription)
-        print("[Sensor] setSmallFormat: chosen \(dims.width)x\(dims.height)")
+        print("[Sensor] setMultiCamFormat: chosen \(dims.width)x\(dims.height)@30")
         do {
             try device.lockForConfiguration()
             device.activeFormat = fmt
+            // Pin the device to 30fps (SDK: connection-level frame-duration
+            // APIs are unavailable; set the device's active durations instead).
+            let dur = CMTime(value: 1, timescale: 30)
+            device.activeVideoMinFrameDuration = dur
+            device.activeVideoMaxFrameDuration = dur
             device.unlockForConfiguration()
         } catch {
-            print("[Sensor] Set small format failed: \(error)")
+            print("[Sensor] Set multi-cam format failed: \(error)")
         }
     }
 
@@ -191,7 +203,7 @@ final class SensorManager: ObservableObject {
         }
         session.addInput(input)
         print("[Sensor] addBackCamera: input added")
-        setSmallFormat(on: back)
+        setMultiCamFormat(on: back)
 
         let out = AVCaptureVideoDataOutput()
         out.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
@@ -258,7 +270,7 @@ final class SensorManager: ObservableObject {
         }
 
         captureDevice = device
-        setSmallFormat(on: device)
+        setMultiCamFormat(on: device)
         // Continuous auto-exposure so the camera naturally tracks the scene
         // light between the periodic re-triggers.
         do {
@@ -300,6 +312,9 @@ final class SensorManager: ObservableObject {
             addBackCamera(to: session)
         }
         captureSession = session
+        if let multiCam = session as? AVCaptureMultiCamSession {
+            print("[Sensor] multiCam hardwareCost=\(multiCam.hardwareCost)")
+        }
         nonisolated(unsafe) let s = session
         sessionQueue.async {
             s.startRunning()

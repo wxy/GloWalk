@@ -138,7 +138,8 @@ private var isMultiCam: Bool {
 private func makeSession() -> AVCaptureSession {
     if isMultiCam {
         let s = AVCaptureMultiCamSession()
-        s.sessionPreset = .low
+        // AVCaptureMultiCamSession does NOT support .low — use .medium.
+        s.sessionPreset = .medium
         return s
     }
     let s = AVCaptureSession()

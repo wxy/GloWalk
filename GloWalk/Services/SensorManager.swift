@@ -141,7 +141,11 @@ final class SensorManager: ObservableObject {
     private func makeSession() -> AVCaptureSession {
         if isMultiCam {
             let s = AVCaptureMultiCamSession()
-            s.sessionPreset = .low
+            // AVCaptureMultiCamSession does NOT support the .low preset
+            // (photo/high/medium/inputPriority only) — .low crashes with
+            // NSInvalidArgumentException. .medium keeps the 2Hz stride-8
+            // sampling cheap while leaving enough pixels for the ground ROI.
+            s.sessionPreset = .medium
             return s
         }
         let s = AVCaptureSession()

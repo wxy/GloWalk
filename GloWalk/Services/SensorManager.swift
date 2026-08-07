@@ -38,6 +38,13 @@ final class SensorManager: ObservableObject {
     private var captureSession: AVCaptureSession?
     private var captureDevice: AVCaptureDevice?
     private var captureDelegate: AmbientLightDelegate?
+    private var backDelegate: BackLuminanceDelegate?
+    private let backQueue = DispatchQueue(label: "glowalk.backlight", qos: .utility)
+    /// Back-camera readings (multi-cam only, exposure locked while measuring):
+    /// full-frame average and the ground ROI average, both 2Hz.
+    @Published var backFullFrameLuminance: Double?
+    @Published var backGroundLuminance: Double?
+    private(set) var backExposureLocked = false
     private var exposureRefreshTimer: Timer?
     /// Monotonic generation counter for the capture session. Bumped on every
     /// start/stop so in-flight frames or restore callbacks from an older session
@@ -58,6 +65,10 @@ final class SensorManager: ObservableObject {
         turnOffTorch()
         exposureRefreshTimer?.invalidate()
         exposureRefreshTimer = nil
+        backDelegate = nil
+        backFullFrameLuminance = nil
+        backGroundLuminance = nil
+        backExposureLocked = false
         stopProximityMonitoring()
         // Invalidate any in-flight samples/restores from this capture session so
         // they can't mutate detector state after teardown.
@@ -138,6 +149,55 @@ final class SensorManager: ObservableObject {
         return s
     }
 
+    /// Add the back camera (multi-cam only) and lock its exposure, so its
+    /// pixel readings reflect the scene — including the torch's reflection off
+    /// the ground — instead of being normalised away by auto-exposure.
+    private func addBackCamera(to session: AVCaptureSession) {
+        guard isMultiCam,
+              let back = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+              let input = try? AVCaptureDeviceInput(device: back) else { return }
+        guard session.canAddInput(input) else { return }
+        session.addInput(input)
+
+        let out = AVCaptureVideoDataOutput()
+        out.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+        let epoch = sessionEpoch
+        let delegate = BackLuminanceDelegate { [weak self] sample in
+            Task { @MainActor in
+                self?.applyBackSample(sample, epoch: epoch)
+            }
+        }
+        backDelegate = delegate
+        out.setSampleBufferDelegate(delegate, queue: backQueue)
+        if session.canAddOutput(out) { session.addOutput(out) }
+        lockBackExposure()
+    }
+
+    /// Fixed dark-scene exposure (1/60s, minimum ISO) so the back camera
+    /// measures luminance monotonically. Calibrated on device during the
+    /// measurement campaign if needed.
+    private func lockBackExposure() {
+        guard let back = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else { return }
+        do {
+            try back.lockForConfiguration()
+            let fmt = back.activeFormat
+            let duration = CMTime(value: 1, timescale: 60)
+            back.setExposureModeCustom(duration: duration,
+                                       iso: Float(fmt.minISO),
+                                       completionHandler: nil)
+            back.unlockForConfiguration()
+            backExposureLocked = true
+        } catch {
+            print("[Sensor] Back exposure lock error: \(error)")
+        }
+    }
+
+    private func applyBackSample(_ sample: BackLuminanceSample, epoch: Int) {
+        guard epoch == sessionEpoch else { return }
+        backFullFrameLuminance = sample.fullFrame
+        backGroundLuminance = sample.roi
+    }
+
     private func startAmbientLightSampling() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
             return
@@ -192,6 +252,9 @@ final class SensorManager: ObservableObject {
         output.setSampleBufferDelegate(delegate,
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
+        if isMultiCam {
+            addBackCamera(to: session)
+        }
         captureSession = session
         nonisolated(unsafe) let s = session
         sessionQueue.async {
@@ -517,5 +580,73 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         // notice stay in sync. The bright/not-bright decision itself is made in
         // applyAmbientSample with hysteresis (see brightEnter/ExitThreshold).
         onSample(AmbientSample(level: pixelAvg, lightProxy: lightProxy))
+    }
+}
+
+// MARK: - Back Camera Luminance Delegate
+
+/// One back-camera luminance sample: full-frame average and the ground ROI
+/// average (lower third, central 60% width — the path ahead in walking
+/// posture).
+private struct BackLuminanceSample {
+    let fullFrame: Double
+    let roi: Double
+}
+
+private final class BackLuminanceDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    private let onSample: (BackLuminanceSample) -> Void
+    private var lastEmitTime: Date = .distantPast
+
+    init(onSample: @escaping (BackLuminanceSample) -> Void) {
+        self.onSample = onSample
+    }
+
+    func captureOutput(_ output: AVCaptureOutput,
+                       didOutput sampleBuffer: CMSampleBuffer,
+                       from connection: AVCaptureConnection) {
+        // Throttle to ~2 Hz to avoid flooding the main thread.
+        let now = Date()
+        guard now.timeIntervalSince(lastEmitTime) > 0.5 else { return }
+        lastEmitTime = now
+
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        CVPixelBufferLockBaseAddress(pixelBuffer, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(pixelBuffer, .readOnly) }
+
+        guard CVPixelBufferGetPixelFormatType(pixelBuffer) == kCVPixelFormatType_32BGRA,
+              let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else { return }
+        let width = CVPixelBufferGetWidth(pixelBuffer)
+        let height = CVPixelBufferGetHeight(pixelBuffer)
+        let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
+        let bytesPerPixel = 4
+        let step = 8
+
+        var fullTotal = 0.0
+        var fullCount = 0
+        var roiTotal = 0.0
+        var roiCount = 0
+        let yStart = height * 2 / 3
+        let xInset = width / 5
+
+        for y in stride(from: 0, to: height, by: step) {
+            let inROI = y >= yStart
+            for x in stride(from: 0, to: width, by: step) {
+                let offset = y * bytesPerRow + x * bytesPerPixel
+                let r = Double(baseAddress.load(fromByteOffset: offset, as: UInt8.self))
+                let g = Double(baseAddress.load(fromByteOffset: offset + 1, as: UInt8.self))
+                let b = Double(baseAddress.load(fromByteOffset: offset + 2, as: UInt8.self))
+                let lum = (r + g + b) / (3.0 * 255.0)
+                fullTotal += lum
+                fullCount += 1
+                if inROI, x >= xInset, x < width - xInset {
+                    roiTotal += lum
+                    roiCount += 1
+                }
+            }
+        }
+        guard fullCount > 0 else { return }
+        onSample(BackLuminanceSample(
+            fullFrame: fullTotal / Double(fullCount),
+            roi: roiCount > 0 ? roiTotal / Double(roiCount) : fullTotal / Double(fullCount)))
     }
 }

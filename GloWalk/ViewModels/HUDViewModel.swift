@@ -161,8 +161,9 @@ final class HUDViewModel: ObservableObject {
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
         if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
-            // 闭环接管手电；遮挡/暂停按全局约束优先关灯，闭环冻结值不得覆盖。
-            if sensorManager.isOccluded || torchPaused {
+            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯，闭环冻结值不得覆盖
+            // （白天冻结在夜间最后一档会把手电亮着，必须强制归零）。
+            if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
             } else {
                 let gate = LoopGate(pitchDeg: sensorManager.devicePitch,

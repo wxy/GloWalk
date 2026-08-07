@@ -189,6 +189,11 @@ struct HistoryPosterView: View {
     @State private var savedToPhotos = false
 
     private var screenWidth: CGFloat { UIScreen.main.bounds.width }
+    /// Magnetic start: the first ~14pt of a drag move damped (×0.35), so the
+    /// page feels "stuck" to the screen edge and only unsticks once the finger
+    /// pulls past it.
+    private let snapStartDistance: CGFloat = 14
+    private let snapStartDamping: CGFloat = 0.35
 
     init(sessions: [WalkSession], initialIndex: Int) {
         self.sessions = sessions
@@ -219,7 +224,19 @@ struct HistoryPosterView: View {
                     DragGesture(minimumDistance: 20)
                         .onChanged { v in
                             guard !isSwitching else { return }
-                            dragOffset = v.translation.width
+                            let raw = v.translation.width
+                            let sign: CGFloat = raw >= 0 ? 1 : -1
+                            // Snap-start: damped until the unstick distance,
+                            // then 1:1 tracking. Haptic when it unsticks.
+                            if abs(raw) <= snapStartDistance {
+                                dragOffset = raw * snapStartDamping
+                            } else {
+                                if abs(dragOffset) < snapStartDistance * snapStartDamping {
+                                    Haptic.light()
+                                }
+                                dragOffset = snapStartDistance * snapStartDamping * sign
+                                    + (raw - snapStartDistance * sign)
+                            }
                         }
                         .onEnded(handleDrag)
                 )
@@ -283,6 +300,7 @@ struct HistoryPosterView: View {
             withAnimation(.interactiveSpring(response: 0.35, dampingFraction: 0.86)) {
                 dragOffset = 0
             }
+            Haptic.selection()
         }
     }
 
@@ -302,6 +320,7 @@ struct HistoryPosterView: View {
             posters = posters.filter { abs($0.key - newIndex) <= 1 }
             dragOffset = 0
             isSwitching = false
+            Haptic.medium()
         }
     }
 }

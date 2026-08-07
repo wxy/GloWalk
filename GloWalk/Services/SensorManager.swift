@@ -19,14 +19,14 @@ final class SensorManager: ObservableObject {
     private var darkStreak = 0
     private let brightSustain = 3            // samples of "bright" to enter daylight
     private let darkSustain = 3              // samples of "not bright" to exit daylight
-    /// Schmitt-trigger hysteresis for the "bright" decision: enter above the
-    /// enter threshold, stay bright until the reading drops below the exit
-    /// threshold. A value hovering at the threshold (e.g. 0.45–0.63) latches
-    /// bright instead of toggling, so the sustain streak completes and daylight
-    /// is confirmed — otherwise a genuinely bright room never turns the torch
-    /// off while the HUD label already reads "bright".
-    private let brightEnterThreshold = 0.5
-    private let brightExitThreshold = 0.45
+    /// Schmitt-trigger hysteresis for the "bright scene" decision on the
+    /// exposure-based ambient level (0–1, saturating map of 1/(t·ISO)). A
+    /// genuinely bright indoor room reads ~0.9, a dim room ~0.45, a dark room
+    /// <0.1 — so 0.7 enter / 0.55 exit cleanly separates "bright enough that
+    /// the flashlight is pointless" from everything else without toggling at
+    /// the boundary.
+    private let brightEnterThreshold = 0.7
+    private let brightExitThreshold = 0.55
     private var brightLatched = false
 
     private let motionManager = CMMotionManager()
@@ -511,18 +511,20 @@ final class SensorManager: ObservableObject {
             return
         }
 
-        // Brightness with hysteresis: latch on once above the enter threshold,
-        // drop out only below the exit threshold. This is what lets a hovering
-        // reading confirm — see brightEnterThreshold/brightExitThreshold.
-        let isBright: Bool
-        if brightLatched {
-            isBright = sample.level > brightExitThreshold || sample.lightProxy > brightExitThreshold
-        } else {
-            isBright = sample.level > brightEnterThreshold || sample.lightProxy > brightEnterThreshold
-        }
+        // Brightness with hysteresis on the exposure-based level (the pixel
+        // average is useless — auto-exposure holds it near 0.5 everywhere).
+        // Latch on once above the enter threshold, drop out only below the
+        // exit threshold.
+        let isBright = brightLatched
+            ? sample.level > brightExitThreshold
+            : sample.level > brightEnterThreshold
         brightLatched = isBright
 
-        if isBright && !isDeepNight {
+        // Bright scenes confirm at any hour — a well-lit indoor room at night
+        // should turn the flashlight off just like daylight. The debounce
+        // (sustain + hysteresis) is what stops a passing street lamp or car
+        // headlight from killing the torch.
+        if isBright {
             brightStreak += 1
             darkStreak = 0
             if brightStreak >= brightSustain { isDaylight = true }
@@ -535,17 +537,6 @@ final class SensorManager: ObservableObject {
         // Boost only after daylight is debounce-confirmed so the torch-off and
         // the "bright light" notice happen together.
         ambientLightLevel = isDaylight ? max(sample.level, 0.85) : sample.level
-    }
-
-    /// True during late-night hours — the window where the front camera's bright
-    /// edge-band reading can plausibly be a streetlight/lamp instead of daylight.
-    /// Blocks daylight confirmation then, so a bright lamp can't kill the torch
-    /// exactly when the user needs it (the flashlight's worst failure mode).
-    /// Deliberately narrower than HUDView.isNightTime so summer-evening daylight
-    /// (e.g. 19:00 in bright sun) still triggers.
-    private var isDeepNight: Bool {
-        let hour = Calendar.current.component(.hour, from: Date())
-        return hour >= 20 || hour < 5
     }
 
     // MARK: - Motion
@@ -697,21 +688,22 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         }
 
         guard count > 0 else { return }
-        let pixelAvg = total / Double(count)
         // Auto-exposure compresses the average pixel brightness, so the raw
-        // average stays ~0.5 in sunlight. The camera encodes the true scene
-        // brightness in its exposure: bright scenes use a short duration and low
-        // ISO. Light proxy = 1/(exposure × ISO); the higher, the brighter.
+        // average stays ~0.5 in BOTH a dark room and bright sunlight — it is
+        // not a usable ambient signal. The camera encodes the true scene
+        // brightness in its exposure: bright scenes use a short duration and
+        // low ISO. Light proxy = 1/(exposure × ISO); the higher, the brighter.
         let iso = Double(device.iso)
         let exposureSec = Double(device.exposureDuration.seconds)
         let lightProxy = 1.0 / max(exposureSec * iso, 1e-9)
-        // The peripheral pixel average (edges only — excludes the face) is the
-        // primary ambient signal; the exposure proxy is a secondary. The level
-        // is passed raw — the boost to 0.85 is applied in applyAmbientSample
-        // only once daylight is debounce-confirmed, so the torch-off and the
-        // notice stay in sync. The bright/not-bright decision itself is made in
-        // applyAmbientSample with hysteresis (see brightEnter/ExitThreshold).
-        onSample(AmbientSample(level: pixelAvg, lightProxy: lightProxy))
+        // Ambient level = saturating map of the exposure proxy, so a lit indoor
+        // room (proxy ~2-6) reads ~0.9 ("bright") and a dark room (proxy <0.1)
+        // reads ~0.1, instead of both reading ~0.5 from the pixel average. The
+        // boost to 0.85 is still applied in applyAmbientSample only once
+        // daylight is debounce-confirmed; the bright/not-bright decision uses
+        // hysteresis on level/lightProxy (see brightEnter/ExitThreshold).
+        let level = min(max(1.0 - exp(-lightProxy), 0.0), 1.0)
+        onSample(AmbientSample(level: level, lightProxy: lightProxy))
     }
 }
 

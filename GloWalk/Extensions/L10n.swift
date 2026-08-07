@@ -150,9 +150,11 @@ enum L10n {
     /// auto-exposure compresses to roughly 0–0.5) is bucketed: ≥0.5 fairly
     /// bright (bright but not yet daylight-confirmed), 0.2–0.5 dim, <0.2 dark.
     static func ambientBrightnessLabel(_ level: Double, isDaylight: Bool) -> String {
-        if isDaylight { return str("ambient.level.bright") }
+        // "明亮" is not reserved for confirmed daylight: a genuinely bright
+        // indoor scene (exposure-based ambient ≥ 0.7) should read as bright too.
+        if isDaylight || level >= 0.7 { return str("ambient.level.bright") }
         switch level {
-        case 0.5...: return str("ambient.level.fairlyBright")  // bright, not yet confirmed
+        case 0.5..<0.7: return str("ambient.level.fairlyBright")  // bright, not yet confirmed
         case 0.2..<0.5: return str("ambient.level.dim")        // typical indoor
         default: return str("ambient.level.dark")              // night / very dark
         }

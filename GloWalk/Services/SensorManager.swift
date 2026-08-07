@@ -120,13 +120,30 @@ final class SensorManager: ObservableObject {
 
     // MARK: - Ambient Light (camera frame sampling)
 
+    /// True when this device supports concurrent front + back capture
+    /// (AVCaptureMultiCamSession, iOS 13+). Falls back to single-session
+    /// front-camera capture otherwise, preserving current behaviour.
+    private var isMultiCam: Bool {
+        AVCaptureMultiCamSession.isMultiCamSupported
+    }
+
+    private func makeSession() -> AVCaptureSession {
+        if isMultiCam {
+            let s = AVCaptureMultiCamSession()
+            s.sessionPreset = .low
+            return s
+        }
+        let s = AVCaptureSession()
+        s.sessionPreset = .low
+        return s
+    }
+
     private func startAmbientLightSampling() {
         guard AVCaptureDevice.authorizationStatus(for: .video) == .authorized else {
             return
         }
 
-        let session = AVCaptureSession()
-        session.sessionPreset = .low
+        let session = makeSession()
 
         // Front camera for ambient sensing — it faces away from the back torch,
         // so its reading isn't inflated by the flashlight's own reflection. That

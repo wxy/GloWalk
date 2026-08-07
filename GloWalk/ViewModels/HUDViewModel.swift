@@ -49,10 +49,24 @@ final class HUDViewModel: ObservableObject {
 
     let lightEngine = LightEngine()
     /// Spike: closed-loop torch controller. Setpoint 0.4 is the fixed spike
-    /// target; weather/dark-adaptation modifiers plug in later.
+    /// target on the normalized 0–1 ROI scale (see the startup probe below);
+    /// weather/dark-adaptation modifiers plug in later.
     private var torchController = TorchController(
         levels: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0],
         deadband: 0.04, hysteresis: 0.02)
+    /// Startup probe: with the back exposure locked, the raw ROI is ~1e-4 and
+    /// an absolute setpoint of 0.4 is unreachable — the controller would ramp
+    /// to 100% the moment the posture gate activates. Once per walk, pin the
+    /// torch at torchProbeLevel for a few ticks, record the torch-off floor and
+    /// torch-on ceiling, then control on the normalized [0,1] scale where 0.4
+    /// means "40% of the torch's full contribution".
+    private enum TorchProbeState { case idle, probing, calibrated }
+    private var torchProbeState: TorchProbeState = .idle
+    private var torchProbeTicks = 0
+    private var torchCalibration: (floor: Double, ceiling: Double)?
+    private let torchProbeLevel = 0.9
+    private let torchProbeTicksNeeded = 3
+    private let torchSetpoint = 0.4
     private var loggedBackFallback = false
     let sensorManager = SensorManager()
     let weatherService = WeatherService()
@@ -70,6 +84,13 @@ final class HUDViewModel: ObservableObject {
         isActive = true
         sessionStartTime = Date()
         print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
+
+        // Seed the loop at the app's default level so the torch isn't forced to
+        // 0 while the posture gate is inactive, and reset the startup probe.
+        torchController.seed(level: 0.7)
+        torchProbeState = .idle
+        torchProbeTicks = 0
+        torchCalibration = nil
 
         // Prevent screen sleep and auto-dim during walk
         UIApplication.shared.isIdleTimerDisabled = true
@@ -174,8 +195,19 @@ final class HUDViewModel: ObservableObject {
             // （白天冻结在夜间最后一档会把手电亮着，必须强制归零）。
             if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
+            } else if torchProbeState != .calibrated, gate.isActive {
+                advanceTorchProbe(measured: y)
+                // The tick that completes the probe hands off to the controller
+                // so it can react to the freshly measured ceiling immediately.
+                brightness = torchProbeState == .calibrated
+                    ? torchController.step(setpoint: torchSetpoint,
+                                           measured: normalizedBackLuminance(y),
+                                           active: true)
+                    : torchProbeLevel
             } else {
-                brightness = torchController.step(setpoint: 0.4, measured: y, active: gate.isActive)
+                brightness = torchController.step(setpoint: torchSetpoint,
+                                                  measured: normalizedBackLuminance(y),
+                                                  active: gate.isActive)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -277,6 +309,40 @@ final class HUDViewModel: ObservableObject {
         // Batch Core Data saves: every 5 ticks instead of every second
         if sensorTick % 5 == 0 {
             PersistenceController.shared.save()
+        }
+    }
+
+    // MARK: - Torch Closed Loop (spike)
+
+    /// Map the exposure-locked ROI onto the [0,1] scale measured by the startup
+    /// probe: 0 = torch-off floor, 1 = torch-on ceiling.
+    private func normalizedBackLuminance(_ y: Double) -> Double {
+        guard let cal = torchCalibration, cal.ceiling > cal.floor else { return 0 }
+        return min(max((y - cal.floor) / (cal.ceiling - cal.floor), 0), 1)
+    }
+
+    /// Advance the startup probe one tick. Pins the torch at torchProbeLevel
+    /// until torchProbeTicksNeeded torch-on samples are collected, then marks
+    /// the loop calibrated.
+    private func advanceTorchProbe(measured y: Double) {
+        switch torchProbeState {
+        case .idle:
+            torchProbeState = .probing
+            torchProbeTicks = 0
+            torchCalibration = (floor: y, ceiling: y)
+        case .probing:
+            if let cal = torchCalibration {
+                torchCalibration = (floor: cal.floor, ceiling: max(cal.ceiling, y))
+            }
+            torchProbeTicks += 1
+            if torchProbeTicks >= torchProbeTicksNeeded {
+                torchProbeState = .calibrated
+                if let cal = torchCalibration {
+                    print("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
+                }
+            }
+        case .calibrated:
+            break
         }
     }
 

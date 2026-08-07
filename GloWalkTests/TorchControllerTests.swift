@@ -30,6 +30,14 @@ final class TorchControllerTests: XCTestCase {
         XCTAssertEqual(c.step(setpoint: 1.0, measured: 0.0, active: true), 1.0)
     }
 
+    func testSeedLevelPicksNearestLevel() {
+        var c = TorchController(levels: levels, deadband: 0.04, hysteresis: 0.02)
+        c.seed(level: 0.7)
+        XCTAssertEqual(c.step(setpoint: 0.4, measured: 0.5, active: false), 0.75)
+        c.seed(level: 0.2)
+        XCTAssertEqual(c.step(setpoint: 0.4, measured: 0.5, active: false), 0.15)
+    }
+
     func testFreezesWhenInactive() {
         var c = TorchController(levels: levels, deadband: 0.04, hysteresis: 0.02)
         _ = c.step(setpoint: 0.4, measured: 0.2, active: true)   // → 0.15

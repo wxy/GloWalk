@@ -15,6 +15,24 @@ struct TorchController {
         self.hysteresis = hysteresis
     }
 
+    /// Seed the controller at the nearest discrete level (e.g. the previous
+    /// LightEngine target) so the loop doesn't start from 0 while the posture
+    /// gate is inactive — otherwise the torch turns off at walk start and then
+    /// ramps through every level when the gate first activates.
+    mutating func seed(level: Double) {
+        var best = 0
+        var bestDistance = Double.greatestFiniteMagnitude
+        for (index, candidate) in levels.enumerated() {
+            let distance = abs(candidate - level)
+            if distance < bestDistance {
+                bestDistance = distance
+                best = index
+            }
+        }
+        levelIndex = best
+        lastDirection = 0
+    }
+
     mutating func step(setpoint: Double, measured: Double, active: Bool) -> Double {
         guard active else { return levels[levelIndex] }
         let err = measured - setpoint

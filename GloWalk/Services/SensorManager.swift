@@ -77,6 +77,8 @@ final class SensorManager: ObservableObject {
         if let session = captureSession {
             NotificationCenter.default.removeObserver(self,
                 name: .AVCaptureSessionRuntimeError, object: session)
+            NotificationCenter.default.removeObserver(self,
+                name: .AVCaptureSessionWasInterrupted, object: session)
         }
         // Serialize with any in-flight startRunning() on sessionQueue.
         nonisolated(unsafe) let session = captureSession
@@ -201,7 +203,9 @@ final class SensorManager: ObservableObject {
             print("[Sensor] addBackCamera: canAddInput == false")
             return
         }
-        session.addInput(input)
+        // Multi-cam wiring is always explicit: add inputs/outputs without
+        // connections and form connections manually (WWDC19 session 249).
+        session.addInputWithNoConnections(input)
         print("[Sensor] addBackCamera: input added")
         setMultiCamFormat(on: back)
 
@@ -215,11 +219,20 @@ final class SensorManager: ObservableObject {
         }
         backDelegate = delegate
         out.setSampleBufferDelegate(delegate, queue: backQueue)
-        if session.canAddOutput(out) {
-            session.addOutput(out)
-            print("[Sensor] addBackCamera: output added")
-        } else {
+        guard session.canAddOutput(out) else {
             print("[Sensor] addBackCamera: canAddOutput == false")
+            return
+        }
+        session.addOutputWithNoConnections(out)
+        print("[Sensor] addBackCamera: output added")
+        if let port = input.ports.first(where: { $0.mediaType == .video }) {
+            let conn = AVCaptureConnection(inputPorts: [port], output: out)
+            if session.canAddConnection(conn) {
+                session.addConnection(conn)
+                print("[Sensor] addBackCamera: connection added")
+            } else {
+                print("[Sensor] addBackCamera: canAddConnection == false")
+            }
         }
         lockBackExposure()
     }
@@ -282,7 +295,6 @@ final class SensorManager: ObservableObject {
         } catch {
             print("[Sensor] Set continuous exposure failed: \(error)")
         }
-        session.addInput(input)
         let output = AVCaptureVideoDataOutput()
         // Request BGRA explicitly — without this, iOS delivers the device-native
         // format (NV12 on iPhones) and AmbientLightDelegate drops every frame.
@@ -306,7 +318,24 @@ final class SensorManager: ObservableObject {
         captureDelegate = delegate
         output.setSampleBufferDelegate(delegate,
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
-        session.addOutput(output)
+        if isMultiCam {
+            // Multi-cam wiring is always explicit: add inputs/outputs without
+            // connections and form connections manually (WWDC19 session 249).
+            session.addInputWithNoConnections(input)
+            session.addOutputWithNoConnections(output)
+            if let port = input.ports.first(where: { $0.mediaType == .video }) {
+                let conn = AVCaptureConnection(inputPorts: [port], output: output)
+                if session.canAddConnection(conn) {
+                    session.addConnection(conn)
+                    print("[Sensor] front connection added")
+                } else {
+                    print("[Sensor] front canAddConnection == false")
+                }
+            }
+        } else {
+            session.addInput(input)
+            session.addOutput(output)
+        }
         print("[Sensor] start: multiCam=\(isMultiCam) front output added")
         if isMultiCam {
             addBackCamera(to: session)
@@ -328,6 +357,10 @@ final class SensorManager: ObservableObject {
             selector: #selector(captureRuntimeError(_:)),
             name: .AVCaptureSessionRuntimeError,
             object: session)
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(sessionWasInterrupted(_:)),
+            name: .AVCaptureSessionWasInterrupted,
+            object: session)
         // Periodically re-trigger auto-exposure so the daylight detector doesn't
         // stay stuck on a stale exposure — mirrors the re-evaluation that
         // covering and uncovering the camera naturally triggers.
@@ -340,9 +373,28 @@ final class SensorManager: ObservableObject {
     }
 
     @objc private func captureRuntimeError(_ note: Notification) {
-        if let error = note.userInfo?[AVCaptureSessionErrorKey] as? Error {
-            print("[Sensor] capture runtime error: \(error.localizedDescription)")
+        if let error = note.userInfo?[AVCaptureSessionErrorKey] as? NSError {
+            print("[Sensor] capture runtime error: domain=\(error.domain) code=\(error.code) \(error.localizedDescription)")
+        } else {
+            print("[Sensor] capture runtime error: (no error payload)")
         }
+    }
+
+    @objc private func sessionWasInterrupted(_ note: Notification) {
+        var reasonDesc = "unknown"
+        if let reason = note.userInfo?[AVCaptureSessionInterruptionReasonKey] as? Int {
+            switch reason {
+            case AVCaptureSession.InterruptionReason.videoDeviceInUseByAnotherClient.rawValue:
+                reasonDesc = "videoDeviceInUseByAnotherClient"
+            case AVCaptureSession.InterruptionReason.videoDeviceNotAvailableDueToSystemPressure.rawValue:
+                reasonDesc = "videoDeviceNotAvailableDueToSystemPressure"
+            case AVCaptureSession.InterruptionReason.audioDeviceInUseByAnotherClient.rawValue:
+                reasonDesc = "audioDeviceInUseByAnotherClient"
+            default:
+                reasonDesc = "raw=\(reason)"
+            }
+        }
+        print("[Sensor] capture session interrupted: \(reasonDesc)")
     }
 
     /// Force the auto-exposure to re-converge to the current scene. Setting

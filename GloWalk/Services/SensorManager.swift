@@ -161,11 +161,14 @@ final class SensorManager: ObservableObject {
             let dims = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
             return dims.height >= 240 && dims.height <= 540
         }
+        print("[Sensor] setSmallFormat: \(device.position == .back ? "back" : "front") candidates=\(candidates.count)/\(device.formats.count)")
         guard let fmt = candidates.min(by: {
             let a = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
             let b = CMVideoFormatDescriptionGetDimensions($1.formatDescription)
             return a.width * a.height < b.width * b.height
         }) else { return }
+        let dims = CMVideoFormatDescriptionGetDimensions(fmt.formatDescription)
+        print("[Sensor] setSmallFormat: chosen \(dims.width)x\(dims.height)")
         do {
             try device.lockForConfiguration()
             device.activeFormat = fmt
@@ -182,8 +185,12 @@ final class SensorManager: ObservableObject {
         guard isMultiCam,
               let back = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: back) else { return }
-        guard session.canAddInput(input) else { return }
+        guard session.canAddInput(input) else {
+            print("[Sensor] addBackCamera: canAddInput == false")
+            return
+        }
         session.addInput(input)
+        print("[Sensor] addBackCamera: input added")
         setSmallFormat(on: back)
 
         let out = AVCaptureVideoDataOutput()
@@ -196,7 +203,12 @@ final class SensorManager: ObservableObject {
         }
         backDelegate = delegate
         out.setSampleBufferDelegate(delegate, queue: backQueue)
-        if session.canAddOutput(out) { session.addOutput(out) }
+        if session.canAddOutput(out) {
+            session.addOutput(out)
+            print("[Sensor] addBackCamera: output added")
+        } else {
+            print("[Sensor] addBackCamera: canAddOutput == false")
+        }
         lockBackExposure()
     }
 
@@ -221,6 +233,9 @@ final class SensorManager: ObservableObject {
 
     private func applyBackSample(_ sample: BackLuminanceSample, epoch: Int) {
         guard epoch == sessionEpoch else { return }
+        if backGroundLuminance == nil {
+            print("[Sensor] back first sample roi=\(sample.roi) full=\(sample.fullFrame)")
+        }
         backFullFrameLuminance = sample.fullFrame
         backGroundLuminance = sample.roi
     }
@@ -280,6 +295,7 @@ final class SensorManager: ObservableObject {
         output.setSampleBufferDelegate(delegate,
             queue: DispatchQueue(label: "glowalk.ambient", qos: .utility))
         session.addOutput(output)
+        print("[Sensor] start: multiCam=\(isMultiCam) front output added")
         if isMultiCam {
             addBackCamera(to: session)
         }
@@ -287,7 +303,16 @@ final class SensorManager: ObservableObject {
         nonisolated(unsafe) let s = session
         sessionQueue.async {
             s.startRunning()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                Task { @MainActor in
+                    print("[Sensor] session isRunning=\(s.isRunning) multiCam=\(self.isMultiCam)")
+                }
+            }
         }
+        NotificationCenter.default.addObserver(self,
+            selector: #selector(captureRuntimeError(_:)),
+            name: .AVCaptureSessionRuntimeError,
+            object: session)
         // Periodically re-trigger auto-exposure so the daylight detector doesn't
         // stay stuck on a stale exposure — mirrors the re-evaluation that
         // covering and uncovering the camera naturally triggers.
@@ -296,6 +321,12 @@ final class SensorManager: ObservableObject {
             Task { @MainActor in
                 self?.refreshAutoExposure()
             }
+        }
+    }
+
+    @objc private func captureRuntimeError(_ note: Notification) {
+        if let error = note.userInfo?[AVCaptureSessionErrorKey] as? Error {
+            print("[Sensor] capture runtime error: \(error.localizedDescription)")
         }
     }
 
@@ -624,6 +655,7 @@ private struct BackLuminanceSample {
 private final class BackLuminanceDelegate: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private let onSample: (BackLuminanceSample) -> Void
     private var lastEmitTime: Date = .distantPast
+    private var emittedCount = 0
 
     init(onSample: @escaping (BackLuminanceSample) -> Void) {
         self.onSample = onSample
@@ -645,6 +677,10 @@ private final class BackLuminanceDelegate: NSObject, AVCaptureVideoDataOutputSam
               let baseAddress = CVPixelBufferGetBaseAddress(pixelBuffer) else { return }
         let width = CVPixelBufferGetWidth(pixelBuffer)
         let height = CVPixelBufferGetHeight(pixelBuffer)
+        emittedCount += 1
+        if emittedCount == 1 {
+            print("[Sensor] back frame: \(width)x\(height) format=\(CVPixelBufferGetPixelFormatType(pixelBuffer))")
+        }
         let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
         let bytesPerPixel = 4
         let step = 8

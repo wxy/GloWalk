@@ -53,6 +53,7 @@ final class HUDViewModel: ObservableObject {
     private var torchController = TorchController(
         levels: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0],
         deadband: 0.04, hysteresis: 0.02)
+    private var loggedBackFallback = false
     let sensorManager = SensorManager()
     let weatherService = WeatherService()
     let locationManager = LocationManager()
@@ -160,6 +161,10 @@ final class HUDViewModel: ObservableObject {
             isTorchOccluded = false
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
+        if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
+            loggedBackFallback = true
+            print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
+        }
         if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
             let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
                                 isOccluded: sensorManager.isOccluded,

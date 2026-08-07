@@ -103,7 +103,10 @@ struct HistoryListView: View {
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
         .fullScreenCover(item: $selectedSession) { session in
-            HistoryPosterView(session: session)
+            HistoryPosterView(
+                sessions: Array(sessions),
+                initialIndex: sessions.firstIndex(where: { $0.objectID == session.objectID }) ?? 0
+            )
         }
     }
 
@@ -169,11 +172,21 @@ struct HistoryListView: View {
 // MARK: - History Poster
 
 struct HistoryPosterView: View {
-    let session: WalkSession
+    /// All history records, newest first (same order as the list) — the poster
+    /// swipes left/right through them.
+    let sessions: [WalkSession]
     @Environment(\.dismiss) private var dismiss
+    @State private var index: Int
     @State private var posterImage: UIImage?
     @State private var showShareSheet = false
     @State private var savedToPhotos = false
+
+    init(sessions: [WalkSession], initialIndex: Int) {
+        self.sessions = sessions
+        _index = State(initialValue: min(max(initialIndex, 0), max(sessions.count - 1, 0)))
+    }
+
+    private var currentSession: WalkSession { sessions[index] }
 
     var body: some View {
         ZStack {
@@ -182,7 +195,15 @@ struct HistoryPosterView: View {
                 ZStack {
                     Image(uiImage: poster).resizable().scaledToFill().ignoresSafeArea()
                         .gesture(DragGesture(minimumDistance: 40).onEnded { v in
-                            if v.translation.height > 60 { dismiss() }
+                            // Down → back to the history list; left/right →
+                            // next/previous record (list order: newest first).
+                            if v.translation.height > 60 {
+                                dismiss()
+                            } else if v.translation.width < -60, index + 1 < sessions.count {
+                                switchTo(index + 1)
+                            } else if v.translation.width > 60, index > 0 {
+                                switchTo(index - 1)
+                            }
                         })
                     VStack {
                         Spacer()
@@ -212,8 +233,17 @@ struct HistoryPosterView: View {
                 ProgressView().tint(.gloGold)
             }
         }
-        .task {
-            posterImage = await PosterGenerator.generate(session: session)
+        .task(id: index) {
+            posterImage = await PosterGenerator.generate(session: currentSession)
         }
+    }
+
+    /// Swap to another record: clear the current poster so the progress
+    /// spinner shows while the new one renders, and forget the stale
+    /// "saved to photos" state.
+    private func switchTo(_ newIndex: Int) {
+        savedToPhotos = false
+        posterImage = nil
+        index = newIndex
     }
 }

@@ -118,24 +118,15 @@ final class PosterGenerator {
     /// Large celestial body peeking into the top-left corner: the disc is
     /// centred up-left of the canvas so only its lower-right arc is visible.
     /// The visible arc spans ~0.54 of the poster width (the disc itself is
-    /// 1.6×), so the sun/moon reads as a prominent backdrop. A gold ring
-    /// frames the disc so even the nearly-black new moon stays visible.
-    /// The arc's rim falls in the track band's far-left corner — a dark part
-    /// of the disc — so the gold track stays readable without recolouring it.
+    /// 1.6×), so the sun/moon reads as a prominent backdrop. The arc's rim
+    /// falls in the track band's far-left corner — a dark part of the disc —
+    /// so the gold track stays readable without recolouring it.
     private static func drawCelestialCorner(_ image: UIImage?, size: CGSize,
                                              ctx: UIGraphicsRendererContext) {
         let radius = size.width * 0.80
         let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
         let celestialRect = CGRect(x: center.x - radius, y: center.y - radius,
                                    width: radius * 2, height: radius * 2)
-
-        // Gold ring — frames the disc and keeps a dark new moon visible on the
-        // black background.
-        let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
-        let ring = UIBezierPath(ovalIn: celestialRect)
-        gold.withAlphaComponent(0.40).setStroke()
-        ring.lineWidth = max(3, size.width * 0.004)
-        ring.stroke()
 
         // Clip to the disc itself so the image's black square corners never
         // show, then draw the lower-right arc over the night-sky background.

@@ -141,16 +141,38 @@ final class SensorManager: ObservableObject {
     private func makeSession() -> AVCaptureSession {
         if isMultiCam {
             let s = AVCaptureMultiCamSession()
-            // AVCaptureMultiCamSession does NOT support the .low preset
-            // (photo/high/medium/inputPriority only) — .low crashes with
-            // NSInvalidArgumentException. .medium keeps the 2Hz stride-8
-            // sampling cheap while leaving enough pixels for the ground ROI.
-            s.sessionPreset = .medium
+            // AVCaptureMultiCamSession's preset is ALWAYS .inputPriority —
+            // setting .low/.medium/… throws NSInvalidArgumentException on
+            // device. Formats are chosen per camera (setSmallFormat).
+            s.sessionPreset = .inputPriority
             return s
         }
         let s = AVCaptureSession()
         s.sessionPreset = .low
         return s
+    }
+
+    /// With .inputPriority the session won't pick formats for us; keep each
+    /// camera cheap by choosing the smallest format whose height is 240…540
+    /// (≈ 480×360 on iPhones) — plenty for stride-8 sampling, and far less
+    /// pipeline bandwidth/heat than the camera's default 1080p/4K.
+    private func setSmallFormat(on device: AVCaptureDevice) {
+        let candidates = device.formats.filter {
+            let dims = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+            return dims.height >= 240 && dims.height <= 540
+        }
+        guard let fmt = candidates.min(by: {
+            let a = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
+            let b = CMVideoFormatDescriptionGetDimensions($1.formatDescription)
+            return a.width * a.height < b.width * b.height
+        }) else { return }
+        do {
+            try device.lockForConfiguration()
+            device.activeFormat = fmt
+            device.unlockForConfiguration()
+        } catch {
+            print("[Sensor] Set small format failed: \(error)")
+        }
     }
 
     /// Add the back camera (multi-cam only) and lock its exposure, so its
@@ -162,6 +184,7 @@ final class SensorManager: ObservableObject {
               let input = try? AVCaptureDeviceInput(device: back) else { return }
         guard session.canAddInput(input) else { return }
         session.addInput(input)
+        setSmallFormat(on: back)
 
         let out = AVCaptureVideoDataOutput()
         out.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
@@ -220,6 +243,7 @@ final class SensorManager: ObservableObject {
         }
 
         captureDevice = device
+        setSmallFormat(on: device)
         // Continuous auto-exposure so the camera naturally tracks the scene
         // light between the periodic re-triggers.
         do {

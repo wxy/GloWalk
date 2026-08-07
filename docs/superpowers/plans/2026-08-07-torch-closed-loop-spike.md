@@ -138,8 +138,9 @@ private var isMultiCam: Bool {
 private func makeSession() -> AVCaptureSession {
     if isMultiCam {
         let s = AVCaptureMultiCamSession()
-        // AVCaptureMultiCamSession does NOT support .low — use .medium.
-        s.sessionPreset = .medium
+        // AVCaptureMultiCamSession's preset is always .inputPriority —
+        // any other preset throws on device. Pick per-camera formats instead.
+        s.sessionPreset = .inputPriority
         return s
     }
     let s = AVCaptureSession()

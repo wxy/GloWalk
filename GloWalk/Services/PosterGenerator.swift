@@ -4,21 +4,22 @@ final class PosterGenerator {
     @MainActor
     static func generate(session: WalkSession) async -> UIImage {
         let size = UIScreen.main.nativeBounds.size
-        let moonImage = loadMoonImage(phase: session.wrappedMoonPhase)
+        let celestialImage = loadCelestialImage(for: session.wrappedStartTime,
+                                                moonPhase: session.wrappedMoonPhase)
         // Render the heavy UIGraphics pass on a background executor so the
         // main thread isn't blocked during the end-of-walk transition. The
         // session data is fully loaded (the walk just ended, no concurrent
         // Core Data writes), so reading it off-main is safe here.
         nonisolated(unsafe) let s = session
         return await Task.detached(priority: .userInitiated) {
-            render(session: s, size: size, moonImage: moonImage)
+            render(session: s, size: size, celestialImage: celestialImage)
         }.value
     }
 
     /// The actual UIGraphicsImageRenderer pass — runs off the main thread.
     nonisolated private static func render(session: WalkSession,
                                            size: CGSize,
-                                           moonImage: UIImage?) -> UIImage {
+                                           celestialImage: UIImage?) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
         let gold = UIColor(red: 0.769, green: 0.643, blue: 0.290, alpha: 1)
 
@@ -29,8 +30,9 @@ final class PosterGenerator {
             // Centered app icon watermark — brand identity
             drawAppIconWatermark(size: size, ctx: ctx)
 
-            // Moon phase image in top-right corner — tonight's actual moon
-            drawMoonCorner(moonImage, size: size, ctx: ctx)
+            // Celestial image in the top-left corner — the sun by day, the
+            // actual moon phase by night, chosen from the walk's own time.
+            drawCelestialCorner(celestialImage, size: size, ctx: ctx)
 
             // Constellation path overlay
             drawConstellationPath(session: session, size: size, ctx: ctx)
@@ -46,11 +48,20 @@ final class PosterGenerator {
         }
     }
 
-    // MARK: - Moon Image Loading
+    // MARK: - Celestial Image Loading
 
-    static func loadMoonImage(phase: String) -> UIImage? {
-        guard let img = UIImage(named: "\(phase).jpg") else {
-            print("[Poster] Moon image NOT found: \(phase).jpg")
+    /// Which celestial image the poster should show for a walk that started at
+    /// `date`: the sun by day, the moon-phase photo by night. The day/night rule
+    /// mirrors the HUD's celestial indicator (night = 18:00–05:59).
+    static func celestialImageName(for date: Date, moonPhase: String) -> String {
+        let hour = Calendar.current.component(.hour, from: date)
+        return (hour >= 18 || hour < 6) ? moonPhase : "sun"
+    }
+
+    static func loadCelestialImage(for date: Date, moonPhase: String) -> UIImage? {
+        let name = celestialImageName(for: date, moonPhase: moonPhase)
+        guard let img = UIImage(named: "\(name).jpg") else {
+            print("[Poster] Celestial image NOT found: \(name).jpg")
             return nil
         }
         return img
@@ -102,27 +113,29 @@ final class PosterGenerator {
         ctx.cgContext.restoreGState()
     }
 
-    // MARK: - Moon Phase Corner Decoration
+    // MARK: - Celestial Corner Decoration
 
-    private static func drawMoonCorner(_ image: UIImage?, size: CGSize,
-                                        ctx: UIGraphicsRendererContext) {
+    /// Large celestial body peeking into the top-left corner: the disc is
+    /// centred up-left of the canvas so only its lower-right arc is visible.
+    /// The visible arc spans ~0.54 of the poster width (the disc itself is
+    /// 1.6×), so the sun/moon reads as a prominent backdrop. The arc's rim
+    /// falls in the track band's far-left corner — a dark part of the disc —
+    /// so the gold track stays readable without recolouring it.
+    private static func drawCelestialCorner(_ image: UIImage?, size: CGSize,
+                                             ctx: UIGraphicsRendererContext) {
+        let radius = size.width * 0.80
+        let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
+        let celestialRect = CGRect(x: center.x - radius, y: center.y - radius,
+                                   width: radius * 2, height: radius * 2)
+
+        // Clip to the disc itself so the image's black square corners never
+        // show, then draw the lower-right arc over the night-sky background.
         guard let img = image else { return }
-
-        let moonDim: CGFloat = 60
-        let padding: CGFloat = 16
-        let moonRect = CGRect(
-            x: padding,
-            y: 100,
-            width: moonDim,
-            height: moonDim
-        )
-
-        // Circular clip only — no ring
-        let clipPath = UIBezierPath(ovalIn: moonRect)
+        let clipPath = UIBezierPath(ovalIn: celestialRect)
         ctx.cgContext.saveGState()
         clipPath.addClip()
-        ctx.cgContext.setAlpha(0.40)
-        img.draw(in: moonRect)
+        ctx.cgContext.setAlpha(0.55)
+        img.draw(in: celestialRect)
         ctx.cgContext.restoreGState()
     }
 
@@ -181,7 +194,7 @@ final class PosterGenerator {
 
         drawCenteredText("\(dateStr)  \(moonName)",
             font: wenKaiMedium(28),
-            color: gold, y: 60, size: size, ctx: ctx)
+            color: gold, y: 60, size: size, ctx: ctx, shadow: true)
     }
 
     // MARK: - Stats Card
@@ -246,10 +259,18 @@ final class PosterGenerator {
     // MARK: - Helpers
 
     private static func drawCenteredText(_ text: String, font: UIFont, color: UIColor,
-                                          y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext) {
+                                          y: CGFloat, size: CGSize, ctx: UIGraphicsRendererContext,
+                                          shadow: Bool = false) {
         let margin = size.width * 0.08
         let p = NSMutableParagraphStyle(); p.alignment = .center
-        let attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
+        var attrs: [NSAttributedString.Key: Any] = [.font: font, .foregroundColor: color, .paragraphStyle: p]
+        if shadow {
+            let s = NSShadow()
+            s.shadowColor = UIColor.black.withAlphaComponent(0.85)
+            s.shadowBlurRadius = 6
+            s.shadowOffset = CGSize(width: 0, height: 2)
+            attrs[.shadow] = s
+        }
         (text as NSString).draw(in: CGRect(x: margin, y: y, width: size.width - margin * 2, height: 150),
                                 withAttributes: attrs)
     }

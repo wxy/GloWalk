@@ -56,6 +56,70 @@ struct HUDView: View {
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
     }
 
+    /// Day/night celestial marker (top-left) with the current weather badge
+    /// overlapping its lower-right edge. Night shows the real moon-phase photo;
+    /// day shows the NASA/SDO sun photo (public domain). The badge appears only
+    /// for non-clear conditions — a bare sun/moon already means "clear".
+    private var celestialIndicator: some View {
+        ZStack(alignment: .bottomTrailing) {
+            if isNightTime {
+                if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                    Image(uiImage: moonImg)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        .opacity(0.45)
+                } else {
+                    Image(systemName: "moon.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gloGold.opacity(0.55))
+                }
+            } else {
+                if let sunImg = UIImage(named: "sun.jpg") {
+                    Image(uiImage: sunImg)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        .opacity(0.5)
+                } else {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gloGold.opacity(0.55))
+                }
+            }
+
+            if let condition = viewModel.weatherService.currentCondition,
+               let symbol = Self.weatherSymbol(condition) {
+                Image(systemName: symbol)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white.opacity(0.9))
+                    .padding(4)
+                    .background(Circle().fill(Color.black.opacity(0.5)))
+                    .offset(x: 3, y: 3)
+            }
+        }
+        .frame(width: 52, height: 52)
+        .padding(.leading, 12)
+        .padding(.top, 8)
+    }
+
+    /// SF Symbol for a normalized weather condition (the strings
+    /// WeatherService.normalize produces). "clear" returns nil — the sun/moon
+    /// itself already expresses it.
+    private static func weatherSymbol(_ condition: String) -> String? {
+        switch condition {
+        case "cloud":        return "cloud.fill"
+        case "fog":          return "cloud.fog.fill"
+        case "drizzle":      return "cloud.drizzle.fill"
+        case "rain":         return "cloud.rain.fill"
+        case "snow":         return "cloud.snow.fill"
+        case "thunderstorm": return "cloud.bolt.rain.fill"
+        default:             return nil
+        }
+    }
+
     @State private var isManual = false
     @State private var isEnding = false
     @State private var showSettings = false
@@ -96,17 +160,7 @@ struct HUDView: View {
                 topNoticeBar
 
                 HStack {
-                    if isNightTime,
-                   let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
-                        Image(uiImage: moonImg)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                            .opacity(0.45)
-                            .padding(.leading, 12)
-                            .padding(.top, 8)
-                    }
+                    celestialIndicator
                     Spacer()
                 }
                 Spacer()

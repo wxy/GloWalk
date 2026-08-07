@@ -286,8 +286,9 @@ struct HistoryPosterView: View {
         }
     }
 
-    /// Slide the current page out in the drag direction, swap the index, then
-    /// slide the new page in from the opposite side — the album feel.
+    /// Slide the current page out in the drag direction and swap the index.
+    /// The new page has already slid in to its resting position during the
+    /// drag/slide-out, so we land it exactly at 0 — no re-slide, no reload.
     private func slide(to newIndex: Int) {
         isSwitching = true
         let direction: CGFloat = newIndex > index ? -1 : 1
@@ -299,10 +300,7 @@ struct HistoryPosterView: View {
             index = newIndex
             // Keep only the pages we can still reach, so memory stays bounded.
             posters = posters.filter { abs($0.key - newIndex) <= 1 }
-            dragOffset = -direction * screenWidth
-            withAnimation(.easeOut(duration: 0.22)) {
-                dragOffset = 0
-            }
+            dragOffset = 0
             isSwitching = false
         }
     }

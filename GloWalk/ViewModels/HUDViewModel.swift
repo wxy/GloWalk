@@ -48,6 +48,11 @@ final class HUDViewModel: ObservableObject {
     private var cadenceDeltas: [Int] = []
 
     let lightEngine = LightEngine()
+    /// Spike: closed-loop torch controller. Setpoint 0.4 is the fixed spike
+    /// target; weather/dark-adaptation modifiers plug in later.
+    private var torchController = TorchController(
+        levels: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0],
+        deadband: 0.04, hysteresis: 0.02)
     let sensorManager = SensorManager()
     let weatherService = WeatherService()
     let locationManager = LocationManager()
@@ -155,7 +160,20 @@ final class HUDViewModel: ObservableObject {
             isTorchOccluded = false
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
-        if !isTorchOccluded && !torchPaused {
+        if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
+            // 闭环接管手电；遮挡/暂停按全局约束优先关灯，闭环冻结值不得覆盖。
+            if sensorManager.isOccluded || torchPaused {
+                brightness = 0
+            } else {
+                let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
+                                    isOccluded: sensorManager.isOccluded,
+                                    isDaylight: isDaylight,
+                                    isTorchPaused: torchPaused)
+                brightness = torchController.step(setpoint: 0.4, measured: y, active: gate.isActive)
+            }
+            sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
+        } else if !isTorchOccluded && !torchPaused {
             lightEngine.update(sensors: snap)
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)

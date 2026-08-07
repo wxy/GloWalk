@@ -58,8 +58,8 @@ struct HUDView: View {
 
     /// Day/night celestial marker (top-left) with the current weather badge
     /// overlapping its lower-right edge. Night shows the real moon-phase photo;
-    /// day shows a gold sun. The badge appears only for non-clear conditions —
-    /// a bare sun/moon already means "clear".
+    /// day shows the NASA/SDO sun photo (public domain). The badge appears only
+    /// for non-clear conditions — a bare sun/moon already means "clear".
     private var celestialIndicator: some View {
         ZStack(alignment: .bottomTrailing) {
             if isNightTime {
@@ -76,9 +76,18 @@ struct HUDView: View {
                         .foregroundColor(.gloGold.opacity(0.55))
                 }
             } else {
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: 40))
-                    .foregroundColor(.gloGold.opacity(0.55))
+                if let sunImg = UIImage(named: "sun.jpg") {
+                    Image(uiImage: sunImg)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 44, height: 44)
+                        .clipShape(Circle())
+                        .opacity(0.5)
+                } else {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(.gloGold.opacity(0.55))
+                }
             }
 
             if let condition = viewModel.weatherService.currentCondition,

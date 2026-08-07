@@ -536,7 +536,11 @@ final class SensorManager: ObservableObject {
 
         // Boost only after daylight is debounce-confirmed so the torch-off and
         // the "bright light" notice happen together.
-        ambientLightLevel = isDaylight ? max(sample.level, 0.85) : sample.level
+        let rawLevel = isDaylight ? max(sample.level, 0.85) : sample.level
+        // EMA smoothing: the exposure proxy jitters as auto-exposure hunts, and
+        // the raw level would flicker the label and the 1-ambient torch
+        // fallback between ticks. Half-life ≈ one sample (~0.5s).
+        ambientLightLevel = ambientLightLevel * 0.5 + rawLevel * 0.5
     }
 
     // MARK: - Motion
@@ -696,13 +700,13 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         let iso = Double(device.iso)
         let exposureSec = Double(device.exposureDuration.seconds)
         let lightProxy = 1.0 / max(exposureSec * iso, 1e-9)
-        // Ambient level = saturating map of the exposure proxy, so a lit indoor
-        // room (proxy ~2-6) reads ~0.9 ("bright") and a dark room (proxy <0.1)
-        // reads ~0.1, instead of both reading ~0.5 from the pixel average. The
-        // boost to 0.85 is still applied in applyAmbientSample only once
-        // daylight is debounce-confirmed; the bright/not-bright decision uses
-        // hysteresis on level/lightProxy (see brightEnter/ExitThreshold).
-        let level = min(max(1.0 - exp(-lightProxy), 0.0), 1.0)
+        // Ambient level = saturating map of the exposure proxy. Calibration
+        // (device campaign, 2026-08-08): a well-lit indoor room meters at
+        // proxy ≈ 0.08–0.33 and a night scene at proxy ≈ 0.005–0.03, so the
+        // knee is placed at proxy ≈ 0.07 — a well-lit room reads ~0.8–0.9
+        // ("bright"), a dim room ~0.5–0.7, night ~0.05–0.1, instead of the
+        // old pixel average which auto-exposure pinned near 0.5 everywhere.
+        let level = min(max(1.0 - exp(-lightProxy / 0.07), 0.0), 1.0)
         onSample(AmbientSample(level: level, lightProxy: lightProxy))
     }
 }

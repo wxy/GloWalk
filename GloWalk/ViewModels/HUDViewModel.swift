@@ -207,7 +207,8 @@ final class HUDViewModel: ObservableObject {
             print("TLM," + TorchMeasurementLog.row(
                 timestamp: Date(), torchLevel: brightness,
                 fullFrame: sensorManager.backFullFrameLuminance ?? -1, roi: y,
-                pitch: sensorManager.devicePitch, active: gate.isActive))
+                pitch: sensorManager.devicePitch, active: gate.isActive,
+                ambient: sensorManager.ambientLightLevel))
             #endif
         } else if !isTorchOccluded && !torchPaused {
             lightEngine.update(sensors: snap)

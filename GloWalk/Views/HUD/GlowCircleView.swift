@@ -149,14 +149,6 @@ struct GlowCircleView: View {
         private let segmentCount = 10
         private let gapDegrees: Double = 3.5
 
-        private static let factorColors: [Color] = [
-            .white.opacity(0.55),                                    // ambient
-            Color(red: 0.35, green: 0.65, blue: 1.0),                // posture
-            Color(red: 0.75, green: 0.45, blue: 1.0),                // dark adaptation
-            Color(red: 1.0, green: 0.80, blue: 0.30),                // moon
-            Color(red: 0.30, green: 0.90, blue: 0.90)                // weather
-        ]
-
         var body: some View {
             ZStack {
                 ForEach(0..<segmentCount, id: \.self) { i in
@@ -203,7 +195,7 @@ struct GlowCircleView: View {
                 }
                 acc += span
             }
-            return bestIndex.map { Self.factorColors[$0] }
+            return bestIndex.map { Color.gloFactorPalette[$0] }
         }
     }
 }

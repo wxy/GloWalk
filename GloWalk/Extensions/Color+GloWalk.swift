@@ -12,4 +12,17 @@ extension Color {
     static let gloBlack        = Color(red: 0, green: 0, blue: 0)
     static let gloBlackCard    = Color(red: 0.039, green: 0.039, blue: 0.039)
     static let gloBlackSurface = Color(red: 0.102, green: 0.102, blue: 0.102)
+
+    // Factor colors — shared between the HUD rings' deduction segments and the
+    // factor-row dots, so the two stay visually linked.
+    static let gloFactorAmbient  = Color.white.opacity(0.55)
+    static let gloFactorPosture  = Color(red: 0.35, green: 0.65, blue: 1.0)
+    static let gloFactorDark     = Color(red: 0.75, green: 0.45, blue: 1.0)
+    static let gloFactorMoon     = Color(red: 1.0, green: 0.80, blue: 0.30)
+    static let gloFactorWeather  = Color(red: 0.30, green: 0.90, blue: 0.90)
+    /// Ordered ambient/posture/dark/moon/weather — matches factorShares order.
+    static let gloFactorPalette: [Color] = [
+        gloFactorAmbient, gloFactorPosture,
+        gloFactorDark, gloFactorMoon, gloFactorWeather
+    ]
 }

@@ -314,6 +314,12 @@ struct HUDView: View {
                     .lineLimit(1)
                     .foregroundColor(cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7)))
                 HStack(spacing: 2) {
+                    // Color dot matches the factor's ring-segment color, so the
+                    // deduction segments on the glow rings are traceable back to
+                    // this row.
+                    Circle()
+                        .fill(factorColor(cell.id))
+                        .frame(width: 4, height: 4)
                     Image(systemName: cell.icon)
                         .font(.system(size: 8))
                     Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
@@ -335,6 +341,16 @@ struct HUDView: View {
     private struct FactorCell {
         let icon: String; let label: String; let delta: Int
         let active: Bool; let id: String
+    }
+
+    private func factorColor(_ id: String) -> Color {
+        switch id {
+        case "posture": return Color.gloFactorPosture
+        case "dark":    return Color.gloFactorDark
+        case "moon":    return Color.gloFactorMoon
+        case "weather": return Color.gloFactorWeather
+        default:        return Color.gloFactorAmbient
+        }
     }
 
     // Convenience accessors for factor card data

@@ -322,10 +322,15 @@ struct HUDView: View {
                     .frame(height: 4)
                     // Per-segment glow so the brightness bars read as the lit
                     // "level" elements and stand apart from the factor row.
-                    .shadow(color: lit ? fillColor.opacity(0.9) : .clear,
-                            radius: lit ? 2.5 : 0)
-                    .shadow(color: lit ? fillColor.opacity(0.55) : .clear,
-                            radius: lit ? 7 : 0)
+                    // Three stacked shadows (tight core + wide bloom) so the
+                    // glow survives the dim screen brightness the app applies
+                    // at night.
+                    .shadow(color: lit ? fillColor.opacity(1.0) : .clear,
+                            radius: lit ? 3 : 0)
+                    .shadow(color: lit ? fillColor.opacity(0.8) : .clear,
+                            radius: lit ? 8 : 0)
+                    .shadow(color: lit ? fillColor.opacity(0.45) : .clear,
+                            radius: lit ? 15 : 0)
             }
             glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
         }

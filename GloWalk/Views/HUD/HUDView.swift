@@ -148,8 +148,6 @@ struct HUDView: View {
 
                 // Central glow — double-tap to end
                 GlowCircleView(brightness: viewModel.brightness,
-                              screenBrightness: viewModel.screenBrightness,
-                              factorShares: viewModel.factorShares,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
                     .onTapGesture(count: 2) {
@@ -214,6 +212,10 @@ struct HUDView: View {
 
                 Spacer().frame(height: 12)
 
+                // Brightness progress lines directly above the factor row so
+                // the levels and the factor deductions read as one unit.
+                brightnessProgressLines
+
                 // Status row + bottom bar — tight grouping
                 topStatusRow
 
@@ -275,6 +277,50 @@ struct HUDView: View {
     }
 
     // MARK: - Status Row
+
+    /// Two thin 10-segment progress lines: screen brightness fills left-to-right
+    /// (white, ☀ at the start), torch brightness fills right-to-left (warm,
+    /// 🔦 at the start). Coarse levels only — the factor row below explains the
+    /// gap to 100%.
+    private var brightnessProgressLines: some View {
+        VStack(spacing: 3) {
+            progressLine(value: viewModel.screenBrightness,
+                         fillColor: .white,
+                         glyph: "sun.max.fill",
+                         leadingToTrailing: true)
+            progressLine(value: viewModel.brightness,
+                         fillColor: Color.gloTorchCore,
+                         glyph: "flashlight.on.fill",
+                         leadingToTrailing: false)
+                .opacity(viewModel.torchPaused ? 0.35 : 1.0)
+        }
+        .padding(.horizontal, 12)
+    }
+
+    private func progressLine(value: Double, fillColor: Color,
+                              glyph: String, leadingToTrailing: Bool) -> some View {
+        let filled = min(max(Int((value * 10).rounded()), 0), 10)
+        return HStack(spacing: 2) {
+            if leadingToTrailing {
+                Image(systemName: glyph)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundColor(fillColor.opacity(0.9))
+            }
+            ForEach(0..<10, id: \.self) { i in
+                let lit = leadingToTrailing ? i < filled : i >= 10 - filled
+                Capsule()
+                    .fill(lit ? fillColor : Color.white.opacity(0.12))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 4)
+            }
+            if !leadingToTrailing {
+                Image(systemName: glyph)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundColor(fillColor.opacity(0.9))
+            }
+        }
+        .animation(.easeOut(duration: 0.25), value: filled)
+    }
 
     /// 5-factor row weighted by influence: ambient 40%, rest 15% each
     private var topStatusRow: some View {

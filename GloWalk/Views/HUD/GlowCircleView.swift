@@ -2,10 +2,6 @@ import SwiftUI
 
 struct GlowCircleView: View {
     let brightness: Double
-    let screenBrightness: Double
-    /// Factor shortfall proportions (ambient/posture/dark/moon/weather, sum 1)
-    /// — colors the unfilled ring segments that the factors "deduct".
-    let factorShares: [Double]
     let cadence: Double
     let isPaused: Bool
 
@@ -17,13 +13,6 @@ struct GlowCircleView: View {
     /// Icon opacity scales with brightness:
     /// dim torch → ghost outline; full torch → clearly visible brand mark.
     private var iconOpacity: Double { 0.20 + warmth * 0.70 }
-
-    private var torchSegments: Int {
-        min(max(Int((brightness * 10).rounded()), 0), 10)
-    }
-    private var screenSegments: Int {
-        min(max(Int((screenBrightness * 10).rounded()), 0), 10)
-    }
 
     var body: some View {
         ZStack {
@@ -63,38 +52,6 @@ struct GlowCircleView: View {
             )
             .frame(width: 160, height: 160)
 
-            // Layer 3: Torch ring — clockwise, 10 segments. Filled segments =
-            // torch brightness (coarse); the rest are the factor deductions,
-            // each colored by the responsible factor. A blurred copy underneath
-            // gives the thin line a soft glow.
-            glowingRing(filled: torchSegments,
-                        filledColor: Color.gloTorchCore,
-                        diameter: 112)
-                .opacity(isPaused ? 0.35 : 1.0)
-
-            // Layer 4: Screen ring — counterclockwise (mirrored), 10 segments.
-            // Filled = screen brightness; same factor attribution for the rest.
-            glowingRing(filled: screenSegments,
-                        filledColor: .white,
-                        diameter: 130)
-                .scaleEffect(x: -1, y: 1)
-                .opacity(0.85)
-
-            // Ring anchors at 12 o'clock: 🔦 marks the torch ring's start
-            // (fills clockwise), ☀ marks the screen ring's start (fills
-            // counterclockwise) — without them the bare rings read as abstract
-            // decoration.
-            Image(systemName: "flashlight.on.fill")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(Color.gloTorchCore.opacity(0.95))
-                .shadow(color: Color.gloTorchCore.opacity(0.7), radius: 2)
-                .offset(y: -50)
-            Image(systemName: "sun.max.fill")
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.9))
-                .shadow(color: .white.opacity(0.5), radius: 2)
-                .offset(y: -69)
-
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
                 Text(L10n.hintEndWalk)
@@ -121,81 +78,4 @@ struct GlowCircleView: View {
         }
     }
 
-    /// One coarse 10-segment ring. Filled segments run from the top (12
-    /// o'clock); the remaining segments are apportioned to the five factors by
-    /// their shortfall shares. Factors don't need to be whole 10% units — each
-    /// segment is colored by whichever factor dominates its span.
-    private func glowingRing(filled: Int, filledColor: Color, diameter: CGFloat) -> some View {
-        ZStack {
-            SegmentedRing(filledSegments: filled, shares: factorShares,
-                          filledColor: filledColor, diameter: diameter,
-                          lineWidth: 1.5)
-                .blur(radius: 2.5)
-                .opacity(0.5)
-            SegmentedRing(filledSegments: filled, shares: factorShares,
-                          filledColor: filledColor, diameter: diameter,
-                          lineWidth: 1.5)
-        }
-        .animation(.easeOut(duration: 0.35), value: filled)
-    }
-
-    private struct SegmentedRing: View {
-        let filledSegments: Int
-        let shares: [Double]
-        let filledColor: Color
-        let diameter: CGFloat
-        let lineWidth: CGFloat
-
-        private let segmentCount = 10
-        private let gapDegrees: Double = 3.5
-
-        var body: some View {
-            ZStack {
-                ForEach(0..<segmentCount, id: \.self) { i in
-                    Circle()
-                        .trim(from: segmentStart(i), to: segmentEnd(i))
-                        .stroke(segmentColor(index: i),
-                                style: StrokeStyle(lineWidth: lineWidth,
-                                                   lineCap: .butt))
-                        .rotationEffect(.degrees(-90))
-                }
-            }
-            .frame(width: diameter, height: diameter)
-        }
-
-        private func segmentStart(_ i: Int) -> CGFloat {
-            CGFloat(Double(i) / Double(segmentCount) + gapDegrees / 720.0)
-        }
-        private func segmentEnd(_ i: Int) -> CGFloat {
-            CGFloat(Double(i + 1) / Double(segmentCount) - gapDegrees / 720.0)
-        }
-
-        private func segmentColor(index: Int) -> Color {
-            if index < filledSegments { return filledColor }
-            return deductionColor(forSegment: index) ?? Color.white.opacity(0.10)
-        }
-
-        /// Dominant factor covering this segment's span within the deduction
-        /// space, if any.
-        private func deductionColor(forSegment index: Int) -> Color? {
-            let total = shares.reduce(0, +)
-            guard total > 0.0001, filledSegments < segmentCount else { return nil }
-            let dedCount = Double(segmentCount - filledSegments)
-            let segStart = Double(index - filledSegments) / dedCount
-            let segEnd = Double(index - filledSegments + 1) / dedCount
-            var acc = 0.0
-            var bestIndex: Int?
-            var bestOverlap = 0.0
-            for (i, share) in shares.enumerated() {
-                let span = share / total
-                let overlap = max(0, min(segEnd, acc + span) - max(segStart, acc))
-                if overlap > bestOverlap {
-                    bestOverlap = overlap
-                    bestIndex = i
-                }
-                acc += span
-            }
-            return bestIndex.map { Color.gloFactorPalette[$0] }
-        }
-    }
 }

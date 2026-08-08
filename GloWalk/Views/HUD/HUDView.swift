@@ -301,11 +301,10 @@ struct HUDView: View {
                               glyph: String, leadingToTrailing: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
         return HStack(spacing: 2) {
-            if leadingToTrailing {
-                Image(systemName: glyph)
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundColor(fillColor.opacity(0.9))
-            }
+            // Same-width slots on both sides (a transparent placeholder where
+            // there's no glyph) so the 10 middle segments align across the two
+            // progress lines.
+            glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
             ForEach(0..<10, id: \.self) { i in
                 let lit = leadingToTrailing ? i < filled : i >= 10 - filled
                 Capsule()
@@ -313,13 +312,22 @@ struct HUDView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 4)
             }
-            if !leadingToTrailing {
-                Image(systemName: glyph)
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundColor(fillColor.opacity(0.9))
-            }
+            glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
         }
         .animation(.easeOut(duration: 0.25), value: filled)
+    }
+
+    private func glyphSlot(_ systemName: String?, color: Color) -> some View {
+        Group {
+            if let systemName {
+                Image(systemName: systemName)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundColor(color.opacity(0.9))
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: 10)
     }
 
     /// 5-factor row weighted by influence: ambient 40%, rest 15% each

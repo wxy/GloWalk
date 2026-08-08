@@ -307,34 +307,45 @@ struct HUDView: View {
                               leadingToTrailing: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
         let reversed = !leadingToTrailing
-        return HStack(spacing: 2) {
-            // Same-width slots on both sides (a transparent placeholder where
-            // there's no glyph) so the 10 middle segments align across the two
-            // progress lines.
-            glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
-            ForEach(0..<10, id: \.self) { i in
-                let lit = reversed ? i >= 10 - filled : i < filled
-                Capsule()
-                    .fill(segmentColor(index: i, filled: filled,
-                                       fillColor: fillColor, shares: shares,
-                                       reversed: reversed))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 4)
-                    // Per-segment glow so the brightness bars read as the lit
-                    // "level" elements and stand apart from the factor row.
-                    // Three stacked shadows (tight core + wide bloom) so the
-                    // glow survives the dim screen brightness the app applies
-                    // at night.
-                    .shadow(color: lit ? fillColor.opacity(1.0) : .clear,
-                            radius: lit ? 3 : 0)
-                    .shadow(color: lit ? fillColor.opacity(0.8) : .clear,
-                            radius: lit ? 8 : 0)
-                    .shadow(color: lit ? fillColor.opacity(0.45) : .clear,
-                            radius: lit ? 15 : 0)
+        // A flowing glow: a sine wave of brightness runs along the bar, with
+        // the crest travelling in the fill direction (screen → right, torch →
+        // left), so the bar reads as a living "level" rather than a static line.
+        return TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+            let phase = context.date.timeIntervalSinceReferenceDate * 3.0
+            HStack(spacing: 2) {
+                // Same-width slots on both sides (a transparent placeholder
+                // where there's no glyph) so the 10 middle segments align
+                // across the two progress lines.
+                glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
+                ForEach(0..<10, id: \.self) { i in
+                    let lit = reversed ? i >= 10 - filled : i < filled
+                    let position = reversed ? Double(9 - i) : Double(i)
+                    let wave = 0.5 + 0.5 * sin(phase - position * 0.9)
+                    let glow = lit ? wave : 0.0
+                    Capsule()
+                        .fill(segmentColor(index: i, filled: filled,
+                                           fillColor: fillColor, shares: shares,
+                                           reversed: reversed))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 4)
+                        // The capsule itself pulses subtly with the wave so the
+                        // flowing crest is visible even across a wide filled
+                        // region (not just in the halo).
+                        .opacity(lit ? 0.85 + 0.15 * glow : 1.0)
+                        // Three stacked shadows (tight core + wide bloom); the
+                        // glow brightness breathes with the flowing wave and
+                        // stays visible even at the dim night screen level.
+                        .shadow(color: lit ? fillColor.opacity(0.35 + 0.65 * glow) : .clear,
+                                radius: lit ? 3 : 0)
+                        .shadow(color: lit ? fillColor.opacity(0.25 + 0.55 * glow) : .clear,
+                                radius: lit ? 8 : 0)
+                        .shadow(color: lit ? fillColor.opacity(0.15 + 0.30 * glow) : .clear,
+                                radius: lit ? 15 : 0)
+                }
+                glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
             }
-            glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
+            .animation(.easeOut(duration: 0.25), value: filled)
         }
-        .animation(.easeOut(duration: 0.25), value: filled)
     }
 
     private func glyphSlot(_ systemName: String?, color: Color) -> some View {

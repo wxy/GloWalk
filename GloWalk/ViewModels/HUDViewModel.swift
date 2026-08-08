@@ -557,20 +557,22 @@ final class HUDViewModel: ObservableObject {
             restoreScreenBrightness()
             return
         }
-        let desired: CGFloat
+        let desired: Double
         if occlusionNoticeVisible {
             desired = 0
         } else if isDaylight {
             desired = 1.0
         } else {
             let ambient = sensorManager.ambientLightLevel
-            desired = CGFloat(min(1.0, max(0.25, 0.25 + 0.75 * ambient)))
+            desired = min(1.0, max(0.25, 0.25 + 0.75 * ambient))
         }
-        screenBrightness = Double(desired)
-        // Only write when the value actually moves — otherwise the 1s tick
-        // would fight the user's Control Center brightness every second.
-        if abs(UIScreen.main.brightness - desired) > 0.02 {
-            UIScreen.main.brightness = desired
+        // Quantize to the same 10% steps as the HUD bar, so the screen and the
+        // indicator always agree and sub-segment EMA jitter can't strobe the
+        // screen with tiny writes (the flicker reported on device).
+        let quantized = (desired * 10).rounded() / 10
+        screenBrightness = quantized
+        if abs(UIScreen.main.brightness - CGFloat(quantized)) > 0.005 {
+            UIScreen.main.brightness = CGFloat(quantized)
         }
     }
 

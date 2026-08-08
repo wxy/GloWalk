@@ -15,7 +15,7 @@ extension Color {
 
     // Factor colors — shared between the HUD rings' deduction segments and the
     // factor-row dots, so the two stay visually linked.
-    static let gloFactorAmbient  = Color.white.opacity(0.55)
+    static let gloFactorAmbient  = Color(red: 0.95, green: 0.40, blue: 0.40)
     static let gloFactorPosture  = Color(red: 0.35, green: 0.65, blue: 1.0)
     static let gloFactorDark     = Color(red: 0.75, green: 0.45, blue: 1.0)
     static let gloFactorMoon     = Color(red: 1.0, green: 0.80, blue: 0.30)

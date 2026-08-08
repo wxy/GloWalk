@@ -283,19 +283,22 @@ struct HUDView: View {
     /// 🔦 at the start). Coarse levels only — the factor row below explains the
     /// gap to 100%.
     private var brightnessProgressLines: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 2) {
             progressLine(value: viewModel.screenBrightness,
                          fillColor: .white,
                          glyph: "sun.max.fill",
                          shares: viewModel.factorShares,
                          leadingToTrailing: true)
+                .frame(height: 9, alignment: .bottom)
             progressLine(value: viewModel.brightness,
                          fillColor: Color.gloTorchCore,
                          glyph: "flashlight.on.fill",
                          shares: viewModel.factorShares,
                          leadingToTrailing: false)
+                .frame(height: 9, alignment: .bottom)
                 .opacity(viewModel.torchPaused ? 0.35 : 1.0)
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
     }
 

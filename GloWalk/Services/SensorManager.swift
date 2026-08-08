@@ -12,6 +12,10 @@ final class SensorManager: ObservableObject {
     /// Debounced "bright daylight" state from the front-camera exposure — stable
     /// against the auto-exposure convergence at startup and scene changes.
     @Published var isDaylight: Bool = false
+    /// Called on the main actor right after ambientLightLevel changes (~2Hz).
+    /// The HUD uses it to update the screen brightness immediately, without
+    /// waiting for the 1s walk tick.
+    var onAmbientUpdate: (() -> Void)?
 
     // Daylight-detector state (warm-up + debounce):
     private var warmupSamples = 8            // ~4s at 2Hz — let auto-exposure converge
@@ -513,6 +517,7 @@ final class SensorManager: ObservableObject {
         if warmupSamples > 0 {
             warmupSamples -= 1
             ambientLightLevel = sample.level
+            onAmbientUpdate?()
             return
         }
 
@@ -546,6 +551,7 @@ final class SensorManager: ObservableObject {
         // the raw level would flicker the label and the 1-ambient torch
         // fallback between ticks. Time constant ≈ 1.4s at 2Hz.
         ambientLightLevel = ambientLightLevel * 0.7 + rawLevel * 0.3
+        onAmbientUpdate?()
     }
 
     // MARK: - Motion

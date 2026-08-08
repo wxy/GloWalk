@@ -106,6 +106,11 @@ final class HUDViewModel: ObservableObject {
         originalScreenBrightness = UIScreen.main.brightness
 
         sensorManager.start()
+        // Screen brightness follows ambient at the sensor's sample rate (2Hz)
+        // instead of the 1s tick, so it responds to light changes immediately.
+        sensorManager.onAmbientUpdate = { [weak self] in
+            self?.updateScreenBrightness()
+        }
 
         let context = PersistenceController.shared.container.viewContext
         let moon = MoonPhase.current()
@@ -418,6 +423,7 @@ final class HUDViewModel: ObservableObject {
 
     func endWalkAndNotify() {
         isActive = false
+        sensorManager.onAmbientUpdate = nil
         UIApplication.shared.isIdleTimerDisabled = false
         // Hand the user back their screen brightness before the sensor loop
         // stops — otherwise a walk that ends while dimmed (pocket) or boosted
@@ -448,6 +454,7 @@ final class HUDViewModel: ObservableObject {
 
     func endWalkAbruptly() {
         isActive = false
+        sensorManager.onAmbientUpdate = nil
         UIApplication.shared.isIdleTimerDisabled = false
         // Same as endWalkAndNotify — never leave the screen dimmed/boosted.
         restoreScreenBrightness()

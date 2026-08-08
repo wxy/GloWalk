@@ -287,10 +287,12 @@ struct HUDView: View {
             progressLine(value: viewModel.screenBrightness,
                          fillColor: .white,
                          glyph: "sun.max.fill",
+                         shares: viewModel.factorShares,
                          leadingToTrailing: true)
             progressLine(value: viewModel.brightness,
                          fillColor: Color.gloTorchCore,
                          glyph: "flashlight.on.fill",
+                         shares: viewModel.factorShares,
                          leadingToTrailing: false)
                 .opacity(viewModel.torchPaused ? 0.35 : 1.0)
         }
@@ -298,7 +300,8 @@ struct HUDView: View {
     }
 
     private func progressLine(value: Double, fillColor: Color,
-                              glyph: String, leadingToTrailing: Bool) -> some View {
+                              glyph: String, shares: [Double],
+                              leadingToTrailing: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
         return HStack(spacing: 2) {
             // Same-width slots on both sides (a transparent placeholder where
@@ -306,9 +309,10 @@ struct HUDView: View {
             // progress lines.
             glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
             ForEach(0..<10, id: \.self) { i in
-                let lit = leadingToTrailing ? i < filled : i >= 10 - filled
                 Capsule()
-                    .fill(lit ? fillColor : Color.white.opacity(0.12))
+                    .fill(segmentColor(index: i, filled: filled,
+                                       fillColor: fillColor, shares: shares,
+                                       reversed: !leadingToTrailing))
                     .frame(maxWidth: .infinity)
                     .frame(height: 4)
             }
@@ -328,6 +332,48 @@ struct HUDView: View {
             }
         }
         .frame(width: 10)
+    }
+
+    /// Filled segments use the level color; the remaining segments are colored
+    /// by whichever factor dominates their span of the deduction space (same
+    /// semantics as the ring design), falling back to a dim placeholder.
+    private func segmentColor(index: Int, filled: Int, fillColor: Color,
+                              shares: [Double], reversed: Bool) -> Color {
+        if reversed ? index >= 10 - filled : index < filled {
+            return fillColor
+        }
+        return deductionColor(segmentIndex: index, filled: filled,
+                              shares: shares, reversed: reversed)
+            ?? Color.white.opacity(0.12)
+    }
+
+    private func deductionColor(segmentIndex i: Int, filled: Int,
+                                shares: [Double], reversed: Bool) -> Color? {
+        let total = shares.reduce(0, +)
+        guard total > 0.0001, filled < 10 else { return nil }
+        let dedCount = Double(10 - filled)
+        // Deductions grow outward from the filled edge, in factor-share order.
+        let pos: Double
+        if reversed {
+            pos = Double(9 - filled - i)   // right edge is the filled side
+        } else {
+            pos = Double(i - filled)       // left edge is the filled side
+        }
+        let segStart = pos / dedCount
+        let segEnd = (pos + 1) / dedCount
+        var acc = 0.0
+        var bestIndex: Int?
+        var bestOverlap = 0.0
+        for (j, share) in shares.enumerated() {
+            let span = share / total
+            let overlap = max(0, min(segEnd, acc + span) - max(segStart, acc))
+            if overlap > bestOverlap {
+                bestOverlap = overlap
+                bestIndex = j
+            }
+            acc += span
+        }
+        return bestIndex.map { Color.gloFactorPalette[$0] }
     }
 
     /// 5-factor row weighted by influence: ambient 40%, rest 15% each

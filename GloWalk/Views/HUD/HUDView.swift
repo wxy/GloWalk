@@ -150,7 +150,6 @@ struct HUDView: View {
                 GlowCircleView(brightness: viewModel.brightness,
                               screenBrightness: viewModel.screenBrightness,
                               factorShares: viewModel.factorShares,
-                              isManual: isManual,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
                     .onTapGesture(count: 2) {

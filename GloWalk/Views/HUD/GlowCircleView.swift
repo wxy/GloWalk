@@ -6,7 +6,6 @@ struct GlowCircleView: View {
     /// Factor shortfall proportions (ambient/posture/dark/moon/weather, sum 1)
     /// — colors the unfilled ring segments that the factors "deduct".
     let factorShares: [Double]
-    let isManual: Bool
     let cadence: Double
     let isPaused: Bool
 

@@ -484,6 +484,13 @@ final class HUDViewModel: ObservableObject {
     }
     func setManualBrightness(_ level: Double) {
         lightEngine.setManualOffset(level - lightEngine.targetBrightness)
+        // Immediate, discrete feedback during the drag — don't wait for the 1s
+        // tick to recompute brightness. Snap to 10% steps so the HUD ring
+        // advances one segment at a time and the torch follows the finger.
+        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
+        brightness = snapped
+        sensorManager.setTorchLevel(snapped)
+        locationManager.currentTorchBrightness = snapped
     }
     func resetToAutoBrightness() { lightEngine.resetManualOffset() }
 

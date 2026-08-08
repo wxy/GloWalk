@@ -24,6 +24,10 @@ final class HUDViewModel: ObservableObject {
     /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
     @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
+    /// Current screen brightness the app is applying (0–1) — feeds the HUD's
+    /// counterclockwise ring. Updated every tick so it responds immediately to
+    /// ambient changes.
+    @Published var screenBrightness: Double = 0.5
     /// UI brightness boost factor: 1.0 (dark) → 3.0+ (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
     /// True when the front camera reports bright daylight — the torch stays off
@@ -97,6 +101,9 @@ final class HUDViewModel: ObservableObject {
 
         // Prevent screen sleep and auto-dim during walk
         UIApplication.shared.isIdleTimerDisabled = true
+        // Remember the user's screen brightness so it can be handed back when
+        // the walk ends — the app takes over screen brightness during the walk.
+        originalScreenBrightness = UIScreen.main.brightness
 
         sensorManager.start()
 
@@ -178,6 +185,12 @@ final class HUDViewModel: ObservableObject {
             darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0,
             isDaylight: isDaylight
         )
+        // The model (and its factor attribution) must stay fresh every tick —
+        // even while the closed loop controls the actual torch level — so the
+        // moon/weather names and the factor deductions match the displayed
+        // brightness. Previously it was only updated in the fallback path,
+        // leaving the factor cards stale (names empty, deductions ~0).
+        lightEngine.update(sensors: snap)
         if sensorManager.isOccluded && !isTorchOccluded {
             isTorchOccluded = true
             sensorManager.setTorchLevel(0)
@@ -198,7 +211,10 @@ final class HUDViewModel: ObservableObject {
             if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
             } else {
-                brightness = closedLoopBrightness(measured: y, gate: gate)
+                // Manual drag applies on top of the loop's level (the spike
+                // controller doesn't know about manualOffset yet).
+                brightness = min(max(closedLoopBrightness(measured: y, gate: gate)
+                                     + lightEngine.manualOffset, 0.05), 1.0)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -211,7 +227,6 @@ final class HUDViewModel: ObservableObject {
                 ambient: sensorManager.ambientLightLevel))
             #endif
         } else if !isTorchOccluded && !torchPaused {
-            lightEngine.update(sensors: snap)
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -263,30 +278,40 @@ final class HUDViewModel: ObservableObject {
 
         let d = lightEngine.factorDetails
         let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
+        // The five factors' deductions are rescaled to the ACTUAL brightness
+        // gap so the HUD reconciles: brightness + sum(deductions) = 100%. The
+        // share proportions come from the model's fresh shortfall attribution.
+        let gap = max(0.0, 1.0 - brightness)
+        let shareSum = d.ambientShare + d.postureShare + d.darkShare
+                     + d.moonShare + d.weatherShare
+        func deduction(_ share: Double) -> Int {
+            guard shareSum > 0.0001, gap > 0.001 else { return 0 }
+            return -Int((share / shareSum * gap * 100).rounded())
+        }
         moonCard = MoonCardData(
             phaseName: phaseName,
-            brightnessDelta: d.moonDelta,
+            brightnessDelta: deduction(d.moonShare),
             isActive: lightEngine.moonFactorActive
         )
         let hasWeather = weatherService.currentCondition != nil
         weatherCard = WeatherCardData(
             condition: hasWeather ? d.weatherCondition : "...",
-            brightnessDelta: d.weatherDelta,
+            brightnessDelta: deduction(d.weatherShare),
             isActive: lightEngine.weatherFactorActive,
             provider: weatherService.provider
         )
         factorCards = [
             FactorCardData(id: "ambient", icon: "eye.fill",
                 label: L10n.factorAmbient,
-                brightnessDelta: d.ambientDelta,
+                brightnessDelta: deduction(d.ambientShare),
                 isActive: lightEngine.ambientFactorActive),
             FactorCardData(id: "posture", icon: "iphone",
                 label: L10n.factorPosture,
-                brightnessDelta: d.postureDelta,
+                brightnessDelta: deduction(d.postureShare),
                 isActive: lightEngine.postureFactorActive),
             FactorCardData(id: "dark", icon: "moon.zzz.fill",
                 label: L10n.factorDark,
-                brightnessDelta: d.darkDelta,
+                brightnessDelta: deduction(d.darkShare),
                 isActive: lightEngine.darkAdaptationActive),
         ]
 
@@ -492,13 +517,23 @@ final class HUDViewModel: ObservableObject {
         isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
     }
 
-    /// Screen brightness priority:
+    /// Factor shortfall proportions (ambient/posture/dark/moon/weather),
+    /// normalized to sum 1 — feeds the HUD rings' deduction-segment coloring.
+    var factorShares: [Double] {
+        let d = lightEngine.factorDetails
+        let sum = d.ambientShare + d.postureShare + d.darkShare
+                + d.moonShare + d.weatherShare
+        guard sum > 0.0001 else { return [0, 0, 0, 0, 0] }
+        return [d.ambientShare / sum, d.postureShare / sum,
+                d.darkShare / sum, d.moonShare / sum, d.weatherShare / sum]
+    }
+
+    /// Screen brightness is ambient-continuous and immediate (no debounce —
+    /// unlike the torch, which deliberately ramps slowly for safety):
     /// 1. Pocket — occluded AND the torch was on → dim to 0 to save battery.
-    /// 2. Bright daylight → boost to 1.0 so the UI is readable against the sun.
-    /// 3. Otherwise → restore the user's brightness.
-    ///
-    /// The pocket dim only applies when the flashlight was actually on — if the
-    /// torch is off (paused or daylight), occlusion must NOT black out the screen.
+    /// 2. Bright daylight → 1.0 so the UI is readable against the sun.
+    /// 3. Otherwise → 0.25 + 0.75 × ambient (dark room dims the screen, a
+    ///    bright room brightens it, within one tick of the ambient changing).
     private func updateScreenBrightness() {
         guard isActive else {
             // Not walking — always hand the user's brightness back. A walk may
@@ -507,29 +542,20 @@ final class HUDViewModel: ObservableObject {
             restoreScreenBrightness()
             return
         }
-        let desired: CGFloat?
+        let desired: CGFloat
         if occlusionNoticeVisible {
-            if originalScreenBrightness == nil {
-                originalScreenBrightness = UIScreen.main.brightness
-            }
             desired = 0
-        } else if isDaylight && !isTorchOccluded {
-            if originalScreenBrightness == nil {
-                originalScreenBrightness = UIScreen.main.brightness
-            }
+        } else if isDaylight {
             desired = 1.0
         } else {
-            desired = nil
+            let ambient = sensorManager.ambientLightLevel
+            desired = CGFloat(min(1.0, max(0.25, 0.25 + 0.75 * ambient)))
         }
-        if let desired {
-            // Only write when the value actually changes — otherwise the 1s tick
-            // would fight the user's Control Center brightness every second.
-            if abs(UIScreen.main.brightness - desired) > 0.001 {
-                UIScreen.main.brightness = desired
-            }
-        } else if let orig = originalScreenBrightness {
-            UIScreen.main.brightness = orig
-            originalScreenBrightness = nil
+        screenBrightness = Double(desired)
+        // Only write when the value actually moves — otherwise the 1s tick
+        // would fight the user's Control Center brightness every second.
+        if abs(UIScreen.main.brightness - desired) > 0.02 {
+            UIScreen.main.brightness = desired
         }
     }
 

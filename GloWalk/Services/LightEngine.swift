@@ -11,12 +11,20 @@ final class LightEngine: ObservableObject {
     @Published var factorDetails = FactorDetails()
     @Published var batterySaverCap: Double = 1.0
 
-    private var manualOffset: Double = 0.0
+    private(set) var manualOffset: Double = 0.0
     private var sessionStartTime: Date?
 
     struct FactorDetails {
         var moonPhaseName: String = ""
         var weatherCondition: String = ""
+        /// Each factor's share of the total brightness shortfall (0–1, sum ≈ 1
+        /// when anything is deducted). Drives the ring-segment coloring so the
+        /// displayed deductions reconcile with the actual brightness.
+        var ambientShare: Double = 0
+        var postureShare: Double = 0
+        var darkShare: Double = 0
+        var moonShare: Double = 0
+        var weatherShare: Double = 0
         var ambientDelta: Int = 0
         var postureDelta: Int = 0
         var darkDelta: Int = 0
@@ -86,6 +94,11 @@ final class LightEngine: ObservableObject {
 
         let totalShortfall = ambShortfall + posShortfall + darkShortfall
                            + moonShortfall + weathShortfall
+        let shares = totalShortfall > 0.0001
+            ? (ambShortfall / totalShortfall, posShortfall / totalShortfall,
+               darkShortfall / totalShortfall, moonShortfall / totalShortfall,
+               weathShortfall / totalShortfall)
+            : (0.0, 0.0, 0.0, 0.0, 0.0)
 
         let optAmbient  = ambientFactorActive  ? 1.0 : ambientSignal
         let optPosture  = postureFactorActive  ? 1.0 : postureSignal
@@ -111,6 +124,7 @@ final class LightEngine: ObservableObject {
         let weathDelta = attr(weathShortfall)
 
         updateFactorDetails(sensors: sensors,
+                            shares: shares,
                             ambDelta: ambDelta, posDelta: posDelta,
                             darkDelta: darkDelta, moonDelta: moonDelta, weathDelta: weathDelta)
     }
@@ -129,8 +143,14 @@ final class LightEngine: ObservableObject {
     // MARK: - Factor Details for HUD
 
     private func updateFactorDetails(sensors: SensorSnapshot,
+                                     shares: (Double, Double, Double, Double, Double),
                                       ambDelta: Int, posDelta: Int,
                                       darkDelta: Int, moonDelta: Int, weathDelta: Int) {
+        factorDetails.ambientShare = shares.0
+        factorDetails.postureShare = shares.1
+        factorDetails.darkShare = shares.2
+        factorDetails.moonShare = shares.3
+        factorDetails.weatherShare = shares.4
         factorDetails.ambientDelta = ambDelta
         factorDetails.postureDelta = posDelta
         factorDetails.darkDelta = darkDelta

@@ -56,68 +56,47 @@ struct HUDView: View {
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
     }
 
-    /// Day/night celestial marker (top-left) with the current weather badge
-    /// overlapping its lower-right edge. Night shows the real moon-phase photo;
-    /// day shows the NASA/SDO sun photo (public domain). The badge appears only
-    /// for non-clear conditions — a bare sun/moon already means "clear".
-    private var celestialIndicator: some View {
-        ZStack(alignment: .bottomTrailing) {
-            if isNightTime {
-                if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
-                    Image(uiImage: moonImg)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .opacity(0.45)
+    /// Poster-style celestial backdrop: the same giant moon/sun disc peeking
+    /// into the top-left corner (radius 0.8× the HUD width, only the lower-right
+    /// arc visible), so the HUD matches the poster's proportions. No weather
+    /// badge — the bottom factor row already shows the weather condition and
+    /// the bottom bar shows the provider.
+    private var celestialBackdrop: some View {
+        GeometryReader { geo in
+            let radius = geo.size.width * 0.8
+            let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
+            Group {
+                if isNightTime {
+                    if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                        Image(uiImage: moonImg)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: radius * 2, height: radius * 2)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                    } else {
+                        Image(systemName: "moon.fill")
+                            .font(.system(size: radius * 0.55))
+                            .foregroundColor(.gloGold.opacity(0.4))
+                    }
                 } else {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gloGold.opacity(0.55))
-                }
-            } else {
-                if let sunImg = UIImage(named: "sun.jpg") {
-                    Image(uiImage: sunImg)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .opacity(0.5)
-                } else {
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gloGold.opacity(0.55))
+                    if let sunImg = UIImage(named: "sun.jpg") {
+                        Image(uiImage: sunImg)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: radius * 2, height: radius * 2)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                    } else {
+                        Image(systemName: "sun.max.fill")
+                            .font(.system(size: radius * 0.55))
+                            .foregroundColor(.gloGold.opacity(0.4))
+                    }
                 }
             }
-
-            if let condition = viewModel.weatherService.currentCondition,
-               let symbol = Self.weatherSymbol(condition) {
-                Image(systemName: symbol)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(4)
-                    .background(Circle().fill(Color.black.opacity(0.5)))
-                    .offset(x: 3, y: 3)
-            }
+            .position(center)
         }
-        .frame(width: 52, height: 52)
-        .padding(.leading, 12)
-        .padding(.top, 8)
-    }
-
-    /// SF Symbol for a normalized weather condition (the strings
-    /// WeatherService.normalize produces). "clear" returns nil — the sun/moon
-    /// itself already expresses it.
-    private static func weatherSymbol(_ condition: String) -> String? {
-        switch condition {
-        case "cloud":        return "cloud.fill"
-        case "fog":          return "cloud.fog.fill"
-        case "drizzle":      return "cloud.drizzle.fill"
-        case "rain":         return "cloud.rain.fill"
-        case "snow":         return "cloud.snow.fill"
-        case "thunderstorm": return "cloud.bolt.rain.fill"
-        default:             return nil
-        }
+        .allowsHitTesting(false)
     }
 
     @State private var isManual = false
@@ -135,6 +114,9 @@ struct HUDView: View {
             // surface would clash with the walk-data row and wash out the icon
             // outlines, while black keeps every element in one consistent tone.
             Color.gloBlack.ignoresSafeArea()
+
+            // Poster-style sun/moon backdrop behind everything.
+            celestialBackdrop
 
             // Top area — camera denied warning + moon phase decoration
             VStack(spacing: 0) {
@@ -158,11 +140,6 @@ struct HUDView: View {
 
                 // Unified system notice bar — camera denied / occlusion / daylight
                 topNoticeBar
-
-                HStack {
-                    celestialIndicator
-                    Spacer()
-                }
                 Spacer()
             }
 
@@ -170,7 +147,10 @@ struct HUDView: View {
                 Spacer()
 
                 // Central glow — double-tap to end
-                GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
+                GlowCircleView(brightness: viewModel.brightness,
+                              screenBrightness: viewModel.screenBrightness,
+                              factorShares: viewModel.factorShares,
+                              isManual: isManual,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
                     .onTapGesture(count: 2) {

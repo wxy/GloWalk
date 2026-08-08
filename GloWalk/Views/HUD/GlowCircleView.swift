@@ -2,6 +2,10 @@ import SwiftUI
 
 struct GlowCircleView: View {
     let brightness: Double
+    let screenBrightness: Double
+    /// Factor shortfall proportions (ambient/posture/dark/moon/weather, sum 1)
+    /// — colors the unfilled ring segments that the factors "deduct".
+    let factorShares: [Double]
     let isManual: Bool
     let cadence: Double
     let isPaused: Bool
@@ -14,6 +18,13 @@ struct GlowCircleView: View {
     /// Icon opacity scales with brightness:
     /// dim torch → ghost outline; full torch → clearly visible brand mark.
     private var iconOpacity: Double { 0.20 + warmth * 0.70 }
+
+    private var torchSegments: Int {
+        min(max(Int((brightness * 10).rounded()), 0), 10)
+    }
+    private var screenSegments: Int {
+        min(max(Int((screenBrightness * 10).rounded()), 0), 10)
+    }
 
     var body: some View {
         ZStack {
@@ -53,34 +64,25 @@ struct GlowCircleView: View {
             )
             .frame(width: 160, height: 160)
 
-            // Layer 3: Guide ring — subtle boundary at the edge of glow
-            Circle()
-                .stroke(
-                    Color.gloGold.opacity(0.18 * warmth),
-                    style: StrokeStyle(lineWidth: 1, dash: [3, 10])
-                )
-                .frame(width: 100, height: 100)
+            // Layer 3: Torch ring — clockwise, 10 segments. Filled segments =
+            // torch brightness (coarse); the rest are the factor deductions,
+            // each colored by the responsible factor.
+            SegmentedRing(filledSegments: torchSegments,
+                          shares: factorShares,
+                          filledColor: Color.gloTorchCore,
+                          diameter: 108,
+                          lineWidth: 1.5)
+                .opacity(isPaused ? 0.35 : 1.0)
 
-            // Brightness percentage — with strikethrough overlay when paused
-            Text("\(Int(brightness * 100))%")
-                // .gloDisplay is already "LXGW WenKai Light" — do NOT add
-                // .fontWeight(.light), it re-weights the descriptor and logs
-                // "Unable to update Font Descriptor's weight".
-                .font(.gloDisplay(22))
-                .foregroundColor(isPaused ? .white.opacity(0.25)
-                                 : isManual ? .white : Color.gloTorchCore)
-                .shadow(color: isPaused ? .clear
-                         : (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth),
-                         radius: 12, x: 0, y: 0)
-                .overlay {
-                    if isPaused {
-                        Rectangle()
-                            .fill(.white.opacity(0.25))
-                            .frame(height: 1)
-                            .frame(width: 44)
-                    }
-                }
-                .offset(y: 64)
+            // Layer 4: Screen ring — counterclockwise (mirrored), 10 segments.
+            // Filled = screen brightness; same factor attribution for the rest.
+            SegmentedRing(filledSegments: screenSegments,
+                          shares: factorShares,
+                          filledColor: .white,
+                          diameter: 122,
+                          lineWidth: 1.5)
+                .scaleEffect(x: -1, y: 1)
+                .opacity(0.85)
 
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
@@ -105,6 +107,78 @@ struct GlowCircleView: View {
                     stepPhase += .pi * 2
                 }
             }
+        }
+    }
+
+    /// One coarse 10-segment ring. Filled segments run from the top (12
+    /// o'clock); the remaining segments are apportioned to the five factors by
+    /// their shortfall shares. Factors don't need to be whole 10% units — each
+    /// segment is colored by whichever factor dominates its span.
+    private struct SegmentedRing: View {
+        let filledSegments: Int
+        let shares: [Double]
+        let filledColor: Color
+        let diameter: CGFloat
+        let lineWidth: CGFloat
+
+        private let segmentCount = 10
+        private let gapDegrees: Double = 3
+
+        private static let factorColors: [Color] = [
+            .white.opacity(0.55),                                    // ambient
+            Color(red: 0.35, green: 0.65, blue: 1.0),                // posture
+            Color(red: 0.75, green: 0.45, blue: 1.0),                // dark adaptation
+            Color(red: 1.0, green: 0.80, blue: 0.30),                // moon
+            Color(red: 0.30, green: 0.90, blue: 0.90)                // weather
+        ]
+
+        var body: some View {
+            ZStack {
+                ForEach(0..<segmentCount, id: \.self) { i in
+                    Circle()
+                        .trim(from: segmentStart(i), to: segmentEnd(i))
+                        .stroke(segmentColor(index: i),
+                                style: StrokeStyle(lineWidth: lineWidth,
+                                                   lineCap: .round))
+                        .rotationEffect(.degrees(-90))
+                }
+            }
+            .frame(width: diameter, height: diameter)
+        }
+
+        private func segmentStart(_ i: Int) -> CGFloat {
+            CGFloat(Double(i) / Double(segmentCount) + gapDegrees / 720.0)
+        }
+        private func segmentEnd(_ i: Int) -> CGFloat {
+            CGFloat(Double(i + 1) / Double(segmentCount) - gapDegrees / 720.0)
+        }
+
+        private func segmentColor(index: Int) -> Color {
+            if index < filledSegments { return filledColor }
+            return deductionColor(forSegment: index) ?? Color.white.opacity(0.10)
+        }
+
+        /// Dominant factor covering this segment's span within the deduction
+        /// space, if any.
+        private func deductionColor(forSegment index: Int) -> Color? {
+            let total = shares.reduce(0, +)
+            guard total > 0.0001, filledSegments < segmentCount else { return nil }
+            let dedCount = Double(segmentCount - filledSegments)
+            let segStart = Double(index - filledSegments) / dedCount
+            let segEnd = Double(index - filledSegments + 1) / dedCount
+            var acc = 0.0
+            var bestIndex: Int?
+            var bestOverlap = 0.0
+            for (i, share) in shares.enumerated() {
+                let span = share / total
+                let overlap = max(0, min(segEnd, acc + span) - max(segStart, acc))
+                if overlap > bestOverlap {
+                    bestOverlap = overlap
+                    bestIndex = i
+                }
+                acc += span
+            }
+            return bestIndex.map { Self.factorColors[$0] }
         }
     }
 }

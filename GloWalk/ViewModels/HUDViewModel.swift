@@ -524,17 +524,6 @@ final class HUDViewModel: ObservableObject {
         isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
     }
 
-    /// Factor shortfall proportions (ambient/posture/dark/moon/weather),
-    /// normalized to sum 1 — feeds the HUD rings' deduction-segment coloring.
-    var factorShares: [Double] {
-        let d = lightEngine.factorDetails
-        let sum = d.ambientShare + d.postureShare + d.darkShare
-                + d.moonShare + d.weatherShare
-        guard sum > 0.0001 else { return [0, 0, 0, 0, 0] }
-        return [d.ambientShare / sum, d.postureShare / sum,
-                d.darkShare / sum, d.moonShare / sum, d.weatherShare / sum]
-    }
-
     /// Screen brightness is ambient-continuous and immediate (no debounce —
     /// unlike the torch, which deliberately ramps slowly for safety):
     /// 1. Pocket — occluded AND the torch was on → dim to 0 to save battery.

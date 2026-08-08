@@ -56,68 +56,47 @@ struct HUDView: View {
         .background(RoundedRectangle(cornerRadius: 8).fill(Color.gloGold.opacity(0.1)))
     }
 
-    /// Day/night celestial marker (top-left) with the current weather badge
-    /// overlapping its lower-right edge. Night shows the real moon-phase photo;
-    /// day shows the NASA/SDO sun photo (public domain). The badge appears only
-    /// for non-clear conditions — a bare sun/moon already means "clear".
-    private var celestialIndicator: some View {
-        ZStack(alignment: .bottomTrailing) {
-            if isNightTime {
-                if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
-                    Image(uiImage: moonImg)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .opacity(0.45)
+    /// Poster-style celestial backdrop: the same giant moon/sun disc peeking
+    /// into the top-left corner (radius 0.8× the HUD width, only the lower-right
+    /// arc visible), so the HUD matches the poster's proportions. No weather
+    /// badge — the bottom factor row already shows the weather condition and
+    /// the bottom bar shows the provider.
+    private var celestialBackdrop: some View {
+        GeometryReader { geo in
+            let radius = geo.size.width * 0.8
+            let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
+            Group {
+                if isNightTime {
+                    if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
+                        Image(uiImage: moonImg)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: radius * 2, height: radius * 2)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                    } else {
+                        Image(systemName: "moon.fill")
+                            .font(.system(size: radius * 0.55))
+                            .foregroundColor(.gloGold.opacity(0.4))
+                    }
                 } else {
-                    Image(systemName: "moon.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gloGold.opacity(0.55))
-                }
-            } else {
-                if let sunImg = UIImage(named: "sun.jpg") {
-                    Image(uiImage: sunImg)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: 44, height: 44)
-                        .clipShape(Circle())
-                        .opacity(0.5)
-                } else {
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 40))
-                        .foregroundColor(.gloGold.opacity(0.55))
+                    if let sunImg = UIImage(named: "sun.jpg") {
+                        Image(uiImage: sunImg)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: radius * 2, height: radius * 2)
+                            .clipShape(Circle())
+                            .opacity(0.45)
+                    } else {
+                        Image(systemName: "sun.max.fill")
+                            .font(.system(size: radius * 0.55))
+                            .foregroundColor(.gloGold.opacity(0.4))
+                    }
                 }
             }
-
-            if let condition = viewModel.weatherService.currentCondition,
-               let symbol = Self.weatherSymbol(condition) {
-                Image(systemName: symbol)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white.opacity(0.9))
-                    .padding(4)
-                    .background(Circle().fill(Color.black.opacity(0.5)))
-                    .offset(x: 3, y: 3)
-            }
+            .position(center)
         }
-        .frame(width: 52, height: 52)
-        .padding(.leading, 12)
-        .padding(.top, 8)
-    }
-
-    /// SF Symbol for a normalized weather condition (the strings
-    /// WeatherService.normalize produces). "clear" returns nil — the sun/moon
-    /// itself already expresses it.
-    private static func weatherSymbol(_ condition: String) -> String? {
-        switch condition {
-        case "cloud":        return "cloud.fill"
-        case "fog":          return "cloud.fog.fill"
-        case "drizzle":      return "cloud.drizzle.fill"
-        case "rain":         return "cloud.rain.fill"
-        case "snow":         return "cloud.snow.fill"
-        case "thunderstorm": return "cloud.bolt.rain.fill"
-        default:             return nil
-        }
+        .allowsHitTesting(false)
     }
 
     @State private var isManual = false
@@ -135,6 +114,9 @@ struct HUDView: View {
             // surface would clash with the walk-data row and wash out the icon
             // outlines, while black keeps every element in one consistent tone.
             Color.gloBlack.ignoresSafeArea()
+
+            // Poster-style sun/moon backdrop behind everything.
+            celestialBackdrop
 
             // Top area — camera denied warning + moon phase decoration
             VStack(spacing: 0) {
@@ -158,11 +140,6 @@ struct HUDView: View {
 
                 // Unified system notice bar — camera denied / occlusion / daylight
                 topNoticeBar
-
-                HStack {
-                    celestialIndicator
-                    Spacer()
-                }
                 Spacer()
             }
 
@@ -170,7 +147,7 @@ struct HUDView: View {
                 Spacer()
 
                 // Central glow — double-tap to end
-                GlowCircleView(brightness: viewModel.brightness, isManual: isManual,
+                GlowCircleView(brightness: viewModel.brightness,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
                     .onTapGesture(count: 2) {
@@ -235,6 +212,10 @@ struct HUDView: View {
 
                 Spacer().frame(height: 12)
 
+                // Brightness progress lines directly above the factor row so
+                // the levels and the factor deductions read as one unit.
+                brightnessProgressLines
+
                 // Status row + bottom bar — tight grouping
                 topStatusRow
 
@@ -297,6 +278,131 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
+    /// Two thin 10-segment progress lines: screen brightness fills left-to-right
+    /// (white, ☀ at the start), torch brightness fills right-to-left (warm,
+    /// 🔦 at the start). Coarse levels only — the factor row below explains the
+    /// gap to 100%.
+    private var brightnessProgressLines: some View {
+        VStack(spacing: 2) {
+            progressLine(value: viewModel.screenBrightness,
+                         fillColor: .white,
+                         glyph: "sun.max.fill",
+                         shares: viewModel.factorShares,
+                         leadingToTrailing: true)
+                .frame(height: 9, alignment: .bottom)
+            progressLine(value: viewModel.brightness,
+                         fillColor: Color.gloTorchCore,
+                         glyph: "flashlight.on.fill",
+                         shares: viewModel.factorShares,
+                         leadingToTrailing: false)
+                .frame(height: 9, alignment: .bottom)
+                .opacity(viewModel.torchPaused ? 0.35 : 1.0)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 12)
+    }
+
+    private func progressLine(value: Double, fillColor: Color,
+                              glyph: String, shares: [Double],
+                              leadingToTrailing: Bool) -> some View {
+        let filled = min(max(Int((value * 10).rounded()), 0), 10)
+        let reversed = !leadingToTrailing
+        // A flowing glow: a sine wave of brightness runs along the bar, with
+        // the crest travelling in the fill direction (screen → right, torch →
+        // left), so the bar reads as a living "level" rather than a static line.
+        return TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+            let phase = context.date.timeIntervalSinceReferenceDate * 3.0
+            HStack(spacing: 2) {
+                // Same-width slots on both sides (a transparent placeholder
+                // where there's no glyph) so the 10 middle segments align
+                // across the two progress lines.
+                glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
+                ForEach(0..<10, id: \.self) { i in
+                    let lit = reversed ? i >= 10 - filled : i < filled
+                    let position = reversed ? Double(9 - i) : Double(i)
+                    let wave = 0.5 + 0.5 * sin(phase - position * 0.9)
+                    let glow = lit ? wave : 0.0
+                    Capsule()
+                        .fill(segmentColor(index: i, filled: filled,
+                                           fillColor: fillColor, shares: shares,
+                                           reversed: reversed))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 4)
+                        // The capsule itself pulses subtly with the wave so the
+                        // flowing crest is visible even across a wide filled
+                        // region (not just in the halo).
+                        .opacity(lit ? 0.85 + 0.15 * glow : 1.0)
+                        // Three stacked shadows (tight core + wide bloom); the
+                        // glow brightness breathes with the flowing wave and
+                        // stays visible even at the dim night screen level.
+                        .shadow(color: lit ? fillColor.opacity(0.35 + 0.65 * glow) : .clear,
+                                radius: lit ? 3 : 0)
+                        .shadow(color: lit ? fillColor.opacity(0.25 + 0.55 * glow) : .clear,
+                                radius: lit ? 8 : 0)
+                        .shadow(color: lit ? fillColor.opacity(0.15 + 0.30 * glow) : .clear,
+                                radius: lit ? 15 : 0)
+                }
+                glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
+            }
+            .animation(.easeOut(duration: 0.25), value: filled)
+        }
+    }
+
+    private func glyphSlot(_ systemName: String?, color: Color) -> some View {
+        Group {
+            if let systemName {
+                Image(systemName: systemName)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundColor(color.opacity(0.9))
+            } else {
+                Color.clear
+            }
+        }
+        .frame(width: 10)
+    }
+
+    /// Filled segments use the level color; the remaining segments are colored
+    /// by whichever factor dominates their span of the deduction space (same
+    /// semantics as the ring design), falling back to a dim placeholder.
+    private func segmentColor(index: Int, filled: Int, fillColor: Color,
+                              shares: [Double], reversed: Bool) -> Color {
+        if reversed ? index >= 10 - filled : index < filled {
+            return fillColor
+        }
+        return deductionColor(segmentIndex: index, filled: filled,
+                              shares: shares, reversed: reversed)
+            ?? Color.white.opacity(0.12)
+    }
+
+    private func deductionColor(segmentIndex i: Int, filled: Int,
+                                shares: [Double], reversed: Bool) -> Color? {
+        let total = shares.reduce(0, +)
+        guard total > 0.0001, filled < 10 else { return nil }
+        let dedCount = Double(10 - filled)
+        // Deductions grow outward from the filled edge, in factor-share order.
+        let pos: Double
+        if reversed {
+            pos = Double(9 - filled - i)   // right edge is the filled side
+        } else {
+            pos = Double(i - filled)       // left edge is the filled side
+        }
+        let segStart = pos / dedCount
+        let segEnd = (pos + 1) / dedCount
+        var acc = 0.0
+        var bestIndex: Int?
+        var bestOverlap = 0.0
+        for (j, share) in shares.enumerated() {
+            let span = share / total
+            let overlap = max(0, min(segEnd, acc + span) - max(segStart, acc))
+            if overlap > bestOverlap {
+                bestOverlap = overlap
+                bestIndex = j
+            }
+            acc += span
+        }
+        return bestIndex.map { Color.gloFactorPalette[$0] }
+    }
+
     /// 5-factor row weighted by influence: ambient 40%, rest 15% each
     private var topStatusRow: some View {
         GeometryReader { geo in
@@ -335,6 +441,12 @@ struct HUDView: View {
                     .lineLimit(1)
                     .foregroundColor(cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7)))
                 HStack(spacing: 2) {
+                    // Color dot matches the factor's ring-segment color, so the
+                    // deduction segments on the glow rings are traceable back to
+                    // this row.
+                    Circle()
+                        .fill(factorColor(cell.id))
+                        .frame(width: 4, height: 4)
                     Image(systemName: cell.icon)
                         .font(.system(size: 8))
                     Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
@@ -356,6 +468,16 @@ struct HUDView: View {
     private struct FactorCell {
         let icon: String; let label: String; let delta: Int
         let active: Bool; let id: String
+    }
+
+    private func factorColor(_ id: String) -> Color {
+        switch id {
+        case "posture": return Color.gloFactorPosture
+        case "dark":    return Color.gloFactorDark
+        case "moon":    return Color.gloFactorMoon
+        case "weather": return Color.gloFactorWeather
+        default:        return Color.gloFactorAmbient
+        }
     }
 
     // Convenience accessors for factor card data

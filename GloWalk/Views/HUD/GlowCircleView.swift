@@ -2,7 +2,6 @@ import SwiftUI
 
 struct GlowCircleView: View {
     let brightness: Double
-    let isManual: Bool
     let cadence: Double
     let isPaused: Bool
 
@@ -53,35 +52,6 @@ struct GlowCircleView: View {
             )
             .frame(width: 160, height: 160)
 
-            // Layer 3: Guide ring — subtle boundary at the edge of glow
-            Circle()
-                .stroke(
-                    Color.gloGold.opacity(0.18 * warmth),
-                    style: StrokeStyle(lineWidth: 1, dash: [3, 10])
-                )
-                .frame(width: 100, height: 100)
-
-            // Brightness percentage — with strikethrough overlay when paused
-            Text("\(Int(brightness * 100))%")
-                // .gloDisplay is already "LXGW WenKai Light" — do NOT add
-                // .fontWeight(.light), it re-weights the descriptor and logs
-                // "Unable to update Font Descriptor's weight".
-                .font(.gloDisplay(22))
-                .foregroundColor(isPaused ? .white.opacity(0.25)
-                                 : isManual ? .white : Color.gloTorchCore)
-                .shadow(color: isPaused ? .clear
-                         : (isManual ? Color.white : Color.gloGold).opacity(0.5 * warmth),
-                         radius: 12, x: 0, y: 0)
-                .overlay {
-                    if isPaused {
-                        Rectangle()
-                            .fill(.white.opacity(0.25))
-                            .frame(height: 1)
-                            .frame(width: 44)
-                    }
-                }
-                .offset(y: 64)
-
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
                 Text(L10n.hintEndWalk)
@@ -107,4 +77,5 @@ struct GlowCircleView: View {
             }
         }
     }
+
 }

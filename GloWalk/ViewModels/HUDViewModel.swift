@@ -24,6 +24,10 @@ final class HUDViewModel: ObservableObject {
     /// are only recorded when accuracy is < 30m, so a weak signal delays drawing.
     @Published var gpsAccuracyMeters: Double?
     @Published var currentHeading: Double = 0
+    /// Current screen brightness the app is applying (0–1) — feeds the HUD's
+    /// counterclockwise ring. Updated every tick so it responds immediately to
+    /// ambient changes.
+    @Published var screenBrightness: Double = 0.5
     /// UI brightness boost factor: 1.0 (dark) → 3.0+ (bright daylight). Adjusts element visibility.
     @Published var uiBrightnessBoost: Double = 1.0
     /// True when the front camera reports bright daylight — the torch stays off
@@ -48,6 +52,29 @@ final class HUDViewModel: ObservableObject {
     private var cadenceDeltas: [Int] = []
 
     let lightEngine = LightEngine()
+    /// Spike: closed-loop torch controller. Setpoint 0.4 is the fixed spike
+    /// target on the normalized 0–1 ROI scale (see the startup probe below);
+    /// weather/dark-adaptation modifiers plug in later.
+    private var torchController = TorchController(
+        levels: [0, 0.15, 0.3, 0.45, 0.6, 0.75, 0.9, 1.0],
+        deadband: 0.04, hysteresis: 0.02)
+    /// Startup probe: with the back exposure locked, the raw ROI is ~1e-4 and
+    /// an absolute setpoint of 0.4 is unreachable — the controller would ramp
+    /// to 100% the moment the posture gate activates. Once per walk, pin the
+    /// torch at torchProbeLevel for a few ticks, record the torch-off floor and
+    /// torch-on ceiling, then control on the normalized [0,1] scale where 0.4
+    /// means "40% of the torch's full contribution".
+    private enum TorchProbeState { case idle, floorProbe, ceilingProbe, calibrated }
+    private var torchProbeState: TorchProbeState = .idle
+    private var torchProbeTicks = 0
+    private var torchCalibration: (floor: Double, ceiling: Double)?
+    private let torchProbeLevel = 0.9
+    private let torchFloorTicksNeeded = 1
+    private let torchCeilingTicksNeeded = 3
+    private let torchSetpoint = 0.4
+    /// Whether the controller has been seeded for this walk.
+    private var torchSeeded = false
+    private var loggedBackFallback = false
     let sensorManager = SensorManager()
     let weatherService = WeatherService()
     let locationManager = LocationManager()
@@ -65,10 +92,25 @@ final class HUDViewModel: ObservableObject {
         sessionStartTime = Date()
         print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
+        // Reset the startup probe for this walk. Seeding happens on the first
+        // closed-loop tick, from the front-camera ambient level.
+        torchSeeded = false
+        torchProbeState = .idle
+        torchProbeTicks = 0
+        torchCalibration = nil
+
         // Prevent screen sleep and auto-dim during walk
         UIApplication.shared.isIdleTimerDisabled = true
+        // Remember the user's screen brightness so it can be handed back when
+        // the walk ends — the app takes over screen brightness during the walk.
+        originalScreenBrightness = UIScreen.main.brightness
 
         sensorManager.start()
+        // Screen brightness follows ambient at the sensor's sample rate (2Hz)
+        // instead of the 1s tick, so it responds to light changes immediately.
+        sensorManager.onAmbientUpdate = { [weak self] in
+            self?.updateScreenBrightness()
+        }
 
         let context = PersistenceController.shared.container.viewContext
         let moon = MoonPhase.current()
@@ -148,6 +190,12 @@ final class HUDViewModel: ObservableObject {
             darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0,
             isDaylight: isDaylight
         )
+        // The model (and its factor attribution) must stay fresh every tick —
+        // even while the closed loop controls the actual torch level — so the
+        // moon/weather names and the factor deductions match the displayed
+        // brightness. Previously it was only updated in the fallback path,
+        // leaving the factor cards stale (names empty, deductions ~0).
+        lightEngine.update(sensors: snap)
         if sensorManager.isOccluded && !isTorchOccluded {
             isTorchOccluded = true
             sensorManager.setTorchLevel(0)
@@ -155,8 +203,35 @@ final class HUDViewModel: ObservableObject {
             isTorchOccluded = false
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
-        if !isTorchOccluded && !torchPaused {
-            lightEngine.update(sensors: snap)
+        if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
+            loggedBackFallback = true
+            print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
+        }
+        if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
+            let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
+                                isOccluded: sensorManager.isOccluded,
+                                isDaylight: isDaylight,
+                                isTorchPaused: torchPaused)
+            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
+            if sensorManager.isOccluded || torchPaused || isDaylight {
+                brightness = 0
+            } else {
+                // Manual drag applies on top of the loop's level (the spike
+                // controller doesn't know about manualOffset yet).
+                brightness = min(max(closedLoopBrightness(measured: y, gate: gate)
+                                     + lightEngine.manualOffset, 0.05), 1.0)
+            }
+            sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
+            #if DEBUG
+            // Device-campaign log line: filter "TLM" in Xcode Console.
+            print("TLM," + TorchMeasurementLog.row(
+                timestamp: Date(), torchLevel: brightness,
+                fullFrame: sensorManager.backFullFrameLuminance ?? -1, roi: y,
+                pitch: sensorManager.devicePitch, active: gate.isActive,
+                ambient: sensorManager.ambientLightLevel))
+            #endif
+        } else if !isTorchOccluded && !torchPaused {
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -208,30 +283,40 @@ final class HUDViewModel: ObservableObject {
 
         let d = lightEngine.factorDetails
         let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
+        // The five factors' deductions are rescaled to the ACTUAL brightness
+        // gap so the HUD reconciles: brightness + sum(deductions) = 100%. The
+        // share proportions come from the model's fresh shortfall attribution.
+        let gap = max(0.0, 1.0 - brightness)
+        let shareSum = d.ambientShare + d.postureShare + d.darkShare
+                     + d.moonShare + d.weatherShare
+        func deduction(_ share: Double) -> Int {
+            guard shareSum > 0.0001, gap > 0.001 else { return 0 }
+            return -Int((share / shareSum * gap * 100).rounded())
+        }
         moonCard = MoonCardData(
             phaseName: phaseName,
-            brightnessDelta: d.moonDelta,
+            brightnessDelta: deduction(d.moonShare),
             isActive: lightEngine.moonFactorActive
         )
         let hasWeather = weatherService.currentCondition != nil
         weatherCard = WeatherCardData(
             condition: hasWeather ? d.weatherCondition : "...",
-            brightnessDelta: d.weatherDelta,
+            brightnessDelta: deduction(d.weatherShare),
             isActive: lightEngine.weatherFactorActive,
             provider: weatherService.provider
         )
         factorCards = [
             FactorCardData(id: "ambient", icon: "eye.fill",
                 label: L10n.factorAmbient,
-                brightnessDelta: d.ambientDelta,
+                brightnessDelta: deduction(d.ambientShare),
                 isActive: lightEngine.ambientFactorActive),
             FactorCardData(id: "posture", icon: "iphone",
                 label: L10n.factorPosture,
-                brightnessDelta: d.postureDelta,
+                brightnessDelta: deduction(d.postureShare),
                 isActive: lightEngine.postureFactorActive),
             FactorCardData(id: "dark", icon: "moon.zzz.fill",
                 label: L10n.factorDark,
-                brightnessDelta: d.darkDelta,
+                brightnessDelta: deduction(d.darkShare),
                 isActive: lightEngine.darkAdaptationActive),
         ]
 
@@ -249,10 +334,96 @@ final class HUDViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Torch Closed Loop (spike)
+
+    private func closedLoopBrightness(measured y: Double, gate: LoopGate) -> Double {
+        if !torchSeeded {
+            torchSeeded = true
+            // Seed at the ambient-implied level: dark scene → high torch,
+            // bright scene → low. The debounced bright-scene latch (isDaylight)
+            // and the ambient fallback below take over the bright-room case.
+            torchController.seed(level: max(0.0, 1.0 - sensorManager.ambientLightLevel))
+        }
+        if gate.isActive {
+            if torchProbeState != .calibrated {
+                advanceTorchProbe(measured: y)
+                // The tick that completes the probe hands off to the controller
+                // so it can react to the freshly measured ceiling immediately.
+                if torchProbeState == .calibrated {
+                    return torchController.step(setpoint: torchSetpoint,
+                                                measured: normalizedBackLuminance(y),
+                                                active: true)
+                }
+                return torchProbePin
+            }
+            return torchController.step(setpoint: torchSetpoint,
+                                        measured: normalizedBackLuminance(y),
+                                        active: true)
+        }
+        // Not in walking posture: the back camera isn't looking at the ground
+        // the torch would illuminate (it may face the ceiling or sky), so the
+        // front-camera ambient decides — bright scene → torch off, dark scene
+        // → torch on. The back camera only fine-tunes the level while the loop
+        // is active.
+        return max(0.0, 1.0 - sensorManager.ambientLightLevel)
+    }
+
+    private var torchProbePin: Double {
+        switch torchProbeState {
+        case .floorProbe: return 0
+        case .ceilingProbe: return torchProbeLevel
+        default: return 0
+        }
+    }
+
+    /// Map the exposure-locked ROI onto the [0,1] scale measured by the startup
+    /// probe: 0 = torch-off floor, 1 = torch-on ceiling.
+    private func normalizedBackLuminance(_ y: Double) -> Double {
+        guard let cal = torchCalibration, cal.ceiling > cal.floor else { return 0 }
+        return min(max((y - cal.floor) / (cal.ceiling - cal.floor), 0), 1)
+    }
+
+    /// Advance the startup probe one tick. Pins the torch at torchProbeLevel
+    /// until torchCeilingTicksNeeded torch-on samples are collected, then marks
+    /// the loop calibrated. A torch-off floor phase runs first so the [floor,
+    /// ceiling] range is measured at torch 0 / torch 0.9 regardless of what
+    /// level the torch had when the gate activated.
+    private func advanceTorchProbe(measured y: Double) {
+        switch torchProbeState {
+        case .idle:
+            torchProbeState = .floorProbe
+            torchProbeTicks = 0
+            torchCalibration = (floor: y, ceiling: y)
+        case .floorProbe:
+            if let cal = torchCalibration {
+                torchCalibration = (floor: min(cal.floor, y), ceiling: cal.ceiling)
+            }
+            torchProbeTicks += 1
+            if torchProbeTicks >= torchFloorTicksNeeded {
+                torchProbeState = .ceilingProbe
+                torchProbeTicks = 0
+            }
+        case .ceilingProbe:
+            if let cal = torchCalibration {
+                torchCalibration = (floor: cal.floor, ceiling: max(cal.ceiling, y))
+            }
+            torchProbeTicks += 1
+            if torchProbeTicks >= torchCeilingTicksNeeded {
+                torchProbeState = .calibrated
+                if let cal = torchCalibration {
+                    print("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
+                }
+            }
+        case .calibrated:
+            break
+        }
+    }
+
     // MARK: - End Walk
 
     func endWalkAndNotify() {
         isActive = false
+        sensorManager.onAmbientUpdate = nil
         UIApplication.shared.isIdleTimerDisabled = false
         // Hand the user back their screen brightness before the sensor loop
         // stops — otherwise a walk that ends while dimmed (pocket) or boosted
@@ -283,6 +454,7 @@ final class HUDViewModel: ObservableObject {
 
     func endWalkAbruptly() {
         isActive = false
+        sensorManager.onAmbientUpdate = nil
         UIApplication.shared.isIdleTimerDisabled = false
         // Same as endWalkAndNotify — never leave the screen dimmed/boosted.
         restoreScreenBrightness()
@@ -319,6 +491,13 @@ final class HUDViewModel: ObservableObject {
     }
     func setManualBrightness(_ level: Double) {
         lightEngine.setManualOffset(level - lightEngine.targetBrightness)
+        // Immediate, discrete feedback during the drag — don't wait for the 1s
+        // tick to recompute brightness. Snap to 10% steps so the HUD ring
+        // advances one segment at a time and the torch follows the finger.
+        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
+        brightness = snapped
+        sensorManager.setTorchLevel(snapped)
+        locationManager.currentTorchBrightness = snapped
     }
     func resetToAutoBrightness() { lightEngine.resetManualOffset() }
 
@@ -352,13 +531,24 @@ final class HUDViewModel: ObservableObject {
         isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
     }
 
-    /// Screen brightness priority:
+    /// Factor shortfall proportions (ambient/posture/dark/moon/weather),
+    /// normalized to sum 1 — colors the unfilled progress-line segments that
+    /// the factors "deduct" from the brightness.
+    var factorShares: [Double] {
+        let d = lightEngine.factorDetails
+        let sum = d.ambientShare + d.postureShare + d.darkShare
+                + d.moonShare + d.weatherShare
+        guard sum > 0.0001 else { return [0, 0, 0, 0, 0] }
+        return [d.ambientShare / sum, d.postureShare / sum,
+                d.darkShare / sum, d.moonShare / sum, d.weatherShare / sum]
+    }
+
+    /// Screen brightness is ambient-continuous and immediate (no debounce —
+    /// unlike the torch, which deliberately ramps slowly for safety):
     /// 1. Pocket — occluded AND the torch was on → dim to 0 to save battery.
-    /// 2. Bright daylight → boost to 1.0 so the UI is readable against the sun.
-    /// 3. Otherwise → restore the user's brightness.
-    ///
-    /// The pocket dim only applies when the flashlight was actually on — if the
-    /// torch is off (paused or daylight), occlusion must NOT black out the screen.
+    /// 2. Bright daylight → 1.0 so the UI is readable against the sun.
+    /// 3. Otherwise → 0.25 + 0.75 × ambient (dark room dims the screen, a
+    ///    bright room brightens it, within one tick of the ambient changing).
     private func updateScreenBrightness() {
         guard isActive else {
             // Not walking — always hand the user's brightness back. A walk may
@@ -367,29 +557,22 @@ final class HUDViewModel: ObservableObject {
             restoreScreenBrightness()
             return
         }
-        let desired: CGFloat?
+        let desired: Double
         if occlusionNoticeVisible {
-            if originalScreenBrightness == nil {
-                originalScreenBrightness = UIScreen.main.brightness
-            }
             desired = 0
-        } else if isDaylight && !isTorchOccluded {
-            if originalScreenBrightness == nil {
-                originalScreenBrightness = UIScreen.main.brightness
-            }
+        } else if isDaylight {
             desired = 1.0
         } else {
-            desired = nil
+            let ambient = sensorManager.ambientLightLevel
+            desired = min(1.0, max(0.25, 0.25 + 0.75 * ambient))
         }
-        if let desired {
-            // Only write when the value actually changes — otherwise the 1s tick
-            // would fight the user's Control Center brightness every second.
-            if abs(UIScreen.main.brightness - desired) > 0.001 {
-                UIScreen.main.brightness = desired
-            }
-        } else if let orig = originalScreenBrightness {
-            UIScreen.main.brightness = orig
-            originalScreenBrightness = nil
+        // Quantize to the same 10% steps as the HUD bar, so the screen and the
+        // indicator always agree and sub-segment EMA jitter can't strobe the
+        // screen with tiny writes (the flicker reported on device).
+        let quantized = (desired * 10).rounded() / 10
+        screenBrightness = quantized
+        if abs(UIScreen.main.brightness - CGFloat(quantized)) > 0.005 {
+            UIScreen.main.brightness = CGFloat(quantized)
         }
     }
 

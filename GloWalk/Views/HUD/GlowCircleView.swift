@@ -66,23 +66,35 @@ struct GlowCircleView: View {
 
             // Layer 3: Torch ring — clockwise, 10 segments. Filled segments =
             // torch brightness (coarse); the rest are the factor deductions,
-            // each colored by the responsible factor.
-            SegmentedRing(filledSegments: torchSegments,
-                          shares: factorShares,
-                          filledColor: Color.gloTorchCore,
-                          diameter: 108,
-                          lineWidth: 1.5)
+            // each colored by the responsible factor. A blurred copy underneath
+            // gives the thin line a soft glow.
+            glowingRing(filled: torchSegments,
+                        filledColor: Color.gloTorchCore,
+                        diameter: 112)
                 .opacity(isPaused ? 0.35 : 1.0)
 
             // Layer 4: Screen ring — counterclockwise (mirrored), 10 segments.
             // Filled = screen brightness; same factor attribution for the rest.
-            SegmentedRing(filledSegments: screenSegments,
-                          shares: factorShares,
-                          filledColor: .white,
-                          diameter: 122,
-                          lineWidth: 1.5)
+            glowingRing(filled: screenSegments,
+                        filledColor: .white,
+                        diameter: 130)
                 .scaleEffect(x: -1, y: 1)
                 .opacity(0.85)
+
+            // Ring anchors at 12 o'clock: 🔦 marks the torch ring's start
+            // (fills clockwise), ☀ marks the screen ring's start (fills
+            // counterclockwise) — without them the bare rings read as abstract
+            // decoration.
+            Image(systemName: "flashlight.on.fill")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(Color.gloTorchCore.opacity(0.95))
+                .shadow(color: Color.gloTorchCore.opacity(0.7), radius: 2)
+                .offset(y: -50)
+            Image(systemName: "sun.max.fill")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white.opacity(0.9))
+                .shadow(color: .white.opacity(0.5), radius: 2)
+                .offset(y: -69)
 
             // Operation hints — breathe with the glow
             VStack(spacing: 4) {
@@ -114,6 +126,20 @@ struct GlowCircleView: View {
     /// o'clock); the remaining segments are apportioned to the five factors by
     /// their shortfall shares. Factors don't need to be whole 10% units — each
     /// segment is colored by whichever factor dominates its span.
+    private func glowingRing(filled: Int, filledColor: Color, diameter: CGFloat) -> some View {
+        ZStack {
+            SegmentedRing(filledSegments: filled, shares: factorShares,
+                          filledColor: filledColor, diameter: diameter,
+                          lineWidth: 1.5)
+                .blur(radius: 2.5)
+                .opacity(0.5)
+            SegmentedRing(filledSegments: filled, shares: factorShares,
+                          filledColor: filledColor, diameter: diameter,
+                          lineWidth: 1.5)
+        }
+        .animation(.easeOut(duration: 0.35), value: filled)
+    }
+
     private struct SegmentedRing: View {
         let filledSegments: Int
         let shares: [Double]
@@ -122,7 +148,7 @@ struct GlowCircleView: View {
         let lineWidth: CGFloat
 
         private let segmentCount = 10
-        private let gapDegrees: Double = 3
+        private let gapDegrees: Double = 3.5
 
         private static let factorColors: [Color] = [
             .white.opacity(0.55),                                    // ambient
@@ -139,7 +165,7 @@ struct GlowCircleView: View {
                         .trim(from: segmentStart(i), to: segmentEnd(i))
                         .stroke(segmentColor(index: i),
                                 style: StrokeStyle(lineWidth: lineWidth,
-                                                   lineCap: .round))
+                                                   lineCap: .butt))
                         .rotationEffect(.degrees(-90))
                 }
             }

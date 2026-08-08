@@ -306,18 +306,24 @@ struct HUDView: View {
                               glyph: String, shares: [Double],
                               leadingToTrailing: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
+        let reversed = !leadingToTrailing
         return HStack(spacing: 2) {
             // Same-width slots on both sides (a transparent placeholder where
             // there's no glyph) so the 10 middle segments align across the two
             // progress lines.
             glyphSlot(leadingToTrailing ? glyph : nil, color: fillColor)
             ForEach(0..<10, id: \.self) { i in
+                let lit = reversed ? i >= 10 - filled : i < filled
                 Capsule()
                     .fill(segmentColor(index: i, filled: filled,
                                        fillColor: fillColor, shares: shares,
-                                       reversed: !leadingToTrailing))
+                                       reversed: reversed))
                     .frame(maxWidth: .infinity)
                     .frame(height: 4)
+                    // Per-segment glow so the brightness bars read as the lit
+                    // "level" elements and stand apart from the factor row.
+                    .shadow(color: lit ? fillColor.opacity(0.8) : .clear,
+                            radius: lit ? 3 : 0)
             }
             glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
         }

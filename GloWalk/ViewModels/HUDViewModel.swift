@@ -6,7 +6,7 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0)
+    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0.0)
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
@@ -228,14 +228,6 @@ final class HUDViewModel: ObservableObject {
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
-            #if DEBUG
-            // Device-campaign log line: filter "TLM" in Xcode Console.
-            print("TLM," + TorchMeasurementLog.row(
-                timestamp: Date(), torchLevel: brightness,
-                fullFrame: sensorManager.backFullFrameLuminance ?? -1, roi: y,
-                pitch: sensorManager.devicePitch, active: gate.isActive,
-                ambient: sensorManager.ambientLightLevel))
-            #endif
         } else if !isTorchOccluded && !torchPaused {
             brightness = lightEngine.targetBrightness
             sensorManager.setTorchLevel(brightness)

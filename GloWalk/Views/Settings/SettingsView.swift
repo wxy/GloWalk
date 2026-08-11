@@ -2,6 +2,7 @@ import SwiftUI
 import CoreData
 import AVFoundation
 import CoreLocation
+import HealthKit
 
 struct SettingsView: View {
     @StateObject private var prefs = UserPreferences.shared
@@ -22,6 +23,7 @@ struct SettingsView: View {
                         }
                     } header: { sectionHeader(L10n.settingsHelpSection) }
                     Section { dataSection } header: { sectionHeader(L10n.settingsData) }
+                    Section { healthSection } header: { sectionHeader(L10n.settingsHealth) }
                     Section { taglineSection } header: { sectionHeader(Text("")) }
                     Section {
                         HStack {
@@ -107,6 +109,50 @@ struct SettingsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
+    }
+
+    private var healthSection: some View {
+        let store = HealthKitStore()
+        return Group {
+            Toggle(isOn: $prefs.healthSyncEnabled) {
+                Text(L10n.settingsHealthSync).font(.gloBody(14)).foregroundColor(.white)
+            }
+            .tint(.gloGold)
+            .disabled(!store.isAvailable)
+            Button(action: openHealthSettings) {
+                HStack {
+                    Text(L10n.settingsHealthStatus).font(.gloBody(14)).foregroundColor(.white)
+                    Spacer()
+                    Text(healthStatusText(store))
+                        .font(.gloBody(12))
+                        .foregroundColor(healthStatusColor(store))
+                }
+            }
+        }
+    }
+
+    private func healthStatusText(_ store: HealthKitStore) -> LocalizedStringKey {
+        guard store.isAvailable else { return L10n.settingsHealthUnavailable }
+        switch store.authorizationStatus(for: HKObjectType.workoutType()) {
+        case .sharingAuthorized: return L10n.settingsHealthAuthorized
+        case .notDetermined: return L10n.settingsHealthNotDetermined
+        default: return L10n.settingsHealthDenied
+        }
+    }
+
+    private func healthStatusColor(_ store: HealthKitStore) -> Color {
+        guard store.isAvailable else { return .white.opacity(0.3) }
+        switch store.authorizationStatus(for: HKObjectType.workoutType()) {
+        case .sharingAuthorized: return .green.opacity(0.7)
+        case .notDetermined: return .white.opacity(0.5)
+        default: return .red.opacity(0.5)
+        }
+    }
+
+    private func openHealthSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
     }
 
     // MARK: - Helpers

@@ -41,6 +41,8 @@ final class HUDViewModel: ObservableObject {
     @Published var weatherCard: WeatherCardData = WeatherCardData(
         condition: "...", brightnessDelta: 0, isActive: true, provider: .none)
     @Published var showArrivalSummary: Bool = false
+    /// Latest Health sync state for the arriving session (nil = no status shown).
+    @Published var healthSyncStatus: String?
     @Published private(set) var currentWalkSession: WalkSession?
     /// Current moon phase image filename (e.g. "full_moon") for corner decoration
     @Published var currentMoonPhaseName: String = "full_moon"
@@ -52,6 +54,9 @@ final class HUDViewModel: ObservableObject {
     private var cadenceDeltas: [Int] = []
 
     let lightEngine = LightEngine()
+    private let healthSyncService = HealthSyncService(
+        store: HealthKitStore(),
+        context: PersistenceController.shared.container.viewContext)
     /// Spike: closed-loop torch controller. Setpoint 0.4 is the fixed spike
     /// target on the normalized 0–1 ROI scale (see the startup probe below);
     /// weather/dark-adaptation modifiers plug in later.
@@ -448,6 +453,11 @@ final class HUDViewModel: ObservableObject {
             }
             s.endType = "completed"
             PersistenceController.shared.save()
+            Task {
+                healthSyncStatus = HealthSyncState.pending.rawValue
+                await healthSyncService.sync(session: s)
+                healthSyncStatus = s.healthSyncState
+            }
         }
         showArrivalSummary = true
     }
@@ -473,6 +483,9 @@ final class HUDViewModel: ObservableObject {
             s.totalSteps = Int64(sensorManager.stepCount)
             s.totalDistance = locationManager.totalDistance
             PersistenceController.shared.save()
+            Task {
+                await healthSyncService.sync(session: s)
+            }
         }
     }
 

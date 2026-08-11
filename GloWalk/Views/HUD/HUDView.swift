@@ -11,13 +11,6 @@ enum BrightnessDrag {
         Double(min(max(segment, 0), 10)) / 10
     }
 
-    /// 手指全局 y → 档位（0–10），超出范围钳制。
-    static func segment(forY y: CGFloat, topY: CGFloat, bottomY: CGFloat) -> Int {
-        let span = max(bottomY - topY, 1)
-        let t = min(max((bottomY - y) / span, 0), 1)
-        return Int((t * 10).rounded())
-    }
-
     /// 图标偏移量 → 档位（0–10），超出范围钳制。
     static func segment(forOffset offset: CGFloat,
                         topOffset: CGFloat, bottomOffset: CGFloat) -> Int {
@@ -424,7 +417,6 @@ struct HUDView: View {
                          leadingToTrailing: false,
                          manual: manual)
                 .frame(height: 9, alignment: .bottom)
-                .opacity(viewModel.torchPaused ? 0.35 : 1.0)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)

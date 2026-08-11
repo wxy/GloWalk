@@ -9,7 +9,6 @@ protocol HealthStoreProtocol {
 }
 
 enum HealthStoreError: Error {
-    case routeAddFailed
     case routeFinishFailed
 }
 

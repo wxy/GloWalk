@@ -15,8 +15,6 @@ final class HUDViewModel: ObservableObject {
     @Published var isTorchOccluded: Bool = false
     /// True when camera permission is denied — ambient light sensing unavailable.
     @Published var cameraDeniedForAmbient: Bool = false
-    /// Long-press to temporarily turn off torch without ending walk
-    @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
     /// GPS fix accuracy in meters (CLLocation.horizontalAccuracy), nil when no
@@ -210,11 +208,10 @@ final class HUDViewModel: ObservableObject {
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
         let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
                             isOccluded: sensorManager.isOccluded,
-                            isDaylight: isDaylight,
-                            isTorchPaused: torchPaused)
+                            isDaylight: isDaylight)
         if FeatureFlags.torchClosedLoop {
-            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、未暂停、
-            // 非手动）时才需要；其余时间停掉第二路 ISP 以降低发热。
+            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、非手动）
+            // 时才需要；其余时间停掉第二路 ISP 以降低发热。
             sensorManager.setBackCameraEnabled(gate.isActive && !lightEngine.isManual)
         }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
@@ -223,8 +220,8 @@ final class HUDViewModel: ObservableObject {
         }
         if lightEngine.isManual {
             // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
-            // 仅遮挡/暂停仍优先关灯（安全），白天门控与因子模型都让位。
-            if sensorManager.isOccluded || torchPaused {
+            // 仅遮挡仍优先关灯（安全），白天门控与因子模型都让位。
+            if sensorManager.isOccluded {
                 brightness = 0
             } else {
                 brightness = thermallyCapped(lightEngine.targetBrightness)
@@ -232,8 +229,8 @@ final class HUDViewModel: ObservableObject {
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
         } else if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
-            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
-            if sensorManager.isOccluded || torchPaused || isDaylight {
+            // 闭环接管手电；遮挡/白天按全局约束优先关灯。
+            if sensorManager.isOccluded || isDaylight {
                 brightness = 0
             } else {
                 brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)),
@@ -241,13 +238,10 @@ final class HUDViewModel: ObservableObject {
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
-        } else if !isTorchOccluded && !torchPaused {
+        } else if !isTorchOccluded {
             brightness = thermallyCapped(lightEngine.targetBrightness)
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
-        } else if torchPaused {
-            sensorManager.setTorchLevel(0)
-            locationManager.currentTorchBrightness = 0
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -552,7 +546,7 @@ final class HUDViewModel: ObservableObject {
     /// notice never claims a pocket torch-off when the torch was off for another
     /// reason (paused or daylight).
     var occlusionNoticeVisible: Bool {
-        isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
+        isTorchOccluded && !isDaylight && brightness > 0
     }
 
     /// Factor shortfall proportions (ambient/posture/dark/moon/weather),

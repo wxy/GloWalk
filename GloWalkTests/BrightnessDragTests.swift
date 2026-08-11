@@ -15,15 +15,6 @@ final class BrightnessDragTests: XCTestCase {
         XCTAssertEqual(BrightnessDrag.level(segment: 0), 0.0, accuracy: 0.0001)
     }
 
-    func testSegmentFromPosition() {
-        XCTAssertEqual(BrightnessDrag.segment(forY: 0, topY: 0, bottomY: 600), 10)
-        XCTAssertEqual(BrightnessDrag.segment(forY: 600, topY: 0, bottomY: 600), 0)
-        XCTAssertEqual(BrightnessDrag.segment(forY: 300, topY: 0, bottomY: 600), 5)
-        // 拖出范围后钳制：高于顶部=全亮，低于亮度条=关闭。
-        XCTAssertEqual(BrightnessDrag.segment(forY: -50, topY: 0, bottomY: 600), 10)
-        XCTAssertEqual(BrightnessDrag.segment(forY: 900, topY: 0, bottomY: 600), 0)
-    }
-
     func testSegmentFromOffset() {
         XCTAssertEqual(BrightnessDrag.segment(forOffset: -200, topOffset: -200, bottomOffset: 100), 10)
         XCTAssertEqual(BrightnessDrag.segment(forOffset: 100, topOffset: -200, bottomOffset: 100), 0)

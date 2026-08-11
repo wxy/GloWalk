@@ -86,7 +86,8 @@ final class LightEngine: ObservableObject {
         let base = weighted / denom
         if let manual = manualBrightness {
             // 手动模式：完全关闭自动机制，亮度就是手动值。
-            targetBrightness = min(max(manual, 0.1), 1.0)
+            // 0 是合法档位（拖到底 = 完全关闭闪光灯），不做 0.1 下限钳制。
+            targetBrightness = min(max(manual, 0.0), 1.0)
         } else {
             // Daylight gate: when the debounced detector reports bright daylight
             // the torch is pointless — turn it off (level 0). The gate consumes

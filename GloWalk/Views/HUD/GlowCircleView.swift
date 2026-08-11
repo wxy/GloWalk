@@ -7,6 +7,8 @@ struct GlowCircleView: View {
 
     @State private var breathe: Double = 0
     @State private var stepPhase: Double = 0
+    /// 操作提示是否可见：刚进入时显示，几秒后自动淡出。
+    @State private var showHints = true
 
     private var warmth: Double { brightness }
 
@@ -60,6 +62,7 @@ struct GlowCircleView: View {
             .font(.gloBody(11))
             .foregroundColor(.white.opacity(0.5))
             .offset(y: 100)
+            .opacity(showHints ? 1 : 0)
         }
         // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
         .scaleEffect(0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))
@@ -75,6 +78,11 @@ struct GlowCircleView: View {
                     .background(Circle().fill(Color.gloGold))
                     .offset(x: 42, y: -42)
             }
+        }
+        .task {
+            // 操作提示：刚进入时显示，8 秒后自动淡出，避免长期占据视线。
+            try? await Task.sleep(nanoseconds: 8_000_000_000)
+            withAnimation(.easeOut(duration: 1.0)) { showHints = false }
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {

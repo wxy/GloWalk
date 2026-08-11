@@ -126,7 +126,7 @@ final class HealthModelMigrationTests: XCTestCase {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:GloWalkTests/HealthModelMigrationTests`
+Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:GloWalkTests/HealthModelMigrationTests`
 Expected: FAIL（`GloWalk 2.mom` 尚不存在 → "Model versions not found"）。
 
 - [ ] **Step 3: Create the new model version**
@@ -295,7 +295,7 @@ final class HealthWorkoutFactoryTests: XCTestCase {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:GloWalkTests/HealthWorkoutFactoryTests`
+Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:GloWalkTests/HealthWorkoutFactoryTests`
 Expected: FAIL（`HealthWorkoutFactory` 不存在，编译失败）。
 
 - [ ] **Step 3: Implement the factory**
@@ -463,7 +463,7 @@ final class HealthKitStore: HealthStoreProtocol {
 
 - [ ] **Step 2: Build to verify it compiles**
 
-Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'`
+Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: BUILD SUCCEEDED。
 
 - [ ] **Step 3: Commit**
@@ -676,7 +676,7 @@ private final class MockHealthStore: HealthStoreProtocol {
 
 - [ ] **Step 3: Run tests to verify they fail**
 
-Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:GloWalkTests/HealthSyncServiceTests`
+Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:GloWalkTests/HealthSyncServiceTests`
 Expected: FAIL（`HealthSyncService`、`MockHealthStore` 引用不到 `HealthStoreProtocol` 尚未暴露——协议无访问级别时对 @testable 可见，编译失败点是 `HealthSyncService` 不存在）。
 
 - [ ] **Step 4: Implement the service**
@@ -861,7 +861,7 @@ git commit -m "feat: add health sync service with tests"
 
 - [ ] **Step 4: Build**
 
-Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'`
+Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: BUILD SUCCEEDED。
 
 - [ ] **Step 5: Commit**
@@ -1086,7 +1086,7 @@ git commit -m "feat: sync walks to Health on walk end and retry on foreground"
 
 - [ ] **Step 6: Build**
 
-Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'`
+Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: BUILD SUCCEEDED。
 
 - [ ] **Step 7: Commit**
@@ -1160,7 +1160,7 @@ git commit -m "feat: add Health sync settings, arrival status, history badge"
 
 - [ ] **Step 5: Build to verify configuration is valid**
 
-Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'`
+Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: BUILD SUCCEEDED（模拟器不校验 entitlement 签名；真机归档时 Xcode 需要开发者账号具备 HealthKit capability）。
 
 - [ ] **Step 6: Commit**
@@ -1179,12 +1179,12 @@ git commit -m "chore: add HealthKit entitlement and usage descriptions"
 
 - [ ] **Step 1: Run the full test suite**
 
-Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'`
+Run: `xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: 全部测试 PASS（含既有 GloWalkTests 与新增 3 个测试文件）。
 
 - [ ] **Step 2: Simulator smoke test**
 
-在模拟器运行 app（`xcodebuild -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 16'` 后点 Run）：
+在模拟器运行 app（`xcodebuild -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'` 后点 Run）：
 - 设置页出现「健康」分组，开关默认开；
 - 完成一次带步数的步行（可用模拟器步行模拟），到达页出现「正在同步到健康…」随后「已同步到健康」；
 - 系统健康 App（模拟器自带）能看到该次步行训练与步数/距离样本；

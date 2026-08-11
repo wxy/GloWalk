@@ -4,13 +4,16 @@ struct GlowCircleView: View {
     let brightness: Double
     let cadence: Double
     let isPaused: Bool
+    /// 拖动调亮度时图标强制最大亮度，保证控件清晰可见；
+    /// 其他元素（亮度条/因素行）仍按实际亮度显示。
+    let isDragging: Bool
 
     @State private var breathe: Double = 0
     @State private var stepPhase: Double = 0
     /// 操作提示是否可见：刚进入时显示，几秒后自动淡出。
     @State private var showHints = true
 
-    private var warmth: Double { brightness }
+    private var warmth: Double { isDragging ? 1.0 : brightness }
 
     /// Icon opacity scales with brightness:
     /// dim torch → ghost outline; full torch → clearly visible brand mark.

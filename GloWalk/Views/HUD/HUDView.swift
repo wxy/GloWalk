@@ -310,7 +310,8 @@ struct HUDView: View {
         ZStack {
             GlowCircleView(brightness: viewModel.brightness,
                           cadence: viewModel.cadence,
-                          isPaused: viewModel.lightEngine.isManual && viewModel.brightness <= 0.001)
+                          isPaused: viewModel.lightEngine.isManual && viewModel.brightness <= 0.001,
+                          isDragging: isDragging)
                 .offset(y: dragOffset)
                 .onTapGesture(count: 2) {
                     Haptic.heavy()

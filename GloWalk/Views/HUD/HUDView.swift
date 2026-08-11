@@ -18,6 +18,14 @@ enum BrightnessDrag {
         return Int((t * 10).rounded())
     }
 
+    /// 图标偏移量 → 档位（0–10），超出范围钳制。
+    static func segment(forOffset offset: CGFloat,
+                        topOffset: CGFloat, bottomOffset: CGFloat) -> Int {
+        let span = max(bottomOffset - topOffset, 1)
+        let t = min(max((bottomOffset - offset) / span, 0), 1)
+        return Int((t * 10).rounded())
+    }
+
     /// 档位对应的图标停靠位置（顶部=全亮，底部=关闭）。
     static func slotY(segment: Int, topY: CGFloat, bottomY: CGFloat) -> CGFloat {
         let s = min(max(segment, 0), 10)
@@ -25,8 +33,16 @@ enum BrightnessDrag {
     }
 }
 
-/// 中央图标槽位（静止位置）的全局 y。
-private struct GlowCenterYKey: PreferenceKey {
+/// 中央图标槽位（静止位置）的全局 frame。
+private struct GlowSlotFrameKey: PreferenceKey {
+    static var defaultValue: CGRect? = nil
+    static func reduce(value: inout CGRect?, nextValue: () -> CGRect?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
+/// 右上角控制按钮行的全局下缘 y（拖动上界）。
+private struct TopControlsMaxYKey: PreferenceKey {
     static var defaultValue: CGFloat? = nil
     static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
         if let next = nextValue() { value = next }
@@ -150,10 +166,14 @@ struct HUDView: View {
     @State private var isDragging = false
     /// 本次拖动开始时图标中心的全局 y。
     @State private var dragStartCenterY: CGFloat = 0
-    /// 中央图标槽位（静止位置）的全局 y。
-    @State private var glowCenterY: CGFloat?
+    /// 中央图标槽位（静止位置）的全局 frame。
+    @State private var glowSlotFrame: CGRect?
+    /// 右上角控制按钮行的全局下缘 y（拖动上界）。
+    @State private var topControlsMaxY: CGFloat?
     /// 下方亮度进度条位置的全局 y（拖到这里 = 关闭闪光灯）。
     @State private var barsY: CGFloat?
+    /// 图标半径的一半（90pt 图标 → 45pt），把"边缘不越界"换算成"中心限制"。
+    private let iconHalfHeight: CGFloat = 45
     @State private var hasShownCameraAlert = false
     @State private var showCameraDeniedAlert = false
 
@@ -187,6 +207,12 @@ struct HUDView: View {
                     .padding(.trailing, 16)
                 }
                 .padding(.top, 12)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.preference(key: TopControlsMaxYKey.self,
+                                               value: geo.frame(in: .global).maxY)
+                    }
+                )
 
                 // Unified system notice bar — camera denied / occlusion / daylight
                 topNoticeBar
@@ -229,7 +255,8 @@ struct HUDView: View {
             }
         }
         .gloWalkHUD()
-        .onPreferenceChange(GlowCenterYKey.self) { glowCenterY = $0 }
+        .onPreferenceChange(GlowSlotFrameKey.self) { glowSlotFrame = $0 }
+        .onPreferenceChange(TopControlsMaxYKey.self) { topControlsMaxY = $0 }
         .onPreferenceChange(BarsMinYKey.self) { barsY = $0 }
         .onAppear { viewModel.startWalk() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
@@ -314,51 +341,61 @@ struct HUDView: View {
                         Haptic.light()
                     }
                 }
-                .gesture(
-                    DragGesture(minimumDistance: 8)
-                        .onChanged { v in
-                            let topY: CGFloat = 0
-                            let bottomY = barsY ?? UIScreen.main.bounds.height * 0.82
-                            let glowCenter = glowCenterY ?? UIScreen.main.bounds.midY
-                            if !isDragging {
-                                isDragging = true
-                                dragStartCenterY = glowCenter + dragOffset
-                                if !isManual { isManual = true; Haptic.light() }
-                            }
-                            // 手指全局 y = 拖动起点图标中心 + 手指位移。
-                            let fingerY = dragStartCenterY + v.translation.height
-                            let segment = BrightnessDrag.segment(forY: fingerY,
-                                                                 topY: topY, bottomY: bottomY)
-                            let newLevel = BrightnessDrag.level(segment: segment)
-                            // 图标跟随手指，限制在 [屏幕顶部, 亮度条] 区间。
-                            dragOffset = min(max(fingerY - glowCenter,
-                                                 topY - glowCenter),
-                                             bottomY - glowCenter)
-                            if abs(newLevel - viewModel.brightness) > 0.001 {
-                                viewModel.setManualBrightness(newLevel)
-                                Haptic.selection()
-                            }
-                        }
-                        .onEnded { _ in
-                            isDragging = false
-                            let topY: CGFloat = 0
-                            let bottomY = barsY ?? UIScreen.main.bounds.height * 0.82
-                            let glowCenter = glowCenterY ?? UIScreen.main.bounds.midY
-                            let segment = BrightnessDrag.segment(brightness: viewModel.brightness)
-                            let slot = BrightnessDrag.slotY(segment: segment,
-                                                            topY: topY, bottomY: bottomY)
-                            // 松手停在所选档位，不再回弹。
-                            withAnimation(.easeOut(duration: 0.12)) {
-                                dragOffset = slot - glowCenter
-                            }
-                            Haptic.selection()
-                        }
-                )
         }
+        .gesture(
+            DragGesture(minimumDistance: 8)
+                .onChanged { v in
+                    let slotFrame = glowSlotFrame
+                        ?? CGRect(x: 0, y: UIScreen.main.bounds.midY - 120,
+                                  width: 240, height: 240)
+                    let glowCenter = slotFrame.midY
+                    let topBound = (topControlsMaxY ?? slotFrame.minY) + iconHalfHeight
+                    let bottomBound = (barsY ?? UIScreen.main.bounds.height * 0.82) - iconHalfHeight
+                    if !isDragging {
+                        isDragging = true
+                        dragStartCenterY = glowCenter + dragOffset
+                        if !isManual { isManual = true; Haptic.light() }
+                    }
+                    // 手指全局 y = 拖动起点图标中心 + 手指位移
+                    // （手势绑定在静止槽位上，坐标不会随图标移动而漂移）。
+                    let fingerY = dragStartCenterY + v.translation.height
+                    // 图标先跟随手指，再按 [按钮行下缘, 亮度条] 钳制：
+                    // 上界 = 右上角按钮下缘 + 半图标，下界 = 亮度条 − 半图标。
+                    dragOffset = min(max(fingerY - glowCenter,
+                                         topBound - glowCenter),
+                                     bottomBound - glowCenter)
+                    // 亮度由图标当前位置决定，保证图标位置与亮度始终一致。
+                    let segment = BrightnessDrag.segment(forOffset: dragOffset,
+                                                         topOffset: topBound - glowCenter,
+                                                         bottomOffset: bottomBound - glowCenter)
+                    let newLevel = BrightnessDrag.level(segment: segment)
+                    if abs(newLevel - viewModel.brightness) > 0.001 {
+                        viewModel.setManualBrightness(newLevel)
+                        Haptic.selection()
+                    }
+                }
+                .onEnded { _ in
+                    isDragging = false
+                    let slotFrame = glowSlotFrame
+                        ?? CGRect(x: 0, y: UIScreen.main.bounds.midY - 120,
+                                  width: 240, height: 240)
+                    let glowCenter = slotFrame.midY
+                    let topBound = (topControlsMaxY ?? slotFrame.minY) + iconHalfHeight
+                    let bottomBound = (barsY ?? UIScreen.main.bounds.height * 0.82) - iconHalfHeight
+                    let segment = BrightnessDrag.segment(brightness: viewModel.brightness)
+                    let slot = BrightnessDrag.slotY(segment: segment,
+                                                    topY: topBound, bottomY: bottomBound)
+                    // 松手停在所选档位，不再回弹。
+                    withAnimation(.easeOut(duration: 0.12)) {
+                        dragOffset = slot - glowCenter
+                    }
+                    Haptic.selection()
+                }
+        )
         .background(
             GeometryReader { geo in
-                Color.clear.preference(key: GlowCenterYKey.self,
-                                       value: geo.frame(in: .global).midY)
+                Color.clear.preference(key: GlowSlotFrameKey.self,
+                                       value: geo.frame(in: .global))
             }
         )
     }

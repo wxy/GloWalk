@@ -24,6 +24,13 @@ final class BrightnessDragTests: XCTestCase {
         XCTAssertEqual(BrightnessDrag.segment(forY: 900, topY: 0, bottomY: 600), 0)
     }
 
+    func testSegmentFromOffset() {
+        XCTAssertEqual(BrightnessDrag.segment(forOffset: -200, topOffset: -200, bottomOffset: 100), 10)
+        XCTAssertEqual(BrightnessDrag.segment(forOffset: 100, topOffset: -200, bottomOffset: 100), 0)
+        XCTAssertEqual(BrightnessDrag.segment(forOffset: -50, topOffset: -200, bottomOffset: 100), 5)
+        XCTAssertEqual(BrightnessDrag.segment(forOffset: 500, topOffset: -200, bottomOffset: 100), 0)
+    }
+
     func testSlotYFromSegment() {
         XCTAssertEqual(BrightnessDrag.slotY(segment: 10, topY: 0, bottomY: 600), 0)
         XCTAssertEqual(BrightnessDrag.slotY(segment: 0, topY: 0, bottomY: 600), 600)

@@ -267,6 +267,21 @@ final class LightEngineTests: XCTestCase {
         XCTAssertEqual(engine.targetBrightness, auto, accuracy: 0.001)
     }
 
+    func testManualIgnoresAmbientChanges() {
+        engine.update(sensors: makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil))
+        let base = engine.targetBrightness
+
+        engine.setManualBrightness(base + 0.2)
+        // 环境变暗后，自动亮度会变，但手动模式下必须保持手动值。
+        engine.update(sensors: makeSnapshot(ambient: 0.2, posture: 1.0, weather: nil))
+        XCTAssertEqual(engine.targetBrightness, base + 0.2, accuracy: 0.001)
+
+        // 白天门控也不得覆盖手动值。
+        engine.update(sensors: makeSnapshot(ambient: 0.9, posture: 1.0, weather: nil,
+                                            isDaylight: true))
+        XCTAssertEqual(engine.targetBrightness, base + 0.2, accuracy: 0.001)
+    }
+
     // MARK: - Helpers
 
     private func makeSnapshot(

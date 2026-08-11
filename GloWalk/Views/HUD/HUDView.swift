@@ -283,18 +283,21 @@ struct HUDView: View {
     /// 🔦 at the start). Coarse levels only — the factor row below explains the
     /// gap to 100%.
     private var brightnessProgressLines: some View {
-        VStack(spacing: 2) {
+        let manual = viewModel.lightEngine.isManual
+        return VStack(spacing: 2) {
             progressLine(value: viewModel.screenBrightness,
                          fillColor: .white,
                          glyph: "sun.max.fill",
                          shares: viewModel.factorShares,
-                         leadingToTrailing: true)
+                         leadingToTrailing: true,
+                         manual: manual)
                 .frame(height: 9, alignment: .bottom)
             progressLine(value: viewModel.brightness,
                          fillColor: Color.gloTorchCore,
                          glyph: "flashlight.on.fill",
                          shares: viewModel.factorShares,
-                         leadingToTrailing: false)
+                         leadingToTrailing: false,
+                         manual: manual)
                 .frame(height: 9, alignment: .bottom)
                 .opacity(viewModel.torchPaused ? 0.35 : 1.0)
         }
@@ -304,7 +307,7 @@ struct HUDView: View {
 
     private func progressLine(value: Double, fillColor: Color,
                               glyph: String, shares: [Double],
-                              leadingToTrailing: Bool) -> some View {
+                              leadingToTrailing: Bool, manual: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
         let reversed = !leadingToTrailing
         // Flowing "water" on the bar: a sine wave of brightness travels along
@@ -326,7 +329,7 @@ struct HUDView: View {
                     Capsule()
                         .fill(segmentColor(index: i, filled: filled,
                                            fillColor: fillColor, shares: shares,
-                                           reversed: reversed))
+                                           reversed: reversed, manual: manual))
                         .frame(maxWidth: .infinity)
                         .frame(height: 2)
                         // The crest travels along the bar with clear contrast,
@@ -356,9 +359,13 @@ struct HUDView: View {
     /// by whichever factor dominates their span of the deduction space (same
     /// semantics as the ring design), falling back to a dim placeholder.
     private func segmentColor(index: Int, filled: Int, fillColor: Color,
-                              shares: [Double], reversed: Bool) -> Color {
+                              shares: [Double], reversed: Bool, manual: Bool) -> Color {
         if reversed ? index >= 10 - filled : index < filled {
-            return fillColor
+            // 手动模式：填充段统一灰色，不显示因子配色。
+            return manual ? Color.gray : fillColor
+        }
+        if manual {
+            return Color.white.opacity(0.12)
         }
         return deductionColor(segmentIndex: index, filled: filled,
                               shares: shares, reversed: reversed)
@@ -403,19 +410,24 @@ struct HUDView: View {
             let slot = geo.size.width - 12
             HStack(spacing: 3) {
                 factorCol(FactorCell(icon: "eye.fill", label: ambientLabel,
-                                      delta: ambDelta, active: ambActive, id: "ambient"))
+                                      delta: ambDelta, active: ambActive, id: "ambient"),
+                          manual: viewModel.lightEngine.isManual)
                     .frame(width: slot * 0.40)
                 factorCol(FactorCell(icon: "iphone", label: L10n.factorPosture,
-                                      delta: posDelta, active: posActive, id: "posture"))
+                                      delta: posDelta, active: posActive, id: "posture"),
+                          manual: viewModel.lightEngine.isManual)
                     .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "moon.zzz.fill", label: L10n.factorDark,
-                                      delta: darkDelta, active: darkActive, id: "dark"))
+                                      delta: darkDelta, active: darkActive, id: "dark"),
+                          manual: viewModel.lightEngine.isManual)
                     .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "moon.fill", label: moonLabel,
-                                      delta: moonDelta, active: moonActive, id: "moon"))
+                                      delta: moonDelta, active: moonActive, id: "moon"),
+                          manual: viewModel.lightEngine.isManual)
                     .frame(width: slot * 0.15)
                 factorCol(FactorCell(icon: "cloud.fill", label: weatherLabel,
-                                      delta: weatherDelta, active: weatherActive, id: "weather"))
+                                      delta: weatherDelta, active: weatherActive, id: "weather"),
+                          manual: viewModel.lightEngine.isManual)
                     .frame(width: slot * 0.15)
             }
         }
@@ -423,37 +435,42 @@ struct HUDView: View {
         .padding(.horizontal, 12)
     }
 
-    private func factorCol(_ cell: FactorCell) -> some View {
+    private func factorCol(_ cell: FactorCell, manual: Bool) -> some View {
         let boost = viewModel.uiBrightnessBoost
         return Button(action: { viewModel.toggleFactor(id: cell.id) }) {
             VStack(spacing: 1) {
                 Text(cell.label)
                     .font(.gloBody(9))
                     .lineLimit(1)
-                    .foregroundColor(cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7)))
+                    .foregroundColor(manual ? .white.opacity(0.35)
+                                            : (cell.active ? .white : .white.opacity(min(0.3 * boost, 0.7))))
                 HStack(spacing: 2) {
                     // Color dot matches the factor's ring-segment color, so the
                     // deduction segments on the glow rings are traceable back to
                     // this row.
                     Circle()
-                        .fill(factorColor(cell.id))
+                        .fill(manual ? Color.gray : factorColor(cell.id))
                         .frame(width: 4, height: 4)
                     Image(systemName: cell.icon)
                         .font(.system(size: 8))
                     Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
                         .font(.gloMono(10))
                 }
-                .foregroundColor(cell.delta != 0 ? .gloAmber : .white.opacity(min(0.25 * boost, 0.6)))
+                .foregroundColor(manual ? .white.opacity(0.30)
+                                        : (cell.delta != 0 ? .gloAmber : .white.opacity(min(0.25 * boost, 0.6))))
             }
             .padding(.vertical, 3)
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(cell.active ? Color.gloAmber.opacity(min(0.08 * boost, 0.20)) : Color.white.opacity(min(0.02 * boost, 0.06)))
+                    .fill(manual ? Color.gray.opacity(0.10)
+                                 : (cell.active ? Color.gloAmber.opacity(min(0.08 * boost, 0.20))
+                                                : Color.white.opacity(min(0.02 * boost, 0.06))))
             )
         }
         .buttonStyle(.plain)
-        .opacity(min(cell.active ? 0.85 : 0.4 * boost, 1.0))
+        .disabled(manual)
+        .opacity(manual ? 0.55 : min(cell.active ? 0.85 : 0.4 * boost, 1.0))
     }
 
     private struct FactorCell {

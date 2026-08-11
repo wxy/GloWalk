@@ -213,24 +213,31 @@ final class HUDViewModel: ObservableObject {
                             isDaylight: isDaylight,
                             isTorchPaused: torchPaused)
         if FeatureFlags.torchClosedLoop {
-            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、未暂停）
-            // 时才需要；其余时间停掉第二路 ISP 以降低发热。
-            sensorManager.setBackCameraEnabled(gate.isActive)
+            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、未暂停、
+            // 非手动）时才需要；其余时间停掉第二路 ISP 以降低发热。
+            sensorManager.setBackCameraEnabled(gate.isActive && !lightEngine.isManual)
         }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
             loggedBackFallback = true
             print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
-        if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
+        if lightEngine.isManual {
+            // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
+            // 仅遮挡/暂停仍优先关灯（安全），白天门控与因子模型都让位。
+            if sensorManager.isOccluded || torchPaused {
+                brightness = 0
+            } else {
+                brightness = thermallyCapped(lightEngine.targetBrightness)
+            }
+            sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
+        } else if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
             // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
             if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
             } else {
-                // Manual drag applies on top of the loop's level (the spike
-                // controller doesn't know about manualOffset yet) — the loop is
-                // frozen while manual, so it can't "un-drag" the user's level.
-                brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)
-                                     + lightEngine.manualOffset), 0.05), 1.0)
+                brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)),
+                                     0.05), 1.0)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
@@ -359,12 +366,9 @@ final class HUDViewModel: ObservableObject {
                 }
                 return torchProbePin
             }
-            // 手动拖动期间冻结闭环：控制器不再根据测量值步进，
-            // 否则它会把手动加亮的亮度当作"过亮"逐档调回去。
-            let stepping = !lightEngine.isManual
             return torchController.step(setpoint: torchSetpoint,
                                         measured: normalizedBackLuminance(y),
-                                        active: stepping)
+                                        active: true)
         }
         // Not in walking posture: the back camera isn't looking at the ground
         // the torch would illuminate (it may face the ceiling or sky), so the
@@ -504,11 +508,11 @@ final class HUDViewModel: ObservableObject {
         Haptic.selection()
     }
     func setManualBrightness(_ level: Double) {
-        lightEngine.setManualBrightness(level)
+        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
         // Immediate, discrete feedback during the drag — don't wait for the 1s
         // tick to recompute brightness. Snap to 10% steps so the HUD ring
         // advances one segment at a time and the torch follows the finger.
-        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
+        lightEngine.setManualBrightness(snapped)
         brightness = thermallyCapped(snapped)
         sensorManager.setTorchLevel(brightness)
         locationManager.currentTorchBrightness = brightness

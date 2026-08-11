@@ -121,6 +121,8 @@ struct HUDView: View {
     @State private var isEndingZeroStep = false
     /// 拖动开始时的档位锚点（1–10），每次拖动重置。
     @State private var dragStartSteps: Int = 7
+    /// 拖动时中心图标的垂直跟随偏移，松手回弹到 0。
+    @State private var dragOffset: CGFloat = 0
     @State private var hasShownCameraAlert = false
     @State private var showCameraDeniedAlert = false
 
@@ -170,6 +172,8 @@ struct HUDView: View {
                 GlowCircleView(brightness: viewModel.brightness,
                               cadence: viewModel.cadence,
                               isPaused: viewModel.torchPaused)
+                    // 拖动时图标跟随手指上下移动，松手回弹。
+                    .offset(y: dragOffset)
                     .onTapGesture(count: 2) {
                         Haptic.heavy()
                         if viewModel.stepCount == 0 {
@@ -200,6 +204,7 @@ struct HUDView: View {
                     .gesture(
                         DragGesture(minimumDistance: 8)
                             .onChanged { v in
+                                dragOffset = v.translation.height
                                 if !isManual {
                                     isManual = true
                                     dragStartSteps = BrightnessDrag.startSteps(brightness: viewModel.brightness)
@@ -216,7 +221,13 @@ struct HUDView: View {
                                     Haptic.selection()
                                 }
                             }
-                            .onEnded { _ in Haptic.selection() }
+                            .onEnded { _ in
+                                Haptic.selection()
+                                withAnimation(.interactiveSpring(response: 0.35,
+                                                                  dampingFraction: 0.85)) {
+                                    dragOffset = 0
+                                }
+                            }
                     )
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(

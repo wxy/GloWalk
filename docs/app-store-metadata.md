@@ -36,6 +36,8 @@
 - zh-Hans：`步行记录可同步到 Apple 健康——步数、距离、时长与路线，经你授权后写入。拖动光晕即可调亮度，到达后生成夜路海报。`
 - zh-Hant：`步行記錄可同步到 Apple 健康——步數、距離、時長與路線，經你授權後寫入。拖動光暈即可調亮度，抵達後生成夜路海報。`
 
+> 注：本版本推广文本替换了 1.0.1 的推广文本；描述字段从 `=== Introduction ===` 开始。
+
 **更新内容**
 
 - en-US：
@@ -73,8 +75,6 @@
 - en-US：
 
 ```
-Your night, one gentle glow. Five sensors read the dark — walk, glow, and weave your path into a keepsake poster.
-
 === Introduction ===
 
 GloWalk is a smart flashlight that reads the night — five sensors, one gentle glow.
@@ -97,8 +97,6 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - zh-Hans：
 
 ```
-你的夜路，一束柔光。五维感知读懂夜色——行走、发光，把足迹编织成一张纪念海报。
-
 === 简介 ===
 
 随行路灯（GloWalk）是一款会读懂夜晚的智能手电筒——五维感知、一束柔光。
@@ -121,8 +119,6 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - zh-Hant：
 
 ```
-你的夜路，一束柔光。五維感知讀懂夜色——行走、發光，把足跡編織成一張紀念海報。
-
 === 簡介 ===
 
 隨行路燈（GloWalk）是一款會讀懂夜晚的智能手電筒——五維感知、一束柔光。
@@ -156,7 +152,11 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - zh-Hans：为夜路而生的智能灯光
 - zh-Hant：為夜路而生的智能燈光
 
-**推广文本**：未设置（描述开头自带一句 tagline，非单独推广文本字段）
+**推广文本**
+
+- en-US：`Your night, one gentle glow. Five sensors read the dark — walk, glow, and weave your path into a keepsake poster.`
+- zh-Hans：`你的夜路，一束柔光。五维感知读懂夜色——行走、发光，把足迹编织成一张纪念海报。`
+- zh-Hant：`你的夜路，一束柔光。五維感知讀懂夜色——行走、發光，把足跡編織成一張紀念海報。`
 
 **更新内容**
 
@@ -198,8 +198,6 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - en-US：
 
 ```
-Your night, one gentle glow. Five sensors read the dark — walk, glow, and weave your path into a keepsake poster.
-
 === Introduction ===
 
 GloWalk is a smart flashlight that reads the night — five sensors, one gentle glow.
@@ -220,8 +218,6 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - zh-Hans：
 
 ```
-你的夜路，一束柔光。五维感知读懂夜色——行走、发光，把足迹编织成一张纪念海报。
-
 === 简介 ===
 
 随行路灯（GloWalk）是一款会读懂夜晚的智能手电筒——五维感知、一束柔光。
@@ -242,8 +238,6 @@ Record your walk as a golden constellation trail. When you arrive, GloWalk weave
 - zh-Hant：
 
 ```
-你的夜路，一束柔光。五維感知讀懂夜色——行走、發光，把足跡編織成一張紀念海報。
-
 === 簡介 ===
 
 隨行路燈（GloWalk）是一款會讀懂夜晚的智能手電筒——五維感知、一束柔光。

@@ -58,6 +58,13 @@ enum L10n {
     static var settingsClearRecords: LocalizedStringKey { "settings.clearRecords" }
     static var settingsCleared: LocalizedStringKey { "settings.cleared" }
     static var settingsRefreshTagline: LocalizedStringKey { "settings.refreshTagline" }
+    static var settingsHealth: LocalizedStringKey { "settings.health" }
+    static var permissionsHealthFeature1: LocalizedStringKey { "permissions.health.feature1" }
+    static var permissionsHealthFeature2: LocalizedStringKey { "permissions.health.feature2" }
+    static var permissionsHealthUnavailable: LocalizedStringKey { "permissions.health.unavailable" }
+    static var summaryHealthSyncing: LocalizedStringKey { "summary.health.syncing" }
+    static var summaryHealthSynced: LocalizedStringKey { "summary.health.synced" }
+    static var summaryHealthFailed: LocalizedStringKey { "summary.health.failed" }
     static var settingsVersion: LocalizedStringKey { "settings.version" }
     static var settingsHelp: LocalizedStringKey { "settings.help" }
     static var settingsHelpSection: LocalizedStringKey { "settings.helpSection" }

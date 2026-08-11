@@ -82,6 +82,9 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { phase in
+            if phase == .active {
+                retryHealthSync()
+            }
             // Re-check permissions when returning from Settings, so if the user
             // granted a previously-denied permission, we pick it up.
             if phase == .active, hasCompletedOnboarding,
@@ -89,6 +92,13 @@ struct ContentView: View {
                 checkPermissionsThenProceed()
             }
         }
+    }
+
+    private func retryHealthSync() {
+        let service = HealthSyncService(
+            store: HealthKitStore(),
+            context: PersistenceController.shared.container.viewContext)
+        Task { await service.retryPending() }
     }
 
     // MARK: - Permission Flow

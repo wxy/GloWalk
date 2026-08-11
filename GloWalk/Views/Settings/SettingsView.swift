@@ -2,6 +2,7 @@ import SwiftUI
 import CoreData
 import AVFoundation
 import CoreLocation
+import HealthKit
 
 struct SettingsView: View {
     @StateObject private var prefs = UserPreferences.shared
@@ -163,6 +164,9 @@ struct SettingsView: View {
 struct PermissionsView: View {
     @State private var cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
     @State private var locationStatus: CLAuthorizationStatus = CLLocationManager().authorizationStatus
+    private let healthStore = HKHealthStore()
+    @State private var healthAvailable = HKHealthStore.isHealthDataAvailable()
+    @State private var healthStatus: HKAuthorizationStatus = .notDetermined
 
     var body: some View {
         ZStack {
@@ -178,6 +182,11 @@ struct PermissionsView: View {
                          statusTextKey: statusText(locationStatus),
                          features: [L10n.permissionsLocationFeature1, L10n.permissionsLocationFeature2, L10n.permissionsLocationFeature3],
                          action: { openSettings() })
+                permCard(icon: "heart.fill", title: L10n.settingsHealth,
+                         granted: healthAvailable && healthStatus == .sharingAuthorized,
+                         statusTextKey: healthStatusText(),
+                         features: [L10n.permissionsHealthFeature1, L10n.permissionsHealthFeature2],
+                         action: { openSettings() })
             }
             .listStyle(.plain)
         }
@@ -185,6 +194,8 @@ struct PermissionsView: View {
         .onAppear {
             cameraStatus = AVCaptureDevice.authorizationStatus(for: .video)
             locationStatus = CLLocationManager().authorizationStatus
+            healthAvailable = HKHealthStore.isHealthDataAvailable()
+            healthStatus = healthStore.authorizationStatus(for: HKObjectType.workoutType())
         }
     }
 
@@ -224,6 +235,14 @@ struct PermissionsView: View {
         case .denied: return L10n.permissionsDenied
         case .notDetermined: return L10n.permissionsNotDetermined
         default: return L10n.permissionsRestricted
+        }
+    }
+    private func healthStatusText() -> LocalizedStringKey {
+        guard healthAvailable else { return L10n.permissionsHealthUnavailable }
+        switch healthStatus {
+        case .sharingAuthorized: return L10n.permissionsAuthorized
+        case .notDetermined: return L10n.permissionsNotDetermined
+        default: return L10n.permissionsDenied
         }
     }
     private func openSettings() {

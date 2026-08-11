@@ -8,6 +8,7 @@
 - **Location** — GPS coordinates are recorded locally to draw your walking path on the night poster. For weather lookup, your coordinates are also sent to Apple WeatherKit and Open-Meteo (see Third-Party Services below). Your walk path data itself stays on-device.
 - **Motion Sensors** — Accelerometer and gyroscope data are used to detect walking state and phone posture for adaptive brightness. No raw sensor data is stored.
 - **Step Count** — Pedometer data is used to track walking progress and estimate battery life.
+- **Apple Health (HealthKit)** — With your explicit permission, GloWalk writes your completed walking sessions (steps, distance, duration and route) to the Health app as workout records. GloWalk only writes; it never reads Health data, and no health data is transmitted off your device. You can disable this at any time in Settings → Health.
 
 ## Third-Party Services
 

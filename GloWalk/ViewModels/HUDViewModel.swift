@@ -6,7 +6,7 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
-    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0)
+    @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0.0)
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
     @Published var estimatedMinutesRemaining: Int = 90
@@ -15,8 +15,6 @@ final class HUDViewModel: ObservableObject {
     @Published var isTorchOccluded: Bool = false
     /// True when camera permission is denied — ambient light sensing unavailable.
     @Published var cameraDeniedForAmbient: Bool = false
-    /// Long-press to temporarily turn off torch without ending walk
-    @Published var torchPaused: Bool = false
     @Published var pathPoints: [PathPoint] = []
     @Published var gpsActive: Bool = false
     /// GPS fix accuracy in meters (CLLocation.horizontalAccuracy), nil when no
@@ -41,6 +39,8 @@ final class HUDViewModel: ObservableObject {
     @Published var weatherCard: WeatherCardData = WeatherCardData(
         condition: "...", brightnessDelta: 0, isActive: true, provider: .none)
     @Published var showArrivalSummary: Bool = false
+    /// Latest Health sync state for the arriving session (nil = no status shown).
+    @Published var healthSyncStatus: String?
     @Published private(set) var currentWalkSession: WalkSession?
     /// Current moon phase image filename (e.g. "full_moon") for corner decoration
     @Published var currentMoonPhaseName: String = "full_moon"
@@ -52,6 +52,9 @@ final class HUDViewModel: ObservableObject {
     private var cadenceDeltas: [Int] = []
 
     let lightEngine = LightEngine()
+    private let healthSyncService = HealthSyncService(
+        store: HealthKitStore(),
+        context: PersistenceController.shared.container.viewContext)
     /// Spike: closed-loop torch controller. Setpoint 0.4 is the fixed spike
     /// target on the normalized 0–1 ROI scale (see the startup probe below);
     /// weather/dark-adaptation modifiers plug in later.
@@ -203,41 +206,42 @@ final class HUDViewModel: ObservableObject {
             isTorchOccluded = false
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
+        let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
+                            isOccluded: sensorManager.isOccluded,
+                            isDaylight: isDaylight)
+        if FeatureFlags.torchClosedLoop {
+            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、非手动）
+            // 时才需要；其余时间停掉第二路 ISP 以降低发热。
+            sensorManager.setBackCameraEnabled(gate.isActive && !lightEngine.isManual)
+        }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
             loggedBackFallback = true
             print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
-        if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
-            let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
-                                isOccluded: sensorManager.isOccluded,
-                                isDaylight: isDaylight,
-                                isTorchPaused: torchPaused)
-            // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
-            if sensorManager.isOccluded || torchPaused || isDaylight {
+        if lightEngine.isManual {
+            // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
+            // 仅遮挡仍优先关灯（安全），白天门控与因子模型都让位。
+            if sensorManager.isOccluded {
                 brightness = 0
             } else {
-                // Manual drag applies on top of the loop's level (the spike
-                // controller doesn't know about manualOffset yet).
-                brightness = min(max(closedLoopBrightness(measured: y, gate: gate)
-                                     + lightEngine.manualOffset, 0.05), 1.0)
+                brightness = thermallyCapped(lightEngine.targetBrightness)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
-            #if DEBUG
-            // Device-campaign log line: filter "TLM" in Xcode Console.
-            print("TLM," + TorchMeasurementLog.row(
-                timestamp: Date(), torchLevel: brightness,
-                fullFrame: sensorManager.backFullFrameLuminance ?? -1, roi: y,
-                pitch: sensorManager.devicePitch, active: gate.isActive,
-                ambient: sensorManager.ambientLightLevel))
-            #endif
-        } else if !isTorchOccluded && !torchPaused {
-            brightness = lightEngine.targetBrightness
+        } else if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
+            // 闭环接管手电；遮挡/白天按全局约束优先关灯。
+            if sensorManager.isOccluded || isDaylight {
+                brightness = 0
+            } else {
+                brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)),
+                                     0.05), 1.0)
+            }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
-        } else if torchPaused {
-            sensorManager.setTorchLevel(0)
-            locationManager.currentTorchBrightness = 0
+        } else if !isTorchOccluded {
+            brightness = thermallyCapped(lightEngine.targetBrightness)
+            sensorManager.setTorchLevel(brightness)
+            locationManager.currentTorchBrightness = brightness
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -448,6 +452,11 @@ final class HUDViewModel: ObservableObject {
             }
             s.endType = "completed"
             PersistenceController.shared.save()
+            Task {
+                healthSyncStatus = HealthSyncState.pending.rawValue
+                await healthSyncService.sync(session: s)
+                healthSyncStatus = s.healthSyncState
+            }
         }
         showArrivalSummary = true
     }
@@ -473,6 +482,9 @@ final class HUDViewModel: ObservableObject {
             s.totalSteps = Int64(sensorManager.stepCount)
             s.totalDistance = locationManager.totalDistance
             PersistenceController.shared.save()
+            Task {
+                await healthSyncService.sync(session: s)
+            }
         }
     }
 
@@ -490,16 +502,22 @@ final class HUDViewModel: ObservableObject {
         Haptic.selection()
     }
     func setManualBrightness(_ level: Double) {
-        lightEngine.setManualOffset(level - lightEngine.targetBrightness)
+        // 允许 0：手动模式可把闪光灯完全关闭。
+        let snapped = min(max((level * 10).rounded() / 10, 0.0), 1.0)
         // Immediate, discrete feedback during the drag — don't wait for the 1s
         // tick to recompute brightness. Snap to 10% steps so the HUD ring
         // advances one segment at a time and the torch follows the finger.
-        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
-        brightness = snapped
-        sensorManager.setTorchLevel(snapped)
-        locationManager.currentTorchBrightness = snapped
+        lightEngine.setManualBrightness(snapped)
+        brightness = thermallyCapped(snapped)
+        sensorManager.setTorchLevel(brightness)
+        locationManager.currentTorchBrightness = brightness
     }
-    func resetToAutoBrightness() { lightEngine.resetManualOffset() }
+    func resetToAutoBrightness() { lightEngine.resetManualBrightness() }
+
+    /// 热状态降档后的手电亮度：serious ≤ 0.6，critical ≤ 0.3。
+    private func thermallyCapped(_ level: Double) -> Double {
+        TorchThermalPolicy.cappedLevel(level, thermalState: ProcessInfo.processInfo.thermalState)
+    }
 
     // MARK: - GPS Signal Quality (HUD indicator)
 
@@ -528,7 +546,7 @@ final class HUDViewModel: ObservableObject {
     /// notice never claims a pocket torch-off when the torch was off for another
     /// reason (paused or daylight).
     var occlusionNoticeVisible: Bool {
-        isTorchOccluded && !torchPaused && !isDaylight && brightness > 0
+        isTorchOccluded && !isDaylight && brightness > 0
     }
 
     /// Factor shortfall proportions (ambient/posture/dark/moon/weather),

@@ -12,6 +12,7 @@ public class WalkSession: NSManagedObject, Identifiable {
     @NSManaged public var weatherCondition: String?
     @NSManaged public var posterImageData: Data?
     @NSManaged public var endType: String?
+    @NSManaged public var healthSyncState: String?
     @NSManaged public var pathPoints: Set<PathPoint>?
 
     var wrappedStartTime: Date { startTime ?? Date() }

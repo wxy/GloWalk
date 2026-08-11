@@ -11,8 +11,14 @@ final class LightEngine: ObservableObject {
     @Published var factorDetails = FactorDetails()
     @Published var batterySaverCap: Double = 1.0
 
-    private(set) var manualOffset: Double = 0.0
+    /// Absolute manual brightness override; nil = automatic.
+    /// While set, every automatic mechanism (factors, daylight gate, battery
+    /// cap) is bypassed and the torch stays exactly at this level.
+    private(set) var manualBrightness: Double?
     private var sessionStartTime: Date?
+
+    /// True while the user has a manual brightness override in effect.
+    var isManual: Bool { manualBrightness != nil }
 
     struct FactorDetails {
         var moonPhaseName: String = ""
@@ -78,12 +84,18 @@ final class LightEngine: ObservableObject {
 
         let denom = max(wAmbient + postureSignal * wPosture + wDark + wMoon + wWeather, 0.01)
         let base = weighted / denom
-        // Daylight gate: when the debounced detector reports bright daylight the
-        // torch is pointless — turn it off (level 0), ignoring manual offset.
-        // The gate consumes the debounced isDaylight (not the raw ambient), so
-        // torch-off stays in sync with the HUD notice and no single bright frame
-        // (warm-up, streetlight) can kill the torch before the debounce confirms.
-        targetBrightness = sensors.isDaylight ? 0 : min(max(base + manualOffset, 0.1), batterySaverCap)
+        if let manual = manualBrightness {
+            // 手动模式：完全关闭自动机制，亮度就是手动值。
+            // 0 是合法档位（拖到底 = 完全关闭闪光灯），不做 0.1 下限钳制。
+            targetBrightness = min(max(manual, 0.0), 1.0)
+        } else {
+            // Daylight gate: when the debounced detector reports bright daylight
+            // the torch is pointless — turn it off (level 0). The gate consumes
+            // the debounced isDaylight (not the raw ambient), so torch-off stays
+            // in sync with the HUD notice and no single bright frame (warm-up,
+            // streetlight) can kill the torch before the debounce confirms.
+            targetBrightness = sensors.isDaylight ? 0 : min(max(base, 0.1), batterySaverCap)
+        }
 
         // Proportional gap attribution
         let ambShortfall  = ambientFactorActive  ? (1.0 - ambientSignal) * wAmbient   : 0
@@ -167,8 +179,14 @@ final class LightEngine: ObservableObject {
 
     // MARK: - Manual Override
 
-    func setManualOffset(_ offset: Double) { manualOffset = min(max(offset, -0.3), 0.3) }
-    func resetManualOffset() { manualOffset = 0.0 }
+    /// Enter manual mode at an absolute level. Replacing the level is stable —
+    /// there is no offset to double-count, and auto mechanisms stay off until
+    /// `resetManualBrightness()`.
+    func setManualBrightness(_ level: Double) {
+        // 0 也允许：手动拖到底 = 完全关闭闪光灯。
+        manualBrightness = min(max(level, 0.0), 1.0)
+    }
+    func resetManualBrightness() { manualBrightness = nil }
 
     // MARK: - Factor Toggles
 

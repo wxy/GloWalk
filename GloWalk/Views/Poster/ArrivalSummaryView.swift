@@ -33,6 +33,14 @@ struct ArrivalSummaryView: View {
 
                     VStack {
                         Spacer()
+                        if let status = viewModel.healthSyncStatus {
+                            Text(healthStatusLabel(status))
+                                .font(.gloBody(12))
+                                .foregroundColor(status == HealthSyncState.synced.rawValue
+                                                 ? .green.opacity(0.8)
+                                                 : .white.opacity(0.6))
+                                .padding(.bottom, 8)
+                        }
                         HStack(spacing: 10) {
                             HUDButton(icon: "square.and.arrow.up", label: L10n.posterShare,
                                       bg: Color.gloGold, fg: .black) { showShareSheet = true }
@@ -74,6 +82,14 @@ struct ArrivalSummaryView: View {
             DispatchQueue.main.async {
                 if success { self.savedToPhotos = true; Haptic.medium() }
             }
+        }
+    }
+
+    private func healthStatusLabel(_ status: String) -> LocalizedStringKey {
+        switch status {
+        case HealthSyncState.synced.rawValue: return L10n.summaryHealthSynced
+        case HealthSyncState.failed.rawValue: return L10n.summaryHealthFailed
+        default: return L10n.summaryHealthSyncing
         }
     }
 }

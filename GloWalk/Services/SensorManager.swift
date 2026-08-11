@@ -43,6 +43,11 @@ final class SensorManager: ObservableObject {
     private var captureDevice: AVCaptureDevice?
     private var captureDelegate: AmbientLightDelegate?
     private var backDelegate: BackLuminanceDelegate?
+    private var backConnection: AVCaptureConnection?
+    /// Desired back-camera connection state; avoids redundant toggles from the
+    /// per-second tick (the closed loop only needs the back camera while it is
+    /// actively controlling the torch).
+    private var backCameraEnabled = false
     private let backQueue = DispatchQueue(label: "glowalk.backlight", qos: .utility)
     /// Back-camera readings (multi-cam only, exposure locked while measuring):
     /// full-frame average and the ground ROI average, both 2Hz.
@@ -101,7 +106,27 @@ final class SensorManager: ObservableObject {
 
     func setTorchLevel(_ level: Double) {
         let clamped = min(max(level, 0.0), 1.0)
-        _setTorchDirect(clamped)
+        // 热状态降档（serious/critical）是手电输出上限，防手机过热。
+        let capped = TorchThermalPolicy.cappedLevel(clamped,
+                                                    thermalState: ProcessInfo.processInfo.thermalState)
+        _setTorchDirect(capped)
+    }
+
+    /// Pause/resume the back-camera connection. Disabling stops frame delivery
+    /// (the closed loop falls back to the front-camera ambient path) and drops
+    /// the back ISP work when the loop isn't controlling the torch.
+    func setBackCameraEnabled(_ enabled: Bool) {
+        guard backConnection != nil, backCameraEnabled != enabled else { return }
+        backCameraEnabled = enabled
+        nonisolated(unsafe) let conn = backConnection
+        sessionQueue.async {
+            conn?.isEnabled = enabled
+        }
+        if !enabled {
+            // 停用后立即失效旧读数，HUDViewModel 会走 LightEngine 兜底路径。
+            backGroundLuminance = nil
+            backFullFrameLuminance = nil
+        }
     }
 
     /// The back camera's torch device — independent of the front ambient camera,
@@ -239,6 +264,8 @@ final class SensorManager: ObservableObject {
             let conn = AVCaptureConnection(inputPorts: [port], output: out)
             if session.canAddConnection(conn) {
                 session.addConnection(conn)
+                backConnection = conn
+                backCameraEnabled = true
                 print("[Sensor] addBackCamera: connection added")
             } else {
                 print("[Sensor] addBackCamera: canAddConnection == false")

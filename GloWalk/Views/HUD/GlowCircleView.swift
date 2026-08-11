@@ -64,6 +64,18 @@ struct GlowCircleView: View {
         // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
         .scaleEffect(0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))
         .opacity(0.85 + breathe * 0.15 + cadence * 0.04 * sin(stepPhase))
+        // 暂停时整体变暗，让"手电已关"的状态一眼可见。
+        .opacity(isPaused ? 0.45 : 1.0)
+        .overlay {
+            if isPaused {
+                Image(systemName: "pause.fill")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.black)
+                    .padding(6)
+                    .background(Circle().fill(Color.gloGold))
+                    .offset(x: 42, y: -42)
+            }
+        }
         .onAppear {
             withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
                 breathe = 1

@@ -151,6 +151,17 @@ struct HUDView: View {
                             .foregroundColor(.gloGold.opacity(0.7))
                     }
                     .padding(.horizontal, 8)
+                    // 手动关闭/恢复闪光灯（暂停）：显式控件，避免与
+                    // 拖动调亮度、双击结束步行等手势冲突。
+                    Button(action: {
+                        viewModel.torchPaused.toggle()
+                        Haptic.medium()
+                    }) {
+                        Image(systemName: viewModel.torchPaused ? "play.circle.fill" : "pause.circle")
+                            .font(.system(size: 16))
+                            .foregroundColor(viewModel.torchPaused ? .gloGold : .gloGold.opacity(0.7))
+                    }
+                    .padding(.horizontal, 8)
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16))

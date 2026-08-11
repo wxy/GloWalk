@@ -1212,3 +1212,8 @@ gh pr create --base master --head feat/apple-health-sync --title "feat: sync wal
 - **Spec 覆盖**：完整训练记录（Task 2/4）、有效会话含 interrupted（Task 5 两个结束路径）、首次自动授权与拒绝后不再弹（Task 4）、无补录（Task 4 retry 测试断言 nil 记录不动）、海报不进健康 + 元数据会话 ID（Task 2）、设置开关/状态/跳系统设置（Task 6）、失败重试（Task 4/5）、模型版本迁移（Task 1）、发布清单中的 entitlement/文案/PRIVACY/真机验收（Task 7/8）。
 - **占位符**：无 TBD/TODO；所有代码步骤含完整内容。
 - **类型一致性**：`HealthStoreProtocol.save(workout:samples:routeLocations:)` 在 Task 3 定义、Task 4 调用与 mock 实现一致；`HealthSyncState` rawValue 在 Task 4 定义、Task 5/6 消费一致；`healthSyncEnabled` 键名在 Task 4 定义、Task 6 绑定一致。
+
+## 修订记录（用户测试反馈）
+
+- 2026-08-11：移除设置页「同步到健康」开关与 `healthSyncEnabled` 偏好——同步不设开关，只要授权即写入（`HealthSyncService` 去掉 enabledProvider 门控，相关测试同步更新）。
+- 2026-08-11：健康授权从设置页独立分组移至「权限与隐私」页（`PermissionsView`），以卡片形式展示状态与功能说明；设置页删除对应键，新增 `permissions.health.*` 三语键。

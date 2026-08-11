@@ -10,23 +10,14 @@ enum HealthSyncState: String {
 final class HealthSyncService {
     private let store: HealthStoreProtocol
     private let context: NSManagedObjectContext
-    private let enabledProvider: () -> Bool
 
-    init(store: HealthStoreProtocol,
-         context: NSManagedObjectContext,
-         enabledProvider: @escaping () -> Bool = { UserPreferences.shared.healthSyncEnabled }) {
+    init(store: HealthStoreProtocol, context: NSManagedObjectContext) {
         self.store = store
         self.context = context
-        self.enabledProvider = enabledProvider
-    }
-
-    var isEnabled: Bool {
-        get { enabledProvider() }
-        set { UserPreferences.shared.healthSyncEnabled = newValue }
     }
 
     func sync(session: WalkSession) async {
-        guard enabledProvider(), store.isAvailable else { return }
+        guard store.isAvailable else { return }
         let status = store.authorizationStatus(for: HKObjectType.workoutType())
         switch status {
         case .notDetermined:
@@ -51,7 +42,7 @@ final class HealthSyncService {
     }
 
     func retryPending() async {
-        guard enabledProvider(), store.isAvailable else { return }
+        guard store.isAvailable else { return }
         let status = store.authorizationStatus(for: HKObjectType.workoutType())
         let sessions = pendingSessions()
         for session in sessions {

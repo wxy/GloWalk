@@ -29,8 +29,7 @@ final class HealthSyncServiceTests: XCTestCase {
     func testAuthorizationFlowRequestsThenWrites() async {
         let mock = MockHealthStore(status: .notDetermined)
         mock.statusAfterRequest = .sharingAuthorized
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let session = makeSession()
 
         await service.sync(session: session)
@@ -44,8 +43,7 @@ final class HealthSyncServiceTests: XCTestCase {
     func testDeniedAfterRequestSkips() async {
         let mock = MockHealthStore(status: .notDetermined)
         mock.statusAfterRequest = .sharingDenied
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let session = makeSession()
 
         await service.sync(session: session)
@@ -57,8 +55,7 @@ final class HealthSyncServiceTests: XCTestCase {
 
     func testAlreadyDeniedSkipsWithoutRequest() async {
         let mock = MockHealthStore(status: .sharingDenied)
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let session = makeSession()
 
         await service.sync(session: session)
@@ -67,23 +64,10 @@ final class HealthSyncServiceTests: XCTestCase {
         XCTAssertEqual(session.healthSyncState, HealthSyncState.skipped.rawValue)
     }
 
-    func testDisabledToggleDoesNothing() async {
-        let mock = MockHealthStore(status: .sharingAuthorized)
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { false })
-        let session = makeSession()
-
-        await service.sync(session: session)
-
-        XCTAssertNil(mock.savedWorkout)
-        XCTAssertNil(session.healthSyncState)
-    }
-
     func testUnavailableStoreDoesNothing() async {
         let mock = MockHealthStore(status: .sharingAuthorized)
         mock.isAvailable = false
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let session = makeSession()
 
         await service.sync(session: session)
@@ -95,8 +79,7 @@ final class HealthSyncServiceTests: XCTestCase {
     func testSaveFailureMarksFailed() async {
         let mock = MockHealthStore(status: .sharingAuthorized)
         mock.saveError = HealthStoreError.routeFinishFailed
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let session = makeSession()
 
         await service.sync(session: session)
@@ -106,8 +89,7 @@ final class HealthSyncServiceTests: XCTestCase {
 
     func testRetryOnlyPendingAndFailed() async {
         let mock = MockHealthStore(status: .sharingAuthorized)
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let pending = makeSession(state: HealthSyncState.pending.rawValue)
         let failed = makeSession(state: HealthSyncState.failed.rawValue)
         let skipped = makeSession(state: HealthSyncState.skipped.rawValue)
@@ -124,8 +106,7 @@ final class HealthSyncServiceTests: XCTestCase {
 
     func testRetryMarksSkippedWhenRevoked() async {
         let mock = MockHealthStore(status: .sharingDenied)
-        let service = HealthSyncService(store: mock, context: context,
-                                        enabledProvider: { true })
+        let service = HealthSyncService(store: mock, context: context)
         let failed = makeSession(state: HealthSyncState.failed.rawValue)
 
         await service.retryPending()

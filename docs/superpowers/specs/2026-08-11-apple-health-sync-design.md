@@ -10,7 +10,8 @@
 
 - **记录形态**：`HKWorkout(activityType: .walking)` + 关联的步数样本、距离样本（`distanceWalkingRunning`）、`HKWorkoutRoute` 路线；时长 = `endTime − startTime`。
 - **同步范围**：所有落库的有效会话（`totalSteps > 0`），包括 `completed` 与 `interrupted`（中断可能源于应用被系统杀掉，同样代表真实步行）。
-- **授权时机**：首次出现可同步记录时自动请求写入权限；被拒后应用内不再弹权限框，只能通过设置页（引导跳转系统设置）重新开启。
+- **授权时机**：首次出现可同步记录时自动请求写入权限；被拒后应用内不再弹权限框，只能通过「权限与隐私」页查看状态并引导跳转系统设置重新开启。
+- **无开关**：同步不设开关——只要授权即写入；授权状态统一放在「权限与隐私」页展示。
 - **无补录**：只同步授权以后新结束的记录；用户之前拒绝、未同步的记录，在之后授权时也**不**补录。
 - **海报不进入健康**：HealthKit 不支持给训练记录附加图片；海报继续留在应用「历史」并支持保存相册/分享。训练记录通过自定义元数据 `GloWalkSessionID = 会话 UUID` 与应用内会话对应（健康 App 界面不显示该字段，程序可读）。
 
@@ -58,7 +59,7 @@
 
 ### UI
 
-- `SettingsView` 新增「健康」分组：开关 + 状态行 + 跳系统设置入口。
+- `PermissionsView`（权限与隐私页）新增健康权限卡片：状态 + 功能说明 + 跳系统设置入口。
 - `ArrivalSummaryView` 增加同步状态提示（同步中 / 已同步 / 同步失败）。
 - `HistoryListView` 行尾增加小图标表示已同步（仅 `synced`）。
 
@@ -84,12 +85,11 @@
 - 仅处理 `failed` / `pending` 的会话，且仅当授权状态为 `.authorized` 才重写；若用户已撤销授权 → 置 `skipped`。
 - 重试不扩展同步范围：不处理 `nil`（授权前的老记录）与 `skipped`。
 
-## 权限与设置页
+## 权限页展示
 
-- 「设置 → 健康」：
-  - 开关「同步到健康」：默认开；关闭后不写入、不请求。
-  - 状态行：已授权 / 尚未授权（将在首次有效步行结束时请求）/ 已拒绝（点按跳转系统设置 `UIApplication.openSettingsURLString`）。
-  - `isAvailable == false` 时开关禁用并说明「此设备不支持健康数据」。
+- 「权限与隐私」页（`PermissionsView`）新增健康卡片，与相机、定位卡片同构：
+  - 状态：已授权 / 尚未授权（将在首次有效步行结束时请求）/ 已拒绝（点按跳转系统设置 `UIApplication.openSettingsURLString`）/ 此设备不支持。
+  - 功能说明：步行结束后写入步数、距离、时长和路线；只写入、不读取。
 - 授权文案（`NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription`，需中英繁三语，走现有字符串目录机制）：
   - 中文示例：「GloWalk 会把你的步行记录（步数、距离、时长和路线）写入健康 App，用于生成运动记录。数据仅保存在你的设备上，不会上传。」
 
@@ -97,12 +97,12 @@
 
 | 场景 | 行为 |
 | --- | --- |
-| 设备不支持 HealthKit | 开关禁用，不请求不写入 |
+| 设备不支持 HealthKit | 权限页显示「此设备不支持」，不请求不写入 |
 | 用户拒绝授权 | 该次置 `skipped`，以后不再弹窗 |
 | 写入失败（临时错误） | 置 `failed`，下次启动/回前台重试 |
 | 写入中应用被杀 | 状态保持 `pending`，下次启动重试 |
 | 授权后被用户撤销 | 下次同步/重试时置 `skipped`，不再打扰 |
-| 开关被关闭 | 不写入；重新打开后仅新记录同步 |
+| 授权被拒绝 | 不写入；之后在系统设置重新授权后，仅新记录同步 |
 
 ## 数据模型变更与迁移
 
@@ -118,7 +118,7 @@
 - 授权分支：notDetermined（请求→授权/拒绝）、denied（跳过）、authorized（写入）。
 - 载荷：activityType、start/end/duration、步数与距离样本值、`GloWalkSessionID` 元数据、距离为 0 时省略样本。
 - 路线：≥2 点重建、<2 点省略、无坐标点省略。
-- 状态流转：nil→pending→synced / failed / skipped；开关关闭不变更；isAvailable=false 不变更。
+- 状态流转：nil→pending→synced / failed / skipped；isAvailable=false 不变更。
 - 重试：仅 `failed`/`pending` 且已授权；撤销授权→skipped；`nil` 与 `skipped` 不处理。
 - 迁移：新建临时 store，用旧模型写入会话后以新模型打开，验证数据保留且 `healthSyncState == nil`。
 

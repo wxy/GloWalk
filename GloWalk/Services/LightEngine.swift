@@ -182,7 +182,8 @@ final class LightEngine: ObservableObject {
     /// there is no offset to double-count, and auto mechanisms stay off until
     /// `resetManualBrightness()`.
     func setManualBrightness(_ level: Double) {
-        manualBrightness = min(max(level, 0.1), 1.0)
+        // 0 也允许：手动拖到底 = 完全关闭闪光灯。
+        manualBrightness = min(max(level, 0.0), 1.0)
     }
     func resetManualBrightness() { manualBrightness = nil }
 

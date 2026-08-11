@@ -282,6 +282,13 @@ final class LightEngineTests: XCTestCase {
         XCTAssertEqual(engine.targetBrightness, base + 0.2, accuracy: 0.001)
     }
 
+    func testManualZeroTurnsTorchFullyOff() {
+        engine.update(sensors: makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil))
+        engine.setManualBrightness(0)
+        engine.update(sensors: makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil))
+        XCTAssertEqual(engine.targetBrightness, 0, accuracy: 0.0001)
+    }
+
     // MARK: - Helpers
 
     private func makeSnapshot(

@@ -508,7 +508,8 @@ final class HUDViewModel: ObservableObject {
         Haptic.selection()
     }
     func setManualBrightness(_ level: Double) {
-        let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
+        // 允许 0：手动模式可把闪光灯完全关闭。
+        let snapped = min(max((level * 10).rounded() / 10, 0.0), 1.0)
         // Immediate, discrete feedback during the drag — don't wait for the 1s
         // tick to recompute brightness. Snap to 10% steps so the HUD ring
         // advances one segment at a time and the torch follows the finger.

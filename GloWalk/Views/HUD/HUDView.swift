@@ -1,18 +1,43 @@
 import SwiftUI
 
-/// 手动亮度拖动的纯逻辑：锚定起点档位（1–10 格），每拖动
-/// `stepHeight` 距离变化一格，避免增量叠加导致的跳变。
+/// 手动亮度拖动的纯逻辑：拖动位置从屏幕顶部（10 格 = 全亮）线性映射到
+/// 下方亮度进度条位置（0 格 = 关闭闪光灯），一格一档。
 enum BrightnessDrag {
-    static func startSteps(brightness: Double) -> Int {
-        min(max(Int((brightness * 10).rounded()), 1), 10)
+    static func segment(brightness: Double) -> Int {
+        min(max(Int((brightness * 10).rounded()), 0), 10)
     }
 
-    static func stepDelta(translationHeight: CGFloat, stepHeight: CGFloat) -> Int {
-        Int(translationHeight / -stepHeight)
+    static func level(segment: Int) -> Double {
+        Double(min(max(segment, 0), 10)) / 10
     }
 
-    static func level(startSteps: Int, delta: Int) -> Double {
-        Double(min(max(startSteps + delta, 1), 10)) / 10
+    /// 手指全局 y → 档位（0–10），超出范围钳制。
+    static func segment(forY y: CGFloat, topY: CGFloat, bottomY: CGFloat) -> Int {
+        let span = max(bottomY - topY, 1)
+        let t = min(max((bottomY - y) / span, 0), 1)
+        return Int((t * 10).rounded())
+    }
+
+    /// 档位对应的图标停靠位置（顶部=全亮，底部=关闭）。
+    static func slotY(segment: Int, topY: CGFloat, bottomY: CGFloat) -> CGFloat {
+        let s = min(max(segment, 0), 10)
+        return topY + (CGFloat(10 - s) / 10.0) * (bottomY - topY)
+    }
+}
+
+/// 中央图标槽位（静止位置）的全局 y。
+private struct GlowCenterYKey: PreferenceKey {
+    static var defaultValue: CGFloat? = nil
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        if let next = nextValue() { value = next }
+    }
+}
+
+/// 下方亮度进度条的全局 y（拖动区间下界，拖到这里 = 关闭闪光灯）。
+private struct BarsMinYKey: PreferenceKey {
+    static var defaultValue: CGFloat? = nil
+    static func reduce(value: inout CGFloat?, nextValue: () -> CGFloat?) {
+        if let next = nextValue() { value = next }
     }
 }
 
@@ -119,15 +144,18 @@ struct HUDView: View {
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
-    /// 拖动开始时的档位锚点（1–10），每次拖动重置。
-    @State private var dragStartSteps: Int = 7
-    /// 拖动时中心图标的垂直跟随偏移，松手回弹到 0。
+    /// 拖动时中心图标的垂直跟随偏移；松手后停留在所选亮度档位。
     @State private var dragOffset: CGFloat = 0
+    /// 当前是否正在拖动（用于在开始瞬间锚定图标的起始中心）。
+    @State private var isDragging = false
+    /// 本次拖动开始时图标中心的全局 y。
+    @State private var dragStartCenterY: CGFloat = 0
+    /// 中央图标槽位（静止位置）的全局 y。
+    @State private var glowCenterY: CGFloat?
+    /// 下方亮度进度条位置的全局 y（拖到这里 = 关闭闪光灯）。
+    @State private var barsY: CGFloat?
     @State private var hasShownCameraAlert = false
     @State private var showCameraDeniedAlert = false
-
-    /// 每拖动 20pt 变化一格（10 格满量程 = 200pt）。
-    private let dragStepHeight: CGFloat = 20
 
     var body: some View {
         ZStack {
@@ -151,17 +179,6 @@ struct HUDView: View {
                             .foregroundColor(.gloGold.opacity(0.7))
                     }
                     .padding(.horizontal, 8)
-                    // 手动关闭/恢复闪光灯（暂停）：显式控件，避免与
-                    // 拖动调亮度、双击结束步行等手势冲突。
-                    Button(action: {
-                        viewModel.torchPaused.toggle()
-                        Haptic.medium()
-                    }) {
-                        Image(systemName: viewModel.torchPaused ? "play.circle.fill" : "pause.circle")
-                            .font(.system(size: 16))
-                            .foregroundColor(viewModel.torchPaused ? .gloGold : .gloGold.opacity(0.7))
-                    }
-                    .padding(.horizontal, 8)
                     Button(action: { showSettings = true }) {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16))
@@ -179,67 +196,8 @@ struct HUDView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // Central glow — double-tap to end
-                GlowCircleView(brightness: viewModel.brightness,
-                              cadence: viewModel.cadence,
-                              isPaused: viewModel.torchPaused)
-                    // 拖动时图标跟随手指上下移动，松手回弹。
-                    .offset(y: dragOffset)
-                    .onTapGesture(count: 2) {
-                        Haptic.heavy()
-                        if viewModel.stepCount == 0 {
-                            isEndingZeroStep = true
-                            viewModel.isActive = false
-                            viewModel.sensorManager.stop()
-                            viewModel.locationManager.stopRecording()
-                            viewModel.sensorTimer?.invalidate()
-                            if let s = viewModel.currentWalkSession {
-                                PersistenceController.shared.container.viewContext.delete(s)
-                                PersistenceController.shared.save()
-                            }
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                                goToHistory()
-                            }
-                        } else {
-                            isEnding = true
-                            viewModel.endWalkAndNotify()
-                        }
-                    }
-                    .onTapGesture(count: 1) {
-                        if isManual {
-                            isManual = false
-                            viewModel.resetToAutoBrightness()
-                            Haptic.light()
-                        }
-                    }
-                    .gesture(
-                        DragGesture(minimumDistance: 8)
-                            .onChanged { v in
-                                dragOffset = v.translation.height
-                                if !isManual {
-                                    isManual = true
-                                    dragStartSteps = BrightnessDrag.startSteps(brightness: viewModel.brightness)
-                                    Haptic.light()
-                                }
-                                // 锚定起点 + 固定步长：向上每 20pt 亮一格，
-                                // 向下每 20pt 暗一格，一格一次触觉反馈。
-                                let delta = BrightnessDrag.stepDelta(
-                                    translationHeight: v.translation.height,
-                                    stepHeight: dragStepHeight)
-                                let newLevel = BrightnessDrag.level(startSteps: dragStartSteps, delta: delta)
-                                if abs(newLevel - viewModel.brightness) > 0.001 {
-                                    viewModel.setManualBrightness(newLevel)
-                                    Haptic.selection()
-                                }
-                            }
-                            .onEnded { _ in
-                                Haptic.selection()
-                                withAnimation(.interactiveSpring(response: 0.35,
-                                                                  dampingFraction: 0.85)) {
-                                    dragOffset = 0
-                                }
-                            }
-                    )
+                // Central glow — double-tap to end；槽位静止，内容随拖动移动。
+                centralGlow
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
                     points: viewModel.pathPoints,
@@ -271,6 +229,8 @@ struct HUDView: View {
             }
         }
         .gloWalkHUD()
+        .onPreferenceChange(GlowCenterYKey.self) { glowCenterY = $0 }
+        .onPreferenceChange(BarsMinYKey.self) { barsY = $0 }
         .onAppear { viewModel.startWalk() }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
             viewModel.willResignActive()
@@ -318,6 +278,91 @@ struct HUDView: View {
 
     // MARK: - Status Row
 
+    /// 中央光晕：拖动调亮度（位置映射，松手停留），单击恢复自动，双击结束步行。
+    private var centralGlow: some View {
+        ZStack {
+            GlowCircleView(brightness: viewModel.brightness,
+                          cadence: viewModel.cadence,
+                          isPaused: viewModel.lightEngine.isManual && viewModel.brightness <= 0.001)
+                .offset(y: dragOffset)
+                .onTapGesture(count: 2) {
+                    Haptic.heavy()
+                    if viewModel.stepCount == 0 {
+                        isEndingZeroStep = true
+                        viewModel.isActive = false
+                        viewModel.sensorManager.stop()
+                        viewModel.locationManager.stopRecording()
+                        viewModel.sensorTimer?.invalidate()
+                        if let s = viewModel.currentWalkSession {
+                            PersistenceController.shared.container.viewContext.delete(s)
+                            PersistenceController.shared.save()
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            goToHistory()
+                        }
+                    } else {
+                        isEnding = true
+                        viewModel.endWalkAndNotify()
+                    }
+                }
+                .onTapGesture(count: 1) {
+                    if isManual {
+                        isManual = false
+                        viewModel.resetToAutoBrightness()
+                        // 恢复自动时图标回中。
+                        withAnimation(.easeOut(duration: 0.2)) { dragOffset = 0 }
+                        Haptic.light()
+                    }
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 8)
+                        .onChanged { v in
+                            let topY: CGFloat = 0
+                            let bottomY = barsY ?? UIScreen.main.bounds.height * 0.82
+                            let glowCenter = glowCenterY ?? UIScreen.main.bounds.midY
+                            if !isDragging {
+                                isDragging = true
+                                dragStartCenterY = glowCenter + dragOffset
+                                if !isManual { isManual = true; Haptic.light() }
+                            }
+                            // 手指全局 y = 拖动起点图标中心 + 手指位移。
+                            let fingerY = dragStartCenterY + v.translation.height
+                            let segment = BrightnessDrag.segment(forY: fingerY,
+                                                                 topY: topY, bottomY: bottomY)
+                            let newLevel = BrightnessDrag.level(segment: segment)
+                            // 图标跟随手指，限制在 [屏幕顶部, 亮度条] 区间。
+                            dragOffset = min(max(fingerY - glowCenter,
+                                                 topY - glowCenter),
+                                             bottomY - glowCenter)
+                            if abs(newLevel - viewModel.brightness) > 0.001 {
+                                viewModel.setManualBrightness(newLevel)
+                                Haptic.selection()
+                            }
+                        }
+                        .onEnded { _ in
+                            isDragging = false
+                            let topY: CGFloat = 0
+                            let bottomY = barsY ?? UIScreen.main.bounds.height * 0.82
+                            let glowCenter = glowCenterY ?? UIScreen.main.bounds.midY
+                            let segment = BrightnessDrag.segment(brightness: viewModel.brightness)
+                            let slot = BrightnessDrag.slotY(segment: segment,
+                                                            topY: topY, bottomY: bottomY)
+                            // 松手停在所选档位，不再回弹。
+                            withAnimation(.easeOut(duration: 0.12)) {
+                                dragOffset = slot - glowCenter
+                            }
+                            Haptic.selection()
+                        }
+                )
+        }
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: GlowCenterYKey.self,
+                                       value: geo.frame(in: .global).midY)
+            }
+        )
+    }
+
     /// Two thin 10-segment progress lines: screen brightness fills left-to-right
     /// (white, ☀ at the start), torch brightness fills right-to-left (warm,
     /// 🔦 at the start). Coarse levels only — the factor row below explains the
@@ -345,6 +390,12 @@ struct HUDView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 12)
+        .background(
+            GeometryReader { geo in
+                Color.clear.preference(key: BarsMinYKey.self,
+                                       value: geo.frame(in: .global).minY)
+            }
+        )
     }
 
     private func progressLine(value: Double, fillColor: Color,

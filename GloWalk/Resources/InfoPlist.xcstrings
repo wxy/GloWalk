@@ -108,6 +108,52 @@
           }
         }
       }
+    },
+    "NSHealthShareUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 会把你的步行记录（步数、距离、时长和路线）写入健康 App，用于生成运动记录。数据仅保存在你的设备上，不会上传。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 會把你的步行記錄（步數、距離、時長和路線）寫入健康 App，用於生成運動記錄。資料僅保存在你的裝置上，不會上傳。"
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 会把你的步行记录（步数、距离、时长和路线）写入健康 App，用于生成运动记录。数据仅保存在你的设备上，不会上传。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 會把你的步行記錄（步數、距離、時長和路線）寫入健康 App，用於生成運動記錄。資料僅保存在你的裝置上，不會上傳。"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

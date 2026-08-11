@@ -208,28 +208,33 @@ final class HUDViewModel: ObservableObject {
             isTorchOccluded = false
         }
         cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
+        let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
+                            isOccluded: sensorManager.isOccluded,
+                            isDaylight: isDaylight,
+                            isTorchPaused: torchPaused)
+        if FeatureFlags.torchClosedLoop {
+            // 后摄只在闭环真正控制手电（走路姿势、未遮挡、非白天、未暂停）
+            // 时才需要；其余时间停掉第二路 ISP 以降低发热。
+            sensorManager.setBackCameraEnabled(gate.isActive)
+        }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
             loggedBackFallback = true
             print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
         if FeatureFlags.torchClosedLoop, let y = sensorManager.backGroundLuminance {
-            let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
-                                isOccluded: sensorManager.isOccluded,
-                                isDaylight: isDaylight,
-                                isTorchPaused: torchPaused)
             // 闭环接管手电；遮挡/暂停/白天按全局约束优先关灯。
             if sensorManager.isOccluded || torchPaused || isDaylight {
                 brightness = 0
             } else {
                 // Manual drag applies on top of the loop's level (the spike
                 // controller doesn't know about manualOffset yet).
-                brightness = min(max(closedLoopBrightness(measured: y, gate: gate)
-                                     + lightEngine.manualOffset, 0.05), 1.0)
+                brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)
+                                     + lightEngine.manualOffset), 0.05), 1.0)
             }
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
         } else if !isTorchOccluded && !torchPaused {
-            brightness = lightEngine.targetBrightness
+            brightness = thermallyCapped(lightEngine.targetBrightness)
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
         } else if torchPaused {
@@ -500,11 +505,16 @@ final class HUDViewModel: ObservableObject {
         // tick to recompute brightness. Snap to 10% steps so the HUD ring
         // advances one segment at a time and the torch follows the finger.
         let snapped = min(max((level * 10).rounded() / 10, 0.1), 1.0)
-        brightness = snapped
-        sensorManager.setTorchLevel(snapped)
-        locationManager.currentTorchBrightness = snapped
+        brightness = thermallyCapped(snapped)
+        sensorManager.setTorchLevel(brightness)
+        locationManager.currentTorchBrightness = brightness
     }
     func resetToAutoBrightness() { lightEngine.resetManualOffset() }
+
+    /// 热状态降档后的手电亮度：serious ≤ 0.6，critical ≤ 0.3。
+    private func thermallyCapped(_ level: Double) -> Double {
+        TorchThermalPolicy.cappedLevel(level, thermalState: ProcessInfo.processInfo.thermalState)
+    }
 
     // MARK: - GPS Signal Quality (HUD indicator)
 

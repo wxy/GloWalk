@@ -1,5 +1,21 @@
 import SwiftUI
 
+/// 手动亮度拖动的纯逻辑：锚定起点档位（1–10 格），每拖动
+/// `stepHeight` 距离变化一格，避免增量叠加导致的跳变。
+enum BrightnessDrag {
+    static func startSteps(brightness: Double) -> Int {
+        min(max(Int((brightness * 10).rounded()), 1), 10)
+    }
+
+    static func stepDelta(translationHeight: CGFloat, stepHeight: CGFloat) -> Int {
+        Int(translationHeight / -stepHeight)
+    }
+
+    static func level(startSteps: Int, delta: Int) -> Double {
+        Double(min(max(startSteps + delta, 1), 10)) / 10
+    }
+}
+
 struct HUDView: View {
     /// Owned by ContentView so the walk survives navigating to History.
     @ObservedObject var viewModel: HUDViewModel
@@ -103,9 +119,13 @@ struct HUDView: View {
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
-    @State private var isTorchPaused = false
+    /// 拖动开始时的档位锚点（1–10），每次拖动重置。
+    @State private var dragStartSteps: Int = 7
     @State private var hasShownCameraAlert = false
     @State private var showCameraDeniedAlert = false
+
+    /// 每拖动 20pt 变化一格（10 格满量程 = 200pt）。
+    private let dragStepHeight: CGFloat = 20
 
     var body: some View {
         ZStack {
@@ -178,27 +198,25 @@ struct HUDView: View {
                         }
                     }
                     .gesture(
-                        DragGesture(minimumDistance: 10)
+                        DragGesture(minimumDistance: 8)
                             .onChanged { v in
-                                let delta = -v.translation.height / 200.0
-                                let new = min(max(viewModel.brightness + delta, 0.1), 1.0)
-                                if abs(new - viewModel.brightness) > 0.05 { Haptic.selection() }
-                                if !isManual { isManual = true; Haptic.light() }
-                                viewModel.setManualBrightness(new)
+                                if !isManual {
+                                    isManual = true
+                                    dragStartSteps = BrightnessDrag.startSteps(brightness: viewModel.brightness)
+                                    Haptic.light()
+                                }
+                                // 锚定起点 + 固定步长：向上每 20pt 亮一格，
+                                // 向下每 20pt 暗一格，一格一次触觉反馈。
+                                let delta = BrightnessDrag.stepDelta(
+                                    translationHeight: v.translation.height,
+                                    stepHeight: dragStepHeight)
+                                let newLevel = BrightnessDrag.level(startSteps: dragStartSteps, delta: delta)
+                                if abs(newLevel - viewModel.brightness) > 0.001 {
+                                    viewModel.setManualBrightness(newLevel)
+                                    Haptic.selection()
+                                }
                             }
                             .onEnded { _ in Haptic.selection() }
-                    )
-                    .simultaneousGesture(
-                        LongPressGesture(minimumDuration: 0.8)
-                            // Haptic when the long press is recognized, fired via
-                            // the gesture's own callback — observing @GestureState
-                            // with .onChange caused "action tried to update multiple
-                            // times per frame" during repeated long presses.
-                            .onChanged { _ in Haptic.medium() }
-                            .onEnded { _ in
-                                viewModel.torchPaused.toggle()
-                                Haptic.medium()
-                            }
                     )
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(

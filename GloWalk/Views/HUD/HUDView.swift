@@ -307,9 +307,10 @@ struct HUDView: View {
                               leadingToTrailing: Bool) -> some View {
         let filled = min(max(Int((value * 10).rounded()), 0), 10)
         let reversed = !leadingToTrailing
-        // A flowing glow: a sine wave of brightness runs along the bar, with
-        // the crest travelling in the fill direction (screen → right, torch →
-        // left), so the bar reads as a living "level" rather than a static line.
+        // Flowing "water" on the bar: a sine wave of brightness travels along
+        // the lit segments (screen → right, torch → left) so the bar reads as a
+        // living level. Deliberately no shadows — the flow comes from the
+        // traveling brightness crest, keeping GPU cost low.
         return TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
             let phase = context.date.timeIntervalSinceReferenceDate * 3.0
             HStack(spacing: 2) {
@@ -327,20 +328,10 @@ struct HUDView: View {
                                            fillColor: fillColor, shares: shares,
                                            reversed: reversed))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 4)
-                        // The capsule itself pulses subtly with the wave so the
-                        // flowing crest is visible even across a wide filled
-                        // region (not just in the halo).
-                        .opacity(lit ? 0.85 + 0.15 * glow : 1.0)
-                        // Three stacked shadows (tight core + wide bloom); the
-                        // glow brightness breathes with the flowing wave and
-                        // stays visible even at the dim night screen level.
-                        .shadow(color: lit ? fillColor.opacity(0.35 + 0.65 * glow) : .clear,
-                                radius: lit ? 3 : 0)
-                        .shadow(color: lit ? fillColor.opacity(0.25 + 0.55 * glow) : .clear,
-                                radius: lit ? 8 : 0)
-                        .shadow(color: lit ? fillColor.opacity(0.15 + 0.30 * glow) : .clear,
-                                radius: lit ? 15 : 0)
+                        .frame(height: 2)
+                        // The crest travels along the bar with clear contrast,
+                        // so the flow reads without any glow/bloom.
+                        .opacity(lit ? 0.55 + 0.45 * glow : 1.0)
                 }
                 glyphSlot(leadingToTrailing ? nil : glyph, color: fillColor)
             }

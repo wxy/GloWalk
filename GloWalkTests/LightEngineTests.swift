@@ -235,6 +235,38 @@ final class LightEngineTests: XCTestCase {
         XCTAssertFalse(engine.factorDetails.moonPhaseName.isEmpty)
     }
 
+    // MARK: - Manual Override
+
+    func testManualBrightnessTracksLevelWithoutDrift() {
+        let snap = makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil)
+        engine.update(sensors: snap)
+        let base = engine.targetBrightness
+
+        engine.setManualBrightness(base + 0.2)
+        engine.update(sensors: snap)
+        XCTAssertEqual(engine.targetBrightness, base + 0.2, accuracy: 0.001)
+
+        // 连续拖动替换手动值时，偏移应相对无偏移基准重新计算，
+        // 而不是叠加旧偏移导致亮度回弹。
+        engine.setManualBrightness(base + 0.1)
+        engine.update(sensors: snap)
+        XCTAssertEqual(engine.targetBrightness, base + 0.1, accuracy: 0.001)
+    }
+
+    func testResetManualBrightnessReturnsToAuto() {
+        let snap = makeSnapshot(ambient: 0.5, posture: 1.0, weather: nil)
+        engine.update(sensors: snap)
+        let auto = engine.targetBrightness
+
+        engine.setManualBrightness(0.9)
+        engine.update(sensors: snap)
+        XCTAssertGreaterThan(engine.targetBrightness, auto)
+
+        engine.resetManualBrightness()
+        engine.update(sensors: snap)
+        XCTAssertEqual(engine.targetBrightness, auto, accuracy: 0.001)
+    }
+
     // MARK: - Helpers
 
     private func makeSnapshot(

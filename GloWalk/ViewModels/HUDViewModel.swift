@@ -227,7 +227,8 @@ final class HUDViewModel: ObservableObject {
                 brightness = 0
             } else {
                 // Manual drag applies on top of the loop's level (the spike
-                // controller doesn't know about manualOffset yet).
+                // controller doesn't know about manualOffset yet) — the loop is
+                // frozen while manual, so it can't "un-drag" the user's level.
                 brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)
                                      + lightEngine.manualOffset), 0.05), 1.0)
             }
@@ -358,9 +359,12 @@ final class HUDViewModel: ObservableObject {
                 }
                 return torchProbePin
             }
+            // 手动拖动期间冻结闭环：控制器不再根据测量值步进，
+            // 否则它会把手动加亮的亮度当作"过亮"逐档调回去。
+            let stepping = !lightEngine.isManual
             return torchController.step(setpoint: torchSetpoint,
                                         measured: normalizedBackLuminance(y),
-                                        active: true)
+                                        active: stepping)
         }
         // Not in walking posture: the back camera isn't looking at the ground
         // the torch would illuminate (it may face the ceiling or sky), so the
@@ -500,7 +504,7 @@ final class HUDViewModel: ObservableObject {
         Haptic.selection()
     }
     func setManualBrightness(_ level: Double) {
-        lightEngine.setManualOffset(level - lightEngine.targetBrightness)
+        lightEngine.setManualBrightness(level)
         // Immediate, discrete feedback during the drag — don't wait for the 1s
         // tick to recompute brightness. Snap to 10% steps so the HUD ring
         // advances one segment at a time and the torch follows the finger.
@@ -509,7 +513,7 @@ final class HUDViewModel: ObservableObject {
         sensorManager.setTorchLevel(brightness)
         locationManager.currentTorchBrightness = brightness
     }
-    func resetToAutoBrightness() { lightEngine.resetManualOffset() }
+    func resetToAutoBrightness() { lightEngine.resetManualBrightness() }
 
     /// 热状态降档后的手电亮度：serious ≤ 0.6，critical ≤ 0.3。
     private func thermallyCapped(_ level: Double) -> Double {

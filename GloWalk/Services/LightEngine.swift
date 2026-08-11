@@ -12,7 +12,14 @@ final class LightEngine: ObservableObject {
     @Published var batterySaverCap: Double = 1.0
 
     private(set) var manualOffset: Double = 0.0
+    /// Offset-free model base brightness (before manual offset / daylight gate) —
+    /// the stable reference the manual drag is measured against, so replacing a
+    /// manual level never double-counts the previous offset.
+    private(set) var baseBrightness: Double = 0.7
     private var sessionStartTime: Date?
+
+    /// True while the user has a manual brightness override in effect.
+    var isManual: Bool { manualOffset != 0 }
 
     struct FactorDetails {
         var moonPhaseName: String = ""
@@ -78,6 +85,7 @@ final class LightEngine: ObservableObject {
 
         let denom = max(wAmbient + postureSignal * wPosture + wDark + wMoon + wWeather, 0.01)
         let base = weighted / denom
+        baseBrightness = base
         // Daylight gate: when the debounced detector reports bright daylight the
         // torch is pointless — turn it off (level 0), ignoring manual offset.
         // The gate consumes the debounced isDaylight (not the raw ambient), so
@@ -167,8 +175,12 @@ final class LightEngine: ObservableObject {
 
     // MARK: - Manual Override
 
-    func setManualOffset(_ offset: Double) { manualOffset = min(max(offset, -0.3), 0.3) }
-    func resetManualOffset() { manualOffset = 0.0 }
+    /// Set the manual brightness as an absolute level, measured against the
+    /// offset-free base so consecutive drag events replace (not accumulate) it.
+    func setManualBrightness(_ level: Double) {
+        manualOffset = min(max(level - baseBrightness, -0.3), 0.3)
+    }
+    func resetManualBrightness() { manualOffset = 0.0 }
 
     // MARK: - Factor Toggles
 

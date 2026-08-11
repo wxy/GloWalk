@@ -416,8 +416,8 @@ final class HealthKitStore: HealthStoreProtocol {
     static let writeTypes: Set<HKSampleType> = [
         HKQuantityType.quantityType(forIdentifier: .stepCount)!,
         HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)!,
-        HKObjectType.workoutType() as! HKSampleType,
-        HKSeriesType.workoutRoute() as! HKSampleType,
+        HKObjectType.workoutType() as HKSampleType,
+        HKSeriesType.workoutRoute() as HKSampleType,
     ]
 
     private let healthStore = HKHealthStore()
@@ -435,28 +435,23 @@ final class HealthKitStore: HealthStoreProtocol {
 
     func save(workout: HKWorkout, samples: [HKQuantitySample],
               routeLocations: [CLLocation]) async throws {
-        var objects: [HKObject] = [workout]
-        objects.append(contentsOf: samples)
-        if routeLocations.count >= 2 {
-            let builder = HKWorkoutRouteBuilder(activityType: .walking, route: nil)
-            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
-                builder.add(routeLocations) { success, error in
-                    if success { cont.resume() } else {
-                        cont.resume(throwing: error ?? HealthStoreError.routeAddFailed)
-                    }
-                }
-            }
+        // workout 必须先保存，finishRoute 才能把路线关联到它。
+        try await healthStore.save([workout] + samples)
+        // iOS 26 SDK 的 HKWorkoutRouteBuilder 改为 healthStore/device 初始化器；
+        // 用 #available 保护，低版本系统只保存训练与样本、省略路线。
+        if #available(iOS 18.0, *), routeLocations.count >= 2 {
+            let builder = HKWorkoutRouteBuilder(healthStore: healthStore, device: nil)
+            try await builder.insertRouteData(routeLocations)
             let route = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<HKWorkoutRoute, Error>) in
-                builder.finishRoute(with: HKWorkoutConfiguration(activityType: .walking),
+                builder.finishRoute(with: workout,
                                     metadata: workout.metadata) { route, error in
                     if let route { cont.resume(returning: route) } else {
                         cont.resume(throwing: error ?? HealthStoreError.routeFinishFailed)
                     }
                 }
             }
-            objects.append(route)
+            _ = route
         }
-        try await healthStore.save(objects)
     }
 }
 ```
@@ -465,6 +460,8 @@ final class HealthKitStore: HealthStoreProtocol {
 
 Run: `xcodebuild build -project GloWalk.xcodeproj -scheme GloWalk -destination 'platform=iOS Simulator,name=iPhone 17'`
 Expected: BUILD SUCCEEDED。
+
+> 实现说明：Xcode 26 / iOS 26 SDK 已移除 `HKWorkoutRouteBuilder(activityType:route:)`，改用 `init(healthStore:device:)` + `insertRouteData(_:)` + `finishRoute(with:metadata:)`，且要求 workout 先保存；路线以 `#available(iOS 18.0, *)` 保护，低版本只保存训练与样本（真机验收时确认路线展示）。
 
 - [ ] **Step 3: Commit**
 

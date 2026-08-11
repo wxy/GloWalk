@@ -85,7 +85,7 @@ struct HistoryListView: View {
                                         }
                                         Spacer()
                                         if session.healthSyncState == HealthSyncState.synced.rawValue {
-                                            Image(systemName: "star.fill")
+                                            Image(systemName: "heart.fill")
                                                 .font(.system(size: 10))
                                                 .foregroundColor(.red)
                                         }

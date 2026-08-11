@@ -285,13 +285,15 @@ struct HUDView: View {
     private var brightnessProgressLines: some View {
         let manual = viewModel.lightEngine.isManual
         return VStack(spacing: 2) {
+            // 屏幕亮度由环境光独立控制，手动模式不影响它，因此保持正常显示。
             progressLine(value: viewModel.screenBrightness,
                          fillColor: .white,
                          glyph: "sun.max.fill",
                          shares: viewModel.factorShares,
                          leadingToTrailing: true,
-                         manual: manual)
+                         manual: false)
                 .frame(height: 9, alignment: .bottom)
+            // 手电亮度在手动模式下锁定为手动值，灰色标识手动状态。
             progressLine(value: viewModel.brightness,
                          fillColor: Color.gloTorchCore,
                          glyph: "flashlight.on.fill",

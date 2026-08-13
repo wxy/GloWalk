@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="heroTitle heroDesc">
   <title id="heroTitle">GloWalk — 随行路灯 · Path of Light</title>
-  <desc id="heroDesc">浅色 hero：左侧为产品名与标语，右侧为金色星座路径、光晕、脚印、月牙与星星组成的装饰插画。</desc>
+  <desc id="heroDesc">浅色 hero：左侧为产品名与中英双语标语，右侧为金色星座路径、光晕、脚印、月牙与星星组成的装饰插画。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#F8F4EA"/>
@@ -88,27 +88,30 @@
   <circle cx="756" cy="300" r="14" fill="#F6C85F" stroke="#2B2620" stroke-width="3.5"/>
   <circle cx="756" cy="300" r="5" fill="#FFF9E8"/>
 
-  <!-- title block -->
+  <!-- title block: one English line, one Chinese line -->
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
-    <text x="54" y="60" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="15" font-weight="700" letter-spacing="3.5" fill="#A97A3B">NIGHT WALK · FIVE SENSORS · ONE GLOW</text>
-    <text x="52" y="128" font-size="76" font-weight="850" letter-spacing="-1.5" fill="#2B2620">GloWalk</text>
-    <rect x="54" y="140" width="230" height="11" rx="5.5" fill="#F0C75F" opacity="0.9"/>
-    <text x="56" y="192" font-size="30" font-weight="700" fill="#B26B24">随行路灯 · Path of Light</text>
-    <text x="56" y="230" font-size="20" font-weight="520" fill="#6B6255">A smart flashlight that reads the night</text>
-    <text x="56" y="262" font-size="15.5" fill="#8A8070">五维感知，一束柔光 · 完整步行记录同步至 Apple 健康</text>
+    <text x="54" y="60" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="13.5" font-weight="700" letter-spacing="2" fill="#A97A3B">NIGHT WALK · FIVE SENSORS · ONE GLOW</text>
+    <text x="52" y="126" font-size="74" font-weight="850" letter-spacing="-1.5" fill="#2B2620">GloWalk</text>
+    <rect x="54" y="138" width="230" height="11" rx="5.5" fill="#F0C75F" opacity="0.9"/>
+    <text x="56" y="182" font-size="28" font-weight="700" fill="#B26B24">Path of Light</text>
+    <text x="56" y="214" font-size="28" font-weight="700" fill="#B26B24">随行路灯</text>
+    <text x="56" y="250" font-size="19" font-weight="520" fill="#6B6255">A smart flashlight that reads the night</text>
+    <text x="56" y="280" font-size="18" fill="#6B6255">会读懂夜晚的智能手电筒</text>
+    <text x="56" y="312" font-size="14.5" fill="#8A8070">Walk records sync to Apple Health</text>
+    <text x="56" y="334" font-size="14.5" fill="#8A8070">步行记录同步至 Apple 健康</text>
   </g>
 
   <!-- flow diagram -->
   <g font-family="ui-monospace, 'SF Mono', Menlo, monospace">
-    <circle cx="64" cy="330" r="9" fill="#E8954C" stroke="#2B2620" stroke-width="3"/>
-    <text x="82" y="335" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">SENSORS</text>
-    <line x1="160" y1="330" x2="194" y2="330" stroke="#2B2620" stroke-width="2"/>
-    <path d="M192 324 L200 330 L192 336 Z" fill="#2B2620"/>
-    <circle cx="212" cy="330" r="9" fill="#E8A24B" stroke="#2B2620" stroke-width="3"/>
-    <text x="230" y="335" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">PATH</text>
-    <line x1="286" y1="330" x2="320" y2="330" stroke="#2B2620" stroke-width="2"/>
-    <path d="M318 324 L326 330 L318 336 Z" fill="#2B2620"/>
-    <circle cx="338" cy="330" r="9" fill="#F6C85F" stroke="#2B2620" stroke-width="3"/>
-    <text x="356" y="335" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">POSTER</text>
+    <circle cx="64" cy="392" r="9" fill="#E8954C" stroke="#2B2620" stroke-width="3"/>
+    <text x="82" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">SENSORS</text>
+    <line x1="160" y1="392" x2="194" y2="392" stroke="#2B2620" stroke-width="2"/>
+    <path d="M192 386 L200 392 L192 398 Z" fill="#2B2620"/>
+    <circle cx="212" cy="392" r="9" fill="#E8A24B" stroke="#2B2620" stroke-width="3"/>
+    <text x="230" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">PATH</text>
+    <line x1="286" y1="392" x2="320" y2="392" stroke="#2B2620" stroke-width="2"/>
+    <path d="M318 386 L326 392 L318 398 Z" fill="#2B2620"/>
+    <circle cx="338" cy="392" r="9" fill="#F6C85F" stroke="#2B2620" stroke-width="3"/>
+    <text x="356" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">POSTER</text>
   </g>
 </svg>

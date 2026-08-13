@@ -2,6 +2,11 @@
   <img src="assets/readme/hero.svg" alt="GloWalk — 随行路灯 · Path of Light" width="100%" style="max-width: 900px; border-radius: 12px;" />
 </p>
 
+<p align="center">
+  <img src="GloWalk/Resources/GloWalk.png" width="96" height="96" alt="GloWalk Icon"
+       style="border-radius: 22%; border: 2px solid #E8C48A; box-shadow: 0 4px 16px rgba(43, 38, 32, 0.18);" />
+</p>
+
 > A smart flashlight that reads the night.
 > 会读懂夜晚的智能手电筒。
 

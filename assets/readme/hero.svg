@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="heroTitle heroDesc">
   <title id="heroTitle">GloWalk — 随行路灯 · Path of Light</title>
-  <desc id="heroDesc">浅色 hero：左侧为产品名与中英双语标语，右侧为应用图标、金色星座路径、光晕、脚印、月牙与星星。</desc>
+  <desc id="heroDesc">浅色 hero：左侧为产品名与中英双语标语，右侧为金色星座路径、光晕、脚印、月牙与星星组成的装饰插画。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#F8F4EA"/>
@@ -23,21 +23,11 @@
     <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur stdDeviation="7"/>
     </filter>
-
-    <linearGradient id="iconGold" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#B8860B"/>
-      <stop offset="0.45" stop-color="#D4AF37"/>
-      <stop offset="0.8" stop-color="#FFD98C"/>
-      <stop offset="1" stop-color="#FFF3D6"/>
-    </linearGradient>
-    <filter id="iconGlow" x="-60%" y="-60%" width="220%" height="220%">
-      <feGaussianBlur stdDeviation="5"/>
-    </filter>
   </defs>
 
   <rect width="1280" height="480" fill="url(#bg)"/>
   <rect width="1280" height="480" fill="url(#grid)"/>
-  <circle cx="800" cy="280" r="300" fill="url(#warmGlow)"/>
+  <circle cx="780" cy="290" r="280" fill="url(#warmGlow)"/>
 
   <!-- divider between title block and illustration -->
   <line x1="512" y1="44" x2="512" y2="438" stroke="#2B2620" stroke-opacity="0.10"/>
@@ -48,63 +38,40 @@
     <circle cx="640" cy="200" r="1.1" opacity="0.22"/>
     <circle cx="700" cy="96" r="1.4" opacity="0.3"/>
     <circle cx="880" cy="120" r="1.2" opacity="0.25"/>
-    <circle cx="1110" cy="190" r="1.5" opacity="0.32"/>
+    <circle cx="1040" cy="180" r="1.5" opacity="0.32"/>
     <circle cx="1200" cy="260" r="1.2" opacity="0.2"/>
     <circle cx="1230" cy="120" r="1.4" opacity="0.3"/>
     <circle cx="560" cy="420" r="1.1" opacity="0.2"/>
     <circle cx="1220" cy="410" r="1.3" opacity="0.24"/>
-    <circle cx="1120" cy="330" r="1.2" opacity="0.25"/>
   </g>
   <!-- sparkles -->
   <g fill="#D98E2B">
     <path d="M820 176 L821.6 181.4 L827 183 L821.6 184.6 L820 190 L818.4 184.6 L813 183 L818.4 181.4 Z"/>
-    <path d="M1112 120 L1113.6 125.4 L1119 127 L1113.6 128.6 L1112 134 L1110.4 128.6 L1105 127 L1110.4 125.4 Z" opacity="0.8"/>
+    <path d="M1012 118 L1013.6 123.4 L1019 125 L1013.6 126.6 L1012 132 L1010.4 126.6 L1005 125 L1010.4 123.4 Z" opacity="0.8"/>
     <path d="M596 136 L597.6 141.4 L603 143 L597.6 144.6 L596 150 L594.4 144.6 L589 143 L594.4 141.4 Z" opacity="0.65"/>
     <path d="M1146 236 L1147.6 241.4 L1153 243 L1147.6 244.6 L1146 250 L1144.4 244.6 L1139 243 L1144.4 241.4 Z" opacity="0.55"/>
   </g>
 
   <!-- moon -->
-  <circle cx="1170" cy="70" r="38" fill="#E8A24B" opacity="0.14" filter="url(#softGlow)"/>
-  <circle cx="1170" cy="70" r="24" fill="#FFF9E8" stroke="#2B2620" stroke-width="3.5"/>
-  <circle cx="1160" cy="62" r="3.5" fill="#E8C48A"/>
-  <circle cx="1178" cy="78" r="2.5" fill="#E8C48A"/>
+  <circle cx="1158" cy="108" r="46" fill="#E8A24B" opacity="0.14" filter="url(#softGlow)"/>
+  <circle cx="1158" cy="108" r="30" fill="#FFF9E8" stroke="#2B2620" stroke-width="3.5"/>
+  <circle cx="1148" cy="98" r="4.5" fill="#E8C48A"/>
+  <circle cx="1170" cy="118" r="3" fill="#E8C48A"/>
 
-    <!-- app icon (vector) with rounded corners -->
-  <g transform="translate(900,96)">
-    <rect x="6" y="8" width="176" height="176" rx="40" fill="#2B2620" opacity="0.13"/>
-    <rect x="0" y="0" width="176" height="176" rx="40" fill="#0C0B09"/>
-    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
-          fill="none" stroke="#D4AF37" stroke-width="22" stroke-linecap="round" opacity="0.35" filter="url(#iconGlow)"/>
-    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
-          fill="none" stroke="url(#iconGold)" stroke-width="10" stroke-linecap="round"/>
-    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
-          fill="none" stroke="#FFE9B8" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="46" cy="127" r="4.5" fill="#FFD98C"/>
-    <circle cx="60" cy="117" r="3" fill="#E8A24B" opacity="0.9"/>
-    <circle cx="84" cy="92" r="5.5" fill="#FFD98C"/>
-    <circle cx="100" cy="74" r="4" fill="#E8A24B" opacity="0.9"/>
-    <circle cx="124" cy="48" r="6" fill="#FFD98C"/>
-    <circle cx="139" cy="42" r="3.5" fill="#FFE9B8" opacity="0.9"/>
-    <path d="M104 56 L105 60.5 L109.5 61.5 L105 62.5 L104 67 L103 62.5 L98.5 61.5 L103 60.5 Z" fill="#FFE9B8"/>
-    <circle cx="66" cy="142" r="2" fill="#D98E2B" opacity="0.7"/>
-    <circle cx="142" cy="66" r="1.8" fill="#D98E2B" opacity="0.7"/>
-    <rect x="0" y="0" width="176" height="176" rx="40" fill="none" stroke="#FFF9E8" stroke-width="5"/>
-  </g>
-
-<!-- constellation path -->
-  <path d="M 772 318 C 832 322 858 300 908 280"
+  <!-- constellation path -->
+  <path d="M 772 318 C 840 330 872 310 940 292 C 1010 274 1058 220 1158 190"
         fill="none" stroke="url(#pathGrad)" stroke-width="8" stroke-linecap="round" opacity="0.4" filter="url(#softGlow)"/>
-  <path d="M 772 318 C 832 322 858 300 908 280"
+  <path d="M 772 318 C 840 330 872 310 940 292 C 1010 274 1058 220 1158 190"
         fill="none" stroke="url(#pathGrad)" stroke-width="4" stroke-linecap="round"/>
 
   <!-- path nodes -->
   <g>
-    <circle cx="830" cy="308" r="10" fill="#E8954C" opacity="0.2"/>
-    <circle cx="830" cy="308" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
-    <circle cx="830" cy="308" r="1.8" fill="#D98E2B"/>
-    <circle cx="908" cy="280" r="10" fill="#E8954C" opacity="0.2"/>
-    <circle cx="908" cy="280" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
-    <circle cx="908" cy="280" r="1.8" fill="#D98E2B"/>
+    <circle cx="905" cy="295" r="10" fill="#E8954C" opacity="0.2"/>
+    <circle cx="905" cy="295" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
+    <circle cx="905" cy="295" r="1.8" fill="#D98E2B"/>
+    <circle cx="1080" cy="230" r="10" fill="#E8954C" opacity="0.2"/>
+    <circle cx="1080" cy="230" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
+    <circle cx="1080" cy="230" r="1.8" fill="#D98E2B"/>
   </g>
 
   <!-- footprints -->

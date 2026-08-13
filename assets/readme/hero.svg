@@ -93,12 +93,12 @@
     <text x="54" y="60" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="13.5" font-weight="700" letter-spacing="2" fill="#A97A3B">NIGHT WALK · FIVE SENSORS · ONE GLOW</text>
     <text x="52" y="126" font-size="74" font-weight="850" letter-spacing="-1.5" fill="#2B2620">GloWalk</text>
     <rect x="54" y="138" width="230" height="11" rx="5.5" fill="#F0C75F" opacity="0.9"/>
-    <text x="56" y="182" font-size="28" font-weight="700" fill="#B26B24">Path of Light</text>
-    <text x="56" y="214" font-size="28" font-weight="700" fill="#B26B24">随行路灯</text>
-    <text x="56" y="250" font-size="19" font-weight="520" fill="#6B6255">A smart flashlight that reads the night</text>
-    <text x="56" y="280" font-size="18" fill="#6B6255">会读懂夜晚的智能手电筒</text>
-    <text x="56" y="312" font-size="14.5" fill="#8A8070">Walk records sync to Apple Health</text>
-    <text x="56" y="334" font-size="14.5" fill="#8A8070">步行记录同步至 Apple 健康</text>
+    <text x="56" y="182" font-size="28" font-weight="700" fill="#B26B24">随行路灯</text>
+    <text x="56" y="214" font-size="28" font-weight="700" fill="#B26B24">Path of Light</text>
+    <text x="56" y="250" font-size="19" font-weight="520" fill="#6B6255">会读懂夜晚的智能手电筒</text>
+    <text x="56" y="280" font-size="18" fill="#6B6255">A smart flashlight that reads the night</text>
+    <text x="56" y="312" font-size="14.5" fill="#8A8070">步行记录同步至 Apple 健康</text>
+    <text x="56" y="334" font-size="14.5" fill="#8A8070">Walk records sync to Apple Health</text>
   </g>
 
   <!-- flow diagram -->

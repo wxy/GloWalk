@@ -23,9 +23,16 @@
     <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur stdDeviation="7"/>
     </filter>
-    <clipPath id="iconClip">
-      <rect x="0" y="0" width="176" height="176" rx="40"/>
-    </clipPath>
+
+    <linearGradient id="iconGold" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#B8860B"/>
+      <stop offset="0.45" stop-color="#D4AF37"/>
+      <stop offset="0.8" stop-color="#FFD98C"/>
+      <stop offset="1" stop-color="#FFF3D6"/>
+    </linearGradient>
+    <filter id="iconGlow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="5"/>
+    </filter>
   </defs>
 
   <rect width="1280" height="480" fill="url(#bg)"/>
@@ -62,14 +69,29 @@
   <circle cx="1160" cy="62" r="3.5" fill="#E8C48A"/>
   <circle cx="1178" cy="78" r="2.5" fill="#E8C48A"/>
 
-  <!-- app icon with rounded corners -->
+    <!-- app icon (vector) with rounded corners -->
   <g transform="translate(900,96)">
     <rect x="6" y="8" width="176" height="176" rx="40" fill="#2B2620" opacity="0.13"/>
-    <image href="../../GloWalk/Resources/GloWalk.png" width="176" height="176" clip-path="url(#iconClip)"/>
+    <rect x="0" y="0" width="176" height="176" rx="40" fill="#0C0B09"/>
+    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
+          fill="none" stroke="#D4AF37" stroke-width="22" stroke-linecap="round" opacity="0.35" filter="url(#iconGlow)"/>
+    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
+          fill="none" stroke="url(#iconGold)" stroke-width="10" stroke-linecap="round"/>
+    <path d="M 34 132 C 58 128 70 108 84 92 C 100 74 108 58 124 48 C 136 40 146 40 152 44"
+          fill="none" stroke="#FFE9B8" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="46" cy="127" r="4.5" fill="#FFD98C"/>
+    <circle cx="60" cy="117" r="3" fill="#E8A24B" opacity="0.9"/>
+    <circle cx="84" cy="92" r="5.5" fill="#FFD98C"/>
+    <circle cx="100" cy="74" r="4" fill="#E8A24B" opacity="0.9"/>
+    <circle cx="124" cy="48" r="6" fill="#FFD98C"/>
+    <circle cx="139" cy="42" r="3.5" fill="#FFE9B8" opacity="0.9"/>
+    <path d="M104 56 L105 60.5 L109.5 61.5 L105 62.5 L104 67 L103 62.5 L98.5 61.5 L103 60.5 Z" fill="#FFE9B8"/>
+    <circle cx="66" cy="142" r="2" fill="#D98E2B" opacity="0.7"/>
+    <circle cx="142" cy="66" r="1.8" fill="#D98E2B" opacity="0.7"/>
     <rect x="0" y="0" width="176" height="176" rx="40" fill="none" stroke="#FFF9E8" stroke-width="5"/>
   </g>
 
-  <!-- constellation path -->
+<!-- constellation path -->
   <path d="M 772 318 C 832 322 858 300 908 280"
         fill="none" stroke="url(#pathGrad)" stroke-width="8" stroke-linecap="round" opacity="0.4" filter="url(#softGlow)"/>
   <path d="M 772 318 C 832 322 858 300 908 280"

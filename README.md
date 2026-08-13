@@ -1,10 +1,9 @@
 <p align="center">
-  <img src="assets/readme/hero.svg" alt="GloWalk — 随行路灯 · Path of Light" width="100%" style="max-width: 900px; border-radius: 12px;" />
+  <img src="assets/readme/hero.svg" alt="GloWalk — 随行路灯 · Path of Light" width="100%" />
 </p>
 
 <p align="center">
-  <img src="GloWalk/Resources/GloWalk.png" width="96" height="96" alt="GloWalk Icon"
-       style="border-radius: 22%; border: 2px solid #E8C48A; box-shadow: 0 4px 16px rgba(43, 38, 32, 0.18);" />
+  <img src="assets/readme/icon-rounded.png" width="96" height="96" alt="GloWalk Icon">
 </p>
 
 > A smart flashlight that reads the night.
@@ -19,7 +18,7 @@
 ---
 
 <p align="center">
-  <img src="assets/readme/section-features.svg" alt="Features · 功能" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-features.svg" alt="Features · 功能" width="100%" />
 </p>
 
 - **5-Axis Adaptive Brightness** — Ambient light, posture, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
@@ -51,7 +50,7 @@
     **隐私优先** — 步行数据仅存本机，无需账号，无分析，无追踪；健康数据仅在你授权后写入 Apple 健康，绝不出设备；仅位置信息会发送给 Apple WeatherKit 和 Open-Meteo 获取当前天气
 
 <p align="center">
-  <img src="assets/readme/section-screens.svg" alt="Screens · 界面" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-screens.svg" alt="Screens · 界面" width="100%" />
 </p>
 
 | Splash<br>启动 | Walking<br>步行 | Poster<br>海报 |
@@ -59,7 +58,7 @@
 | App icon + tagline<br>应用图标 + 标语 | 5-factor HUD + constellation path<br>五因素 HUD + 星座路径 | Path + moon phase artwork<br>路径 + 月相图 |
 
 <p align="center">
-  <img src="assets/readme/section-requirements.svg" alt="Requirements · 环境要求" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-requirements.svg" alt="Requirements · 环境要求" width="100%" />
 </p>
 
 - **iOS** 15.0+
@@ -67,7 +66,7 @@
 - **Xcode** 26+
 
 <p align="center">
-  <img src="assets/readme/section-architecture.svg" alt="Architecture · 架构" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-architecture.svg" alt="Architecture · 架构" width="100%" />
 </p>
 
 ```
@@ -89,7 +88,7 @@ GloWalk/
 ```
 
 <p align="center">
-  <img src="assets/readme/section-brightness-engine.svg" alt="Brightness Engine · 亮度引擎" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-brightness-engine.svg" alt="Brightness Engine · 亮度引擎" width="100%" />
 </p>
 
 ```
@@ -101,7 +100,7 @@ All five factors contribute proportionally to the gap from optimal brightness. T
 五个因素按各自权重填补"最优亮度"的缺口，实时影响最终亮度。开关任意因素即可看到即时变化。
 
 <p align="center">
-  <img src="assets/readme/section-usage.svg" alt="Usage · 使用指南" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-usage.svg" alt="Usage · 使用指南" width="100%" />
 </p>
 
 | Action<br>操作 | Gesture<br>手势 |
@@ -116,7 +115,7 @@ All five factors contribute proportionally to the gap from optimal brightness. T
 | **View past posters**<br>**查看历史海报** | Tap any walk in history to see its poster again<br>步行历史中点击记录，重新查看海报 |
 
 <p align="center">
-  <img src="assets/readme/section-getting-started.svg" alt="Getting Started · 快速开始" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-getting-started.svg" alt="Getting Started · 快速开始" width="100%" />
 </p>
 
 ```bash
@@ -130,7 +129,7 @@ Build with Xcode 26+ targeting iOS 15.0+. Run on a physical iPhone for full sens
 使用 Xcode 26+ 构建，目标 iOS 15.0+。建议在真机上运行以体验完整的传感器和摄像头功能。
 
 <p align="center">
-  <img src="assets/readme/section-privacy.svg" alt="Privacy · 隐私" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-privacy.svg" alt="Privacy · 隐私" width="100%" />
 </p>
 
 See [PRIVACY.md](PRIVACY.md) — all walk data stays on-device; health data is only written to Apple Health with your permission and never leaves your device.
@@ -138,7 +137,7 @@ See [PRIVACY.md](PRIVACY.md) — all walk data stays on-device; health data is o
 详见 [PRIVACY.md](PRIVACY.md)——步行数据仅存本机；健康数据仅在你授权后写入 Apple 健康，绝不出设备。
 
 <p align="center">
-  <img src="assets/readme/section-contributing.svg" alt="Contributing · 贡献" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-contributing.svg" alt="Contributing · 贡献" width="100%" />
 </p>
 
 Code, ideas, and docs are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). **Development**: build with Xcode 26+ targeting iOS 15.0+, then run the test suite:
@@ -151,7 +150,7 @@ xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk \
 ```
 
 <p align="center">
-  <img src="assets/readme/section-license.svg" alt="License · 许可证" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-license.svg" alt="License · 许可证" width="100%" />
 </p>
 
 Apache License 2.0 — see [LICENSE](LICENSE) for details.
@@ -159,7 +158,7 @@ Apache License 2.0 — see [LICENSE](LICENSE) for details.
 Apache License 2.0——详见 [LICENSE](LICENSE)。
 
 <p align="center">
-  <img src="assets/readme/section-links.svg" alt="Links · 相关链接" width="100%" style="max-width: 900px;" />
+  <img src="assets/readme/section-links.svg" alt="Links · 相关链接" width="100%" />
 </p>
 
 - [Website · 官网](https://xingyu.wang/apps/glowalk)

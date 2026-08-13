@@ -163,15 +163,5 @@ Apache License 2.0 — see [LICENSE](LICENSE) for details.
   <img src="assets/readme/section-links.svg" alt="Links · 相关链接" width="100%" />
 </p>
 
-- [Website](https://xingyu.wang/apps/glowalk)
-
-    > [官网](https://xingyu.wang/apps/glowalk)
-- [App Store](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
-
-    > [App Store](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
-- [Releases](https://github.com/wxy/GloWalk/releases)
-
-    > [发布](https://github.com/wxy/GloWalk/releases)
-- [Issues](https://github.com/wxy/GloWalk/issues)
-
-    > [问题反馈](https://github.com/wxy/GloWalk/issues)
+| [Website](https://xingyu.wang/apps/glowalk)<br>[官网](https://xingyu.wang/apps/glowalk) | [App Store](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)<br>[App Store](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791) | [Releases](https://github.com/wxy/GloWalk/releases)<br>[发布](https://github.com/wxy/GloWalk/releases) | [Issues](https://github.com/wxy/GloWalk/issues)<br>[问题反馈](https://github.com/wxy/GloWalk/issues) |
+| :---: | :---: | :---: | :---: |

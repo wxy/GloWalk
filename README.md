@@ -1,9 +1,9 @@
-> A smart flashlight that reads the night.
-> 会读懂夜晚的智能手电筒。
-
 <p align="center">
   <img src="assets/readme/hero.svg" alt="GloWalk — 随行路灯 · Path of Light" width="100%" style="max-width: 900px; border-radius: 12px;" />
 </p>
+
+> A smart flashlight that reads the night.
+> 会读懂夜晚的智能手电筒。
 
 [![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
 
@@ -18,23 +18,23 @@
 </p>
 
 - **5-Axis Adaptive Brightness** — Ambient light, posture, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
-- **五维自适应亮度** — 环境光、手机姿态、暗适应、月相、天气，五个因素实时计算最合适的亮度，每个因素可独立开关
+  **五维自适应亮度** — 环境光、手机姿态、暗适应、月相、天气，五个因素实时计算最合适的亮度，每个因素可独立开关
 - **Apple Health Sync** — With your permission, completed walks are written to the Health app as full workout records: steps, distance, duration, and route. Write-only — GloWalk never reads your health data, and nothing leaves your device.
-- **Apple 健康同步** — 经你授权后，完成的步行会以完整运动记录（步数、距离、时长与路线）写入「健康」App；仅写入、不读取，健康数据不出设备
+  **Apple 健康同步** — 经你授权后，完成的步行会以完整运动记录（步数、距离、时长与路线）写入「健康」App；仅写入、不读取，健康数据不出设备
 - **Drag-to-Adjust Brightness** — Drag the glow circle up or down through ten discrete levels and release to keep it, or drag all the way down to the brightness bars to turn the torch fully off.
-- **拖动调光** — 拖动中央光晕在十档亮度间调节，松手停留在所选档位；拖到最下方亮度条可完全关闭手电
+  **拖动调光** — 拖动中央光晕在十档亮度间调节，松手停留在所选档位；拖到最下方亮度条可完全关闭手电
 - **Constellation Path Recording** — GPS walking paths are rendered as golden bezier trails with footprint markers. Occasionally, a nocturnal animal silhouette appears.
-- **星座路径记录** — GPS 步行路径以金色贝塞尔曲线呈现，起终点有脚印标记，偶尔出现夜行动物剪影彩蛋
+  **星座路径记录** — GPS 步行路径以金色贝塞尔曲线呈现，起终点有脚印标记，偶尔出现夜行动物剪影彩蛋
 - **Night Walk Posters** — When your walk ends, GloWalk generates a poster with your path, the night's moon phase, and a poetic tagline. Share it or save it to your photo library.
-- **夜路海报** — 步行结束后自动生成海报，包含路径轨迹、当晚月相照片和诗意格言，可分享或保存
+  **夜路海报** — 步行结束后自动生成海报，包含路径轨迹、当晚月相照片和诗意格言，可分享或保存
 - **Dark Interface** — Every pixel is designed for night use. Amber-on-black HUD, no white flashes.
-- **深色界面** — 每一像素都为夜间设计，琥珀金配色
+  **深色界面** — 每一像素都为夜间设计，琥珀金配色
 - **Trilingual** — Full English, 简体中文, and 繁體中文. Switch languages at runtime.
-- **中英繁三语** — 完整的中文简体、中文繁体与英文支持，运行时可切换
+  **中英繁三语** — 完整的中文简体、中文繁体与英文支持，运行时可切换
 - **Thermal-Aware** — The rear camera runs only when the adaptive loop needs it, and the torch steps down gently under heat — cooler in hand, longer on the night.
-- **更凉爽** — 后置摄像头按需启停，手电在高热时平缓降档，减少发热
+  **更凉爽** — 后置摄像头按需启停，手电在高热时平缓降档，减少发热
 - **Privacy First** — Walk data stays on-device, no account, no analytics, no tracking. Health data is only written to Apple Health with your explicit permission and never leaves your device. Your location is sent to Apple WeatherKit and Open-Meteo only for current weather.
-- **隐私优先** — 步行数据仅存本机，无需账号，无分析，无追踪；健康数据仅在你授权后写入 Apple 健康，绝不出设备；仅位置信息会发送给 Apple WeatherKit 和 Open-Meteo 获取当前天气
+  **隐私优先** — 步行数据仅存本机，无需账号，无分析，无追踪；健康数据仅在你授权后写入 Apple 健康，绝不出设备；仅位置信息会发送给 Apple WeatherKit 和 Open-Meteo 获取当前天气
 
 <p align="center">
   <img src="assets/readme/section-screens.svg" alt="Screens · 界面" width="100%" style="max-width: 900px;" />

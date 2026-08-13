@@ -3,7 +3,7 @@
 > A smart flashlight that reads the night. Five sensors, one gentle glow.
 
 <p align="center">
-  <img src="assets/hero.svg" alt="GloWalk — five sensors, one gentle glow" width="100%" style="max-width: 900px; border-radius: 12px;" />
+  <img src="assets/readme/hero.svg" alt="GloWalk — five sensors, one gentle glow" width="100%" style="max-width: 900px; border-radius: 12px;" />
 </p>
 
 [![Download on the App Store](https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg)](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
@@ -16,7 +16,11 @@
   <img src="GloWalk/Resources/GloWalk.png" width="128" alt="GloWalk Icon">
 </p>
 
-## Features
+<p align="center">
+  <img src="assets/readme/section-features.svg" alt="01 Features · 功能" width="100%" style="max-width: 900px;" />
+</p>
+
+## Features · 功能
 
 - **5-Axis Adaptive Brightness** — Ambient light, posture, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
 - **Apple Health Sync** — With your permission, completed walks are written to the Health app as full workout records: steps, distance, duration, and route. Write-only — GloWalk never reads your health data, and nothing leaves your device.
@@ -28,19 +32,23 @@
 - **Thermal-Aware** — The rear camera runs only when the adaptive loop needs it, and the torch steps down gently under heat — cooler in hand, longer on the night.
 - **Privacy First** — Walk data stays on-device, no account, no analytics, no tracking. Health data is only written to Apple Health with your explicit permission and never leaves your device. Your location is sent to Apple WeatherKit and Open-Meteo only for current weather.
 
-## Screens
+<p align="center">
+  <img src="assets/readme/section-screens.svg" alt="02 Screens · 界面" width="100%" style="max-width: 900px;" />
+</p>
+
+## Screens · 界面
 
 | Splash | Walking | Poster |
 |--------|---------|--------|
 | App icon + tagline | 5-factor HUD + constellation path | Path + moon phase artwork |
 
-## Requirements
+## Requirements · 环境要求
 
 - iOS 15.0+
 - iPhone (requires rear camera and LED flash)
 - Xcode 26+
 
-## Architecture
+## Architecture · 架构
 
 ```
 GloWalk/
@@ -68,7 +76,11 @@ brightness = ambient(40%) + posture(15%) + darkAdapt(15%) + moon(15%) + weather(
 
 All five factors contribute proportionally to the gap from optimal brightness. Toggle any factor to see its real-time impact.
 
-## Usage Guide
+<p align="center">
+  <img src="assets/readme/section-usage.svg" alt="03 Usage · 使用指南" width="100%" style="max-width: 900px;" />
+</p>
+
+## Usage Guide · 使用指南
 
 | Action | Gesture |
 |--------|---------|
@@ -81,7 +93,7 @@ All five factors contribute proportionally to the gap from optimal brightness. T
 | **Dismiss poster** | Swipe down on the poster |
 | **View past posters** | Tap any walk in history to see its poster again |
 
-## Getting Started
+## Getting Started · 快速开始
 
 ```bash
 git clone https://github.com/wxy/GloWalk.git
@@ -91,13 +103,47 @@ open GloWalk.xcodeproj
 
 Build with Xcode 26+ targeting iOS 15.0+. Run on a physical iPhone for full sensor and camera access.
 
-## License
+<p align="center">
+  <img src="assets/readme/section-privacy.svg" alt="04 Privacy · 隐私" width="100%" style="max-width: 900px;" />
+</p>
+
+## Privacy · 隐私
+
+See [PRIVACY.md](PRIVACY.md) — all walk data stays on-device; health data is only written to Apple Health with your permission and never leaves your device.
+
+<p align="center">
+  <img src="assets/readme/section-contributing.svg" alt="05 Contributing · 贡献" width="100%" style="max-width: 900px;" />
+</p>
+
+## Contributing · 贡献
+
+Code, ideas, and docs are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+**Development**: build with Xcode 26+ targeting iOS 15.0+, then run the test suite:
+
+```bash
+xcodebuild test -project GloWalk.xcodeproj -scheme GloWalk \
+  -destination 'platform=iOS Simulator,name=iPhone 17'
+```
+
+<p align="center">
+  <img src="assets/readme/section-license.svg" alt="06 License · 许可证" width="100%" style="max-width: 900px;" />
+</p>
+
+## License · 许可证
 
 Apache License 2.0 — see [LICENSE](LICENSE) for details.
 
-## Privacy
+<p align="center">
+  <img src="assets/readme/section-links.svg" alt="07 Links · 相关链接" width="100%" style="max-width: 900px;" />
+</p>
 
-See [PRIVACY.md](PRIVACY.md).
+## Links · 相关链接
+
+- [Website](https://xingyu.wang/apps/glowalk)
+- [App Store](https://apps.apple.com/us/app/glowalk-path-of-light/id6794170791)
+- [Releases](https://github.com/wxy/GloWalk/releases)
+- [Issues](https://github.com/wxy/GloWalk/issues)
 
 ---
 

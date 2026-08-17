@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="heroTitle heroDesc">
   <title id="heroTitle">GloWalk — 随行路灯 · Path of Light</title>
-  <desc id="heroDesc">浅色 hero：左侧为产品名与中英双语标语，右侧为金色星座路径、光晕、脚印、月牙与星星组成的装饰插画。</desc>
+  <desc id="heroDesc">浅色 hero：左侧为产品名与中英双语标语，右侧为夜色场景——月牙、星座路径、脚印、光晕与手电光束组成的纯矢量装饰插画。</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#F8F4EA"/>
@@ -10,8 +10,13 @@
       <path d="M34 0H0V34" fill="none" stroke="#2B2620" stroke-opacity="0.045" stroke-width="1"/>
     </pattern>
     <radialGradient id="warmGlow" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0" stop-color="#F0C75F" stop-opacity="0.35"/>
+      <stop offset="0" stop-color="#F0C75F" stop-opacity="0.32"/>
       <stop offset="0.55" stop-color="#F0C75F" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#F0C75F" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="moonGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#F0C75F" stop-opacity="0.28"/>
+      <stop offset="0.6" stop-color="#F0C75F" stop-opacity="0.10"/>
       <stop offset="1" stop-color="#F0C75F" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="pathGrad" x1="0" y1="1" x2="1" y2="0">
@@ -20,6 +25,16 @@
       <stop offset="0.85" stop-color="#F0C75F"/>
       <stop offset="1" stop-color="#F6D98A"/>
     </linearGradient>
+    <linearGradient id="beamGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#F0C75F" stop-opacity="0.34"/>
+      <stop offset="0.5" stop-color="#F0C75F" stop-opacity="0.12"/>
+      <stop offset="0.7" stop-color="#F0C75F" stop-opacity="0"/>
+      <stop offset="1" stop-color="#F0C75F" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="accentBar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#F6C85F"/>
+      <stop offset="1" stop-color="#E8954C"/>
+    </linearGradient>
     <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
       <feGaussianBlur stdDeviation="7"/>
     </filter>
@@ -27,7 +42,13 @@
 
   <rect width="1280" height="480" fill="url(#bg)"/>
   <rect width="1280" height="480" fill="url(#grid)"/>
-  <circle cx="780" cy="290" r="280" fill="url(#warmGlow)"/>
+
+  <!-- night ground -->
+  <path d="M 560 480 Q 700 398 860 428 T 1280 420 L 1280 480 Z" fill="#E8954C" opacity="0.12"/>
+  <path d="M 560 480 Q 700 398 860 428 T 1280 420 L 1280 480 Z" fill="none" stroke="#D98E2B" stroke-width="1.5" stroke-opacity="0.28"/>
+  <path d="M 720 480 Q 880 432 1040 452 T 1280 448 L 1280 480 Z" fill="#D98E2B" opacity="0.10"/>
+
+  <circle cx="800" cy="300" r="270" fill="url(#warmGlow)"/>
 
   <!-- divider between title block and illustration -->
   <line x1="512" y1="44" x2="512" y2="438" stroke="#2B2620" stroke-opacity="0.10"/>
@@ -43,7 +64,10 @@
     <circle cx="1230" cy="120" r="1.4" opacity="0.3"/>
     <circle cx="560" cy="420" r="1.1" opacity="0.2"/>
     <circle cx="1220" cy="410" r="1.3" opacity="0.24"/>
+    <circle cx="960" cy="96" r="1.1" opacity="0.28"/>
+    <circle cx="1090" cy="300" r="1.3" opacity="0.22"/>
   </g>
+
   <!-- sparkles -->
   <g fill="#D98E2B">
     <path d="M820 176 L821.6 181.4 L827 183 L821.6 184.6 L820 190 L818.4 184.6 L813 183 L818.4 181.4 Z"/>
@@ -53,65 +77,87 @@
   </g>
 
   <!-- moon -->
-  <circle cx="1158" cy="108" r="46" fill="#E8A24B" opacity="0.14" filter="url(#softGlow)"/>
-  <circle cx="1158" cy="108" r="30" fill="#FFF9E8" stroke="#2B2620" stroke-width="3.5"/>
-  <circle cx="1148" cy="98" r="4.5" fill="#E8C48A"/>
-  <circle cx="1170" cy="118" r="3" fill="#E8C48A"/>
+  <circle cx="1162" cy="120" r="64" fill="url(#moonGlow)"/>
+  <circle cx="1162" cy="120" r="34" fill="#FFF9E8" stroke="#2B2620" stroke-width="3.5"/>
+  <circle cx="1150" cy="108" r="5" fill="#E8C48A" opacity="0.6"/>
+  <circle cx="1174" cy="130" r="3.5" fill="#E8C48A" opacity="0.55"/>
+  <circle cx="1158" cy="138" r="2.5" fill="#E8C48A" opacity="0.5"/>
 
   <!-- constellation path -->
-  <path d="M 772 318 C 840 330 872 310 940 292 C 1010 274 1058 220 1158 190"
+  <path d="M 772 318 C 840 330 900 296 968 258 C 1030 224 1100 176 1162 158"
         fill="none" stroke="url(#pathGrad)" stroke-width="8" stroke-linecap="round" opacity="0.4" filter="url(#softGlow)"/>
-  <path d="M 772 318 C 840 330 872 310 940 292 C 1010 274 1058 220 1158 190"
+  <path d="M 772 318 C 840 330 900 296 968 258 C 1030 224 1100 176 1162 158"
         fill="none" stroke="url(#pathGrad)" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- constellation hairlines -->
+  <g stroke="#2B2620" stroke-width="1.5" fill="none">
+    <path d="M 905 295 L 968 258 L 1030 224" opacity="0.16"/>
+    <path d="M 1030 224 L 1100 176 L 1162 158" opacity="0.12"/>
+  </g>
 
   <!-- path nodes -->
   <g>
     <circle cx="905" cy="295" r="10" fill="#E8954C" opacity="0.2"/>
     <circle cx="905" cy="295" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
     <circle cx="905" cy="295" r="1.8" fill="#D98E2B"/>
-    <circle cx="1080" cy="230" r="10" fill="#E8954C" opacity="0.2"/>
-    <circle cx="1080" cy="230" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
-    <circle cx="1080" cy="230" r="1.8" fill="#D98E2B"/>
+    <circle cx="1030" cy="224" r="10" fill="#E8954C" opacity="0.2"/>
+    <circle cx="1030" cy="224" r="5.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
+    <circle cx="1030" cy="224" r="1.8" fill="#D98E2B"/>
+    <circle cx="1100" cy="176" r="9" fill="#E8954C" opacity="0.18"/>
+    <circle cx="1100" cy="176" r="4.5" fill="#FFF9E8" stroke="#2B2620" stroke-width="2.5"/>
+    <circle cx="1100" cy="176" r="1.6" fill="#D98E2B"/>
   </g>
 
   <!-- footprints -->
-  <g fill="#D98E2B" opacity="0.5">
-    <ellipse cx="798" cy="318" rx="6" ry="2.8" transform="rotate(-8 798 318)"/>
-    <ellipse cx="812" cy="314" rx="6" ry="2.8" transform="rotate(-8 812 314)"/>
-    <ellipse cx="848" cy="308" rx="6" ry="2.8" transform="rotate(-7 848 308)"/>
-    <ellipse cx="862" cy="303" rx="6" ry="2.8" transform="rotate(-7 862 303)"/>
+  <g fill="#D98E2B" opacity="0.45">
+    <ellipse cx="798" cy="318" rx="6.5" ry="3.2" transform="rotate(-8 798 318)"/>
+    <ellipse cx="814" cy="314" rx="6.5" ry="3.2" transform="rotate(-8 814 314)"/>
+    <ellipse cx="850" cy="307" rx="6.5" ry="3.2" transform="rotate(-7 850 307)"/>
+    <ellipse cx="866" cy="302" rx="6.5" ry="3.2" transform="rotate(-7 866 302)"/>
+    <ellipse cx="902" cy="291" rx="6" ry="3" transform="rotate(-6 902 291)"/>
+    <ellipse cx="918" cy="285" rx="6" ry="3" transform="rotate(-6 918 285)"/>
   </g>
 
-  <!-- glow orb -->
-  <circle cx="756" cy="300" r="48" fill="#F0C75F" opacity="0.3" filter="url(#softGlow)"/>
-  <circle cx="756" cy="300" r="22" fill="#F0C75F" opacity="0.55"/>
-  <circle cx="756" cy="300" r="14" fill="#F6C85F" stroke="#2B2620" stroke-width="3.5"/>
-  <circle cx="756" cy="300" r="5" fill="#FFF9E8"/>
+  <!-- glow orb + beam -->
+  <path d="M 748 330 L 1062 124 L 1100 152 L 758 338 Z" fill="url(#beamGrad)"/>
+  <path d="M 756 300 C 840 250 920 200 988 152" fill="none" stroke="#F0C75F" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+  <circle cx="756" cy="300" r="44" fill="#F0C75F" opacity="0.3" filter="url(#softGlow)"/>
+  <circle cx="756" cy="300" r="20" fill="#F0C75F" opacity="0.55"/>
+  <circle cx="756" cy="300" r="13" fill="#F6C85F" stroke="#2B2620" stroke-width="3.5"/>
+  <circle cx="756" cy="300" r="4.5" fill="#FFF9E8"/>
+
+  <!-- beam dust -->
+  <g fill="#E8954C" opacity="0.35">
+    <circle cx="832" cy="262" r="2"/>
+    <circle cx="870" cy="236" r="1.6"/>
+    <circle cx="912" cy="208" r="1.8"/>
+    <circle cx="854" cy="276" r="1.4"/>
+  </g>
 
   <!-- title block: Chinese line above English line -->
   <g font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
     <text x="54" y="60" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="13.5" font-weight="700" letter-spacing="2" fill="#A97A3B">NIGHT WALK · FIVE SENSORS · ONE GLOW</text>
-    <text x="52" y="126" font-size="74" font-weight="850" letter-spacing="-1.5" fill="#2B2620">GloWalk</text>
-    <rect x="54" y="138" width="230" height="11" rx="5.5" fill="#F0C75F" opacity="0.9"/>
-    <text x="56" y="182" font-size="28" font-weight="700" fill="#B26B24">随行路灯</text>
-    <text x="56" y="214" font-size="28" font-weight="700" fill="#B26B24">Path of Light</text>
-    <text x="56" y="250" font-size="19" font-weight="520" fill="#6B6255">会读懂夜晚的智能手电筒</text>
-    <text x="56" y="280" font-size="18" fill="#6B6255">A smart flashlight that reads the night</text>
-    <text x="56" y="312" font-size="14.5" fill="#8A8070">步行记录同步至 Apple 健康</text>
-    <text x="56" y="334" font-size="14.5" fill="#8A8070">Walk records sync to Apple Health</text>
+    <text x="52" y="126" font-size="74" font-weight="800" letter-spacing="-1.5" fill="#2B2620">GloWalk</text>
+    <rect x="54" y="139" width="236" height="10" rx="5" fill="url(#accentBar)"/>
+    <text x="56" y="184" font-size="28" font-weight="700" fill="#B26B24">随行路灯</text>
+    <text x="56" y="218" font-size="24" font-weight="600" letter-spacing="1.5" fill="#B26B24">Path of Light</text>
+    <text x="56" y="254" font-size="19" font-weight="520" fill="#6B6255">会读懂夜晚的智能手电筒</text>
+    <text x="56" y="286" font-size="18" fill="#6B6255">A smart flashlight that reads the night</text>
+    <text x="56" y="318" font-size="14.5" fill="#6F665A">步行记录同步至 Apple 健康</text>
+    <text x="56" y="340" font-size="14.5" fill="#6F665A">Walk records sync to Apple Health</text>
   </g>
 
   <!-- flow diagram -->
   <g font-family="ui-monospace, 'SF Mono', Menlo, monospace">
-    <circle cx="64" cy="392" r="9" fill="#E8954C" stroke="#2B2620" stroke-width="3"/>
-    <text x="82" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">SENSORS</text>
-    <line x1="160" y1="392" x2="194" y2="392" stroke="#2B2620" stroke-width="2"/>
-    <path d="M192 386 L200 392 L192 398 Z" fill="#2B2620"/>
-    <circle cx="212" cy="392" r="9" fill="#E8A24B" stroke="#2B2620" stroke-width="3"/>
-    <text x="230" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">PATH</text>
-    <line x1="286" y1="392" x2="320" y2="392" stroke="#2B2620" stroke-width="2"/>
-    <path d="M318 386 L326 392 L318 398 Z" fill="#2B2620"/>
-    <circle cx="338" cy="392" r="9" fill="#F6C85F" stroke="#2B2620" stroke-width="3"/>
-    <text x="356" y="397" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">POSTER</text>
+    <circle cx="64" cy="396" r="9" fill="#E8954C" stroke="#2B2620" stroke-width="3"/>
+    <text x="82" y="401" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">SENSORS</text>
+    <line x1="160" y1="396" x2="194" y2="396" stroke="#2B2620" stroke-width="2"/>
+    <path d="M192 390 L200 396 L192 402 Z" fill="#2B2620"/>
+    <circle cx="212" cy="396" r="9" fill="#E8A24B" stroke="#2B2620" stroke-width="3"/>
+    <text x="230" y="401" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">PATH</text>
+    <line x1="286" y1="396" x2="320" y2="396" stroke="#2B2620" stroke-width="2"/>
+    <path d="M318 390 L326 396 L318 402 Z" fill="#2B2620"/>
+    <circle cx="338" cy="396" r="9" fill="#F6C85F" stroke="#2B2620" stroke-width="3"/>
+    <text x="356" y="401" font-size="13" font-weight="700" letter-spacing="1.5" fill="#7A6F5F">POSTER</text>
   </g>
 </svg>

@@ -93,7 +93,7 @@ final class HUDViewModel: ObservableObject {
         hasStarted = true
         isActive = true
         sessionStartTime = Date()
-        print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
+        Log.debug("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
         // Reset the startup probe for this walk. Seeding happens on the first
         // closed-loop tick, from the front-camera ambient level.
@@ -216,7 +216,7 @@ final class HUDViewModel: ObservableObject {
         }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
             loggedBackFallback = true
-            print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
+            Log.debug("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
         if lightEngine.isManual {
             // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
@@ -415,7 +415,7 @@ final class HUDViewModel: ObservableObject {
             if torchProbeTicks >= torchCeilingTicksNeeded {
                 torchProbeState = .calibrated
                 if let cal = torchCalibration {
-                    print("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
+                    Log.debug("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
                 }
             }
         case .calibrated:
@@ -424,6 +424,21 @@ final class HUDViewModel: ObservableObject {
     }
 
     // MARK: - End Walk
+
+    /// End a walk that never produced a step: stop all sensors and delete the
+    /// empty session. Shared by the HUD's double-tap-to-end path (which shows
+    /// a dedicated zero-step overlay) and the normal end flows, so the cleanup
+    /// stays in one place.
+    func discardZeroStepWalk() {
+        isActive = false
+        sensorManager.stop()
+        locationManager.stopRecording()
+        sensorTimer?.invalidate()
+        if let s = currentWalkSession {
+            PersistenceController.shared.container.viewContext.delete(s)
+            PersistenceController.shared.save()
+        }
+    }
 
     func endWalkAndNotify() {
         isActive = false
@@ -436,7 +451,7 @@ final class HUDViewModel: ObservableObject {
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
-        print("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
+        Log.debug("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
 
         if let s = currentWalkSession {
             s.endTime = Date()
@@ -445,8 +460,7 @@ final class HUDViewModel: ObservableObject {
             s.avgLightLevel = sensorManager.ambientLightLevel
             // Don't save walks with zero steps
             if sensorManager.stepCount == 0 {
-                PersistenceController.shared.container.viewContext.delete(s)
-                PersistenceController.shared.save()
+                discardZeroStepWalk()
                 showArrivalSummary = false
                 return
             }
@@ -473,8 +487,7 @@ final class HUDViewModel: ObservableObject {
         if let s = currentWalkSession {
             // Don't keep empty walks (consistent with endWalkAndNotify).
             if sensorManager.stepCount == 0 {
-                PersistenceController.shared.container.viewContext.delete(s)
-                PersistenceController.shared.save()
+                discardZeroStepWalk()
                 return
             }
             s.endTime = Date()

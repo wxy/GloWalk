@@ -1,23 +1,49 @@
 import UIKit
 
+/// Value-type snapshot of a walk taken on the main actor, so the poster
+/// renderer can run off-main without touching NSManagedObject instances
+/// (Core Data objects are not thread-safe, and the health-sync task may still
+/// be writing the session while the poster renders).
+struct PosterSnapshot {
+    let startTime: Date
+    let endTime: Date?
+    let moonPhase: String
+    let totalSteps: Int64
+    let totalDistance: Double
+    let pathPoints: [PathProjector.Point]
+
+    init(session: WalkSession) {
+        startTime = session.wrappedStartTime
+        endTime = session.endTime
+        moonPhase = session.wrappedMoonPhase
+        totalSteps = session.totalSteps
+        totalDistance = session.totalDistance
+        pathPoints = session.pathPointsArray.map {
+            PathProjector.Point(latitude: $0.latitude,
+                                longitude: $0.longitude,
+                                torchBrightness: $0.torchBrightness)
+        }
+    }
+}
+
 final class PosterGenerator {
     @MainActor
     static func generate(session: WalkSession) async -> UIImage {
+        // Snapshot every value the renderer needs on the main actor, then hand
+        // only value types to the detached render task.
+        let snapshot = PosterSnapshot(session: session)
         let size = UIScreen.main.nativeBounds.size
-        let celestialImage = loadCelestialImage(for: session.wrappedStartTime,
-                                                moonPhase: session.wrappedMoonPhase)
+        let celestialImage = loadCelestialImage(for: snapshot.startTime,
+                                                moonPhase: snapshot.moonPhase)
         // Render the heavy UIGraphics pass on a background executor so the
-        // main thread isn't blocked during the end-of-walk transition. The
-        // session data is fully loaded (the walk just ended, no concurrent
-        // Core Data writes), so reading it off-main is safe here.
-        nonisolated(unsafe) let s = session
+        // main thread isn't blocked during the end-of-walk transition.
         return await Task.detached(priority: .userInitiated) {
-            render(session: s, size: size, celestialImage: celestialImage)
+            render(snapshot: snapshot, size: size, celestialImage: celestialImage)
         }.value
     }
 
     /// The actual UIGraphicsImageRenderer pass — runs off the main thread.
-    nonisolated private static func render(session: WalkSession,
+    nonisolated private static func render(snapshot: PosterSnapshot,
                                            size: CGSize,
                                            celestialImage: UIImage?) -> UIImage {
         let renderer = UIGraphicsImageRenderer(size: size)
@@ -35,16 +61,16 @@ final class PosterGenerator {
             drawCelestialCorner(celestialImage, size: size, ctx: ctx)
 
             // Constellation path overlay
-            drawConstellationPath(session: session, size: size, ctx: ctx)
+            drawConstellationPath(snapshot: snapshot, size: size, ctx: ctx)
 
             // Stats card
-            drawStats(session: session, size: size, gold: gold, ctx: ctx)
+            drawStats(snapshot: snapshot, size: size, gold: gold, ctx: ctx)
 
             // Date + moon name at top
-            drawHeader(session: session, size: size, gold: gold, ctx: ctx)
+            drawHeader(snapshot: snapshot, size: size, gold: gold, ctx: ctx)
 
             // Tagline + brand at bottom
-            drawFooter(session: session, size: size, gold: gold, ctx: ctx)
+            drawFooter(size: size, gold: gold, ctx: ctx)
         }
     }
 
@@ -61,7 +87,7 @@ final class PosterGenerator {
     static func loadCelestialImage(for date: Date, moonPhase: String) -> UIImage? {
         let name = celestialImageName(for: date, moonPhase: moonPhase)
         guard let img = UIImage(named: "\(name).jpg") else {
-            print("[Poster] Celestial image NOT found: \(name).jpg")
+            Log.error("[Poster] Celestial image NOT found: \(name).jpg")
             return nil
         }
         return img
@@ -141,13 +167,13 @@ final class PosterGenerator {
 
     // MARK: - Constellation Path
 
-    private static func drawConstellationPath(session: WalkSession, size: CGSize,
+    private static func drawConstellationPath(snapshot: PosterSnapshot, size: CGSize,
                                                ctx: UIGraphicsRendererContext) {
         let pathMargin = size.width * 0.12
         let pathArea = CGRect(x: pathMargin, y: size.height * 0.22,
                                width: size.width - pathMargin * 2, height: size.height * 0.22)
-        guard let projector = PathProjector(points: session.pathPointsArray, area: pathArea),
-              session.pathPointsArray.count >= 2 else { return }
+        guard let projector = PathProjector(points: snapshot.pathPoints, area: pathArea),
+              snapshot.pathPoints.count >= 2 else { return }
 
         projector.forEachSegment { pt1, pt2, cp1, cp2, avgTorch in
             // Brighter torch (flashlight) → brighter, slightly thicker line.
@@ -165,7 +191,7 @@ final class PosterGenerator {
             path.stroke()
         }
 
-        let pts = session.pathPointsArray
+        let pts = snapshot.pathPoints
         let footprintFont = UIFont.systemFont(ofSize: 28)
         let attrs: [NSAttributedString.Key: Any] = [.font: footprintFont]
 
@@ -184,13 +210,13 @@ final class PosterGenerator {
 
     // MARK: - Header
 
-    private static func drawHeader(session: WalkSession, size: CGSize,
+    private static func drawHeader(snapshot: PosterSnapshot, size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
         let df = DateFormatter()
         df.dateFormat = L10n.posterDateFormat
         df.locale = L10n.isZh ? Locale(identifier: "zh-Hans") : Locale(identifier: "en")
-        let dateStr = df.string(from: session.wrappedStartTime)
-        let moonName = L10n.moonPhaseDisplayName(session.wrappedMoonPhase)
+        let dateStr = df.string(from: snapshot.startTime)
+        let moonName = L10n.moonPhaseDisplayName(snapshot.moonPhase)
 
         drawCenteredText("\(dateStr)  \(moonName)",
             font: wenKaiMedium(28),
@@ -199,7 +225,7 @@ final class PosterGenerator {
 
     // MARK: - Stats Card
 
-    private static func drawStats(session: WalkSession, size: CGSize,
+    private static func drawStats(snapshot: PosterSnapshot, size: CGSize,
                                    gold: UIColor, ctx: UIGraphicsRendererContext) {
         let margin: CGFloat = size.width * 0.10
         let cardY = size.height * 0.48
@@ -208,17 +234,17 @@ final class PosterGenerator {
         let cardPath = UIBezierPath(roundedRect: cardRect, cornerRadius: 24)
         UIColor.black.withAlphaComponent(0.3).setFill(); cardPath.fill()
 
-        drawCenteredText("\(session.totalSteps)\(L10n.posterStepsUnit)",
+        drawCenteredText("\(snapshot.totalSteps)\(L10n.posterStepsUnit)",
             font: wenKaiLight(72),
             color: gold, y: cardY + 30, size: size, ctx: ctx)
 
-        let dist = session.totalDistance
+        let dist = snapshot.totalDistance
         let distStr = dist < 1000
             ? String(format: "%.0f%@", dist, L10n.posterMetersUnit)
             : String(format: "%.1f%@", dist / 1000, L10n.posterKmUnit)
         var detail = distStr
-        if let end = session.endTime {
-            detail += "  ·  \(Int(end.timeIntervalSince(session.wrappedStartTime) / 60))\(L10n.posterMinutesUnit)"
+        if let end = snapshot.endTime {
+            detail += "  ·  \(Int(end.timeIntervalSince(snapshot.startTime) / 60))\(L10n.posterMinutesUnit)"
         }
         drawCenteredText(detail, font: wenKaiRegular(26),
             color: UIColor.white.withAlphaComponent(0.55),
@@ -236,7 +262,7 @@ final class PosterGenerator {
 
     // MARK: - Footer
 
-    private static func drawFooter(session: WalkSession, size: CGSize,
+    private static func drawFooter(size: CGSize,
                                     gold: UIColor, ctx: UIGraphicsRendererContext) {
         drawCenteredText(L10n.posterFooter,
             font: wenKaiRegular(16),

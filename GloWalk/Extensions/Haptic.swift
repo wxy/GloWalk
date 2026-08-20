@@ -1,16 +1,24 @@
 import UIKit
 
 enum Haptic {
+    // Generators are cheap to create but intended to be reused; creating a new
+    // one per call defeats their internal preparation and adds needless work
+    // on hot paths (every brightness drag tick).
+    private static let lightGenerator = UIImpactFeedbackGenerator(style: .light)
+    private static let mediumGenerator = UIImpactFeedbackGenerator(style: .medium)
+    private static let heavyGenerator = UIImpactFeedbackGenerator(style: .heavy)
+    private static let selectionGenerator = UISelectionFeedbackGenerator()
+
     static func light() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        lightGenerator.impactOccurred()
     }
     static func medium() {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        mediumGenerator.impactOccurred()
     }
     static func heavy() {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        heavyGenerator.impactOccurred()
     }
     static func selection() {
-        UISelectionFeedbackGenerator().selectionChanged()
+        selectionGenerator.selectionChanged()
     }
 }

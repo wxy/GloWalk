@@ -30,12 +30,12 @@ final class WeatherService: ObservableObject {
         // Try Apple WeatherKit first (richer data, restricted in China)
         if #available(iOS 16, *) {
             if weatherKitFailures >= weatherKitMaxFailures {
-                print("[Weather] WeatherKit skipped — \(weatherKitFailures) consecutive failures this walk, using Open-Meteo")
+                Log.debug("[Weather] WeatherKit skipped — \(weatherKitFailures) consecutive failures this walk, using Open-Meteo")
             } else if let condition = await tryWeatherKit(at: location) {
                 currentCondition = condition
                 provider = .apple
                 weatherKitFailures = 0
-                print("[Weather] Apple WeatherKit success: \(condition)")
+                Log.debug("[Weather] Apple WeatherKit success: \(condition)")
                 return
             } else {
                 weatherKitFailures += 1
@@ -45,10 +45,10 @@ final class WeatherService: ObservableObject {
         if let condition = await tryOpenMeteo(at: location) {
             currentCondition = condition
             provider = .openMeteo
-            print("[Weather] Open-Meteo success: \(condition)")
+            Log.debug("[Weather] Open-Meteo success: \(condition)")
         } else {
             provider = .none
-            print("[Weather] No weather available — WeatherKit and Open-Meteo both failed")
+            Log.error("[Weather] No weather available — WeatherKit and Open-Meteo both failed")
         }
     }
 
@@ -60,7 +60,7 @@ final class WeatherService: ObservableObject {
             let weather = try await WeatherKit.WeatherService.shared.weather(for: location)
             return normalize(weather.currentWeather.condition)
         } catch {
-            print("[Weather] WeatherKit failed, falling back to Open-Meteo: \(error.localizedDescription)")
+            Log.error("[Weather] WeatherKit failed, falling back to Open-Meteo: \(error.localizedDescription)")
             return nil
         }
     }
@@ -95,7 +95,7 @@ final class WeatherService: ObservableObject {
             let decoded = try JSONDecoder().decode(OpenMeteoResponse.self, from: data)
             return mapWeatherCode(decoded.current_weather.weathercode)
         } catch {
-            print("[Weather] Open-Meteo also failed: \(error.localizedDescription)")
+            Log.error("[Weather] Open-Meteo also failed: \(error.localizedDescription)")
             return nil
         }
     }

@@ -310,14 +310,7 @@ struct HUDView: View {
                     Haptic.heavy()
                     if viewModel.stepCount == 0 {
                         isEndingZeroStep = true
-                        viewModel.isActive = false
-                        viewModel.sensorManager.stop()
-                        viewModel.locationManager.stopRecording()
-                        viewModel.sensorTimer?.invalidate()
-                        if let s = viewModel.currentWalkSession {
-                            PersistenceController.shared.container.viewContext.delete(s)
-                            PersistenceController.shared.save()
-                        }
+                        viewModel.discardZeroStepWalk()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                             goToHistory()
                         }

@@ -21,7 +21,7 @@ struct PersistenceController {
         var loadError: Error?
         container.loadPersistentStores { _, error in loadError = error }
         guard let error = loadError else { return }
-        print("Core Data load failed: \(error.localizedDescription)")
+        Log.error("Core Data load failed: \(error.localizedDescription)")
         guard recreatingOnFailure else { return }
 
         if let url = container.persistentStoreDescriptions.first?.url {
@@ -36,7 +36,7 @@ struct PersistenceController {
         var retryError: Error?
         container.loadPersistentStores { _, error in retryError = error }
         guard let retryError else { return }
-        print("Core Data recovery failed, using in-memory store: \(retryError.localizedDescription)")
+        Log.error("Core Data recovery failed, using in-memory store: \(retryError.localizedDescription)")
         container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         container.loadPersistentStores { _, _ in }
     }
@@ -45,7 +45,7 @@ struct PersistenceController {
         let context = container.viewContext
         if context.hasChanges {
             do { try context.save() } catch {
-                print("Core Data save error: \(error)")
+                Log.error("Core Data save error: \(error)")
             }
         }
     }

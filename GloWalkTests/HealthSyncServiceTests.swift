@@ -114,6 +114,18 @@ final class HealthSyncServiceTests: XCTestCase {
         XCTAssertEqual(failed.healthSyncState, HealthSyncState.skipped.rawValue)
         XCTAssertNil(mock.savedWorkout)
     }
+
+    func testRetryRequestsAuthorizationWhenNotDetermined() async {
+        let mock = MockHealthStore(status: .notDetermined)
+        mock.statusAfterRequest = .sharingAuthorized
+        let service = HealthSyncService(store: mock, context: context)
+        let pending = makeSession(state: HealthSyncState.pending.rawValue)
+
+        await service.retryPending()
+
+        XCTAssertEqual(mock.requestCallCount, 1)
+        XCTAssertEqual(pending.healthSyncState, HealthSyncState.synced.rawValue)
+    }
 }
 
 @MainActor

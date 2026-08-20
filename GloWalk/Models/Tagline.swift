@@ -31,15 +31,15 @@ enum Tagline {
     static var pool: [TaglineItem] = {
         guard let url = Bundle.main.url(forResource: "Taglines", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
-            print("[Tagline] Failed to load Taglines.json from bundle")
+            Log.error("[Tagline] Failed to load Taglines.json from bundle")
             return fallbackPool
         }
         do {
             let items = try JSONDecoder().decode([TaglineItem].self, from: data)
-            print("[Tagline] Loaded \(items.count) taglines")
+            Log.debug("[Tagline] Loaded \(items.count) taglines")
             return items
         } catch {
-            print("[Tagline] JSON decode error: \(error)")
+            Log.error("[Tagline] JSON decode error: \(error)")
             return fallbackPool
         }
     }()

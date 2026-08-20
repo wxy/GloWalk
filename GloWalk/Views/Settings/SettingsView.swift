@@ -131,7 +131,10 @@ struct SettingsView: View {
         let ctx = PersistenceController.shared.container.viewContext
         let req: NSFetchRequest<NSFetchRequestResult> = WalkSession.fetchRequest()
         _ = try? ctx.execute(NSBatchDeleteRequest(fetchRequest: req))
-        PersistenceController.shared.save()
+        // NSBatchDeleteRequest bypasses the context's registered objects; reset
+        // so the in-memory state matches the store (stale "ghost" objects
+        // would otherwise trigger "could not fulfill fault" on later access).
+        ctx.reset()
         clearDone = true
         Haptic.medium()
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { clearDone = false }

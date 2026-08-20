@@ -70,6 +70,14 @@ the body to explain *why* the change is needed, not just *what* it does.
   (`Localizable.xcstrings`) and are exposed via `L10n` in
   `GloWalk/Extensions/L10n.swift`. Add `en` / `zh-Hans` / `zh-Hant` entries for
   every new key.
+- **Fonts** — the bundled LXGW WenKai faces are subset to the characters the
+  app actually renders. **After adding or changing any user-facing copy**
+  (new strings, taglines, lunar-date tables, poster formats), re-run
+  `python3 scripts/subset-fonts.py` and commit the regenerated `.ttf` files;
+  otherwise the new characters silently fall back to the system font. The
+  script collects characters from `Localizable.xcstrings`,
+  `InfoPlist.xcstrings`, `Taglines.json`, the hardcoded tables in
+  `LunarDate.swift` / `Tagline.swift`, plus the GB2312 level-1 common set.
 - Keep PRs small enough to review. Split unrelated changes into separate PRs.
 
 ## Building and testing

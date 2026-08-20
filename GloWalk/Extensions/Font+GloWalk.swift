@@ -12,6 +12,9 @@ extension Font {
         .custom("LXGW WenKai Medium", size: size)
     }
     static func gloMono(_ size: CGFloat = 12) -> Font {
-        .custom("LXGW WenKai Mono", size: size)
+        // The bundled Mono TTF's family name is "LXGW WenKai Mono Light" —
+        // "LXGW WenKai Mono" does not resolve and silently fell back to the
+        // system font for the HUD numbers.
+        .custom("LXGW WenKai Mono Light", size: size)
     }
 }

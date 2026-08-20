@@ -66,7 +66,10 @@ struct HUDView: View {
     /// (torch off in pocket) > bright daylight (torch off). Reserves its height
     /// so the layout doesn't jump when a notice appears.
     private var topNoticeBar: some View {
-        let active = viewModel.cameraDeniedForAmbient || viewModel.occlusionNoticeVisible || viewModel.isDaylight
+        let active = viewModel.cameraDeniedForAmbient
+            || viewModel.occlusionNoticeVisible
+            || viewModel.isThermalNoticeVisible
+            || viewModel.isDaylight
         return VStack(spacing: 0) {
             if viewModel.cameraDeniedForAmbient {
                 Button(action: {
@@ -87,6 +90,8 @@ struct HUDView: View {
                 // Only claim "torch off in pocket" when the torch was actually on
                 // and the screen was dimmed — never when paused or in daylight.
                 noticeRow(icon: "exclamationmark.triangle.fill", text: L10n.hudOccluded)
+            } else if viewModel.isThermalNoticeVisible {
+                noticeRow(icon: "thermometer.medium", text: L10n.hudThermalNotice)
             } else if viewModel.isDaylight {
                 noticeRow(icon: "sun.max.fill", text: L10n.hudDaylight)
             }
@@ -113,8 +118,10 @@ struct HUDView: View {
     /// the bottom bar shows the provider.
     private var celestialBackdrop: some View {
         GeometryReader { geo in
-            let radius = geo.size.width * 0.8
-            let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
+            let radius = geo.size.width * CelestialGeometry.radiusFactor
+            let center = CGPoint(
+                x: radius * CelestialGeometry.centerXFactor,
+                y: radius * CelestialGeometry.centerYFactor)
             Group {
                 if isNightTime {
                     if let moonImg = UIImage(named: "\(viewModel.currentMoonPhaseName).jpg") {
@@ -310,14 +317,7 @@ struct HUDView: View {
                     Haptic.heavy()
                     if viewModel.stepCount == 0 {
                         isEndingZeroStep = true
-                        viewModel.isActive = false
-                        viewModel.sensorManager.stop()
-                        viewModel.locationManager.stopRecording()
-                        viewModel.sensorTimer?.invalidate()
-                        if let s = viewModel.currentWalkSession {
-                            PersistenceController.shared.container.viewContext.delete(s)
-                            PersistenceController.shared.save()
-                        }
+                        viewModel.discardZeroStepWalk()
                         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                             goToHistory()
                         }

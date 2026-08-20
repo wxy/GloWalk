@@ -13,6 +13,11 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     private var lastRecordedCoord: CLLocationCoordinate2D?  // last valid GPS point saved to path
     private var lastStepCount: Int = 0
     private var lastGPSRecordedStepCount: Int = 0
+    /// Throttle for Core Data commits: the HUD tick already saves every 5
+    /// seconds in the foreground; this keeps background-recorded points
+    /// durable too (timers don't fire in the background) without committing
+    /// once per GPS/step point.
+    private var lastBatchSave = Date.distantPast
     private var estimatedLat: Double?
     private var estimatedLon: Double?
     var externalStepCount: Int = 0  // set from HUDViewModel to gate GPS recording
@@ -32,6 +37,14 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     }
 
     // MARK: - Pedestrian Dead Reckoning (indoor / no GPS)
+
+    /// Commit inserted path points at most every 5 seconds.
+    private func batchSaveIfDue() {
+        let now = Date()
+        guard now.timeIntervalSince(lastBatchSave) >= 5 else { return }
+        lastBatchSave = now
+        PersistenceController.shared.save()
+    }
 
     /// Call from sensor loop with current step count. Estimates position
     /// using stride length (~0.7m) × heading when GPS is unavailable.
@@ -67,14 +80,13 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             let estLon = estimatedLon!
             lastRecordedCoord = CLLocationCoordinate2D(latitude: estLat, longitude: estLon)
 
-            // Save estimated point to Core Data
-            let ctx = PersistenceController.shared.container.viewContext
             if let session = currentSession {
+                let ctx = PersistenceController.shared.container.viewContext
                 _ = PathPoint.create(in: ctx, lat: estLat, lon: estLon,
                                      ambientLight: currentAmbientLight,
                                      torchBrightness: currentTorchBrightness,
                                      session: session)
-                PersistenceController.shared.save()
+                batchSaveIfDue()
             }
         }
     }
@@ -150,7 +162,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                                  ambientLight: currentAmbientLight,
                                  torchBrightness: currentTorchBrightness,
                                  session: session)
-            PersistenceController.shared.save()
+            batchSaveIfDue()
         } else {
             if let prev = lastRecordedCoord {
                 let prevLoc = CLLocation(latitude: prev.latitude, longitude: prev.longitude)
@@ -162,7 +174,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                                  ambientLight: currentAmbientLight,
                                  torchBrightness: currentTorchBrightness,
                                  session: session)
-            PersistenceController.shared.save()
+            batchSaveIfDue()
         }
     }
 }

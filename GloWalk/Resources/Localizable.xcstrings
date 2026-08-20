@@ -5,19 +5,70 @@
 
     },
     "· " : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· "
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "· "
+          }
+        }
+      }
     },
     "···" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "···"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "···"
+          }
+        }
+      }
     },
     "“%@”" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”"
+          }
+        }
+      }
     },
     "⏱ %@%@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "⏱ %1$@%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏱ %1$@%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "⏱ %1$@%2$@"
           }
         }
@@ -30,14 +81,52 @@
             "state" : "new",
             "value" : "⏱%1$@%2$@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏱%1$@%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⏱%1$@%2$@"
+          }
         }
       }
     },
     "👣" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "👣"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "👣"
+          }
+        }
+      }
     },
     "📏 %@" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📏 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📏 %@"
+          }
+        }
+      }
     },
     "📏%@%@" : {
       "localizations" : {
@@ -46,17 +135,54 @@
             "state" : "new",
             "value" : "📏%1$@%2$@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📏%1$@%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "📏%1$@%2$@"
+          }
         }
       }
     },
     "🦶" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🦶"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🦶"
+          }
+        }
+      }
     },
     "🦶 %@%@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "🦶 %1$@%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🦶 %1$@%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "🦶 %1$@%2$@"
           }
         }
@@ -67,6 +193,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "🦶%1$@%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🦶%1$@%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "🦶%1$@%2$@"
           }
         }
@@ -326,7 +464,20 @@
       }
     },
     "English" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English"
+          }
+        }
+      }
     },
     "factor.ambient" : {
       "extractionState" : "manual",
@@ -995,6 +1146,75 @@
         }
       }
     },
+    "history.weekHeader" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本星期"
+          }
+        }
+      }
+    },
+    "history.weekSteps" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d steps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 步"
+          }
+        }
+      }
+    },
+    "history.weekWalks" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d walks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 次"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 次"
+          }
+        }
+      }
+    },
     "hud.cameraDenied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1208,19 +1428,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Swipe to adjust, tap to restore"
+            "value" : "Drag to adjust brightness"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "滑动调整亮度    单击恢复自动"
+            "value" : "拖动调整亮度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "滑動調整亮度    單擊恢復自動"
+            "value" : "拖動調整亮度"
           }
         }
       }
@@ -1231,19 +1451,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-tap to end, long-press for torch"
+            "value" : "Double-tap to end"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "双击结束步行    长按开关灯光"
+            "value" : "双击结束步行"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "雙擊結束步行    長按開關燈光"
+            "value" : "雙擊結束步行"
           }
         }
       }
@@ -1267,6 +1487,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "閃光燈被遮擋，已自動關閉"
+          }
+        }
+      }
+    },
+    "hud.thermalNotice" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone is warm — brightness reduced"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手机较热，已自动降低亮度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手機變暖，已自動降低亮度"
           }
         }
       }
@@ -1709,7 +1952,20 @@
       }
     },
     "Open-Meteo" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open-Meteo"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open-Meteo"
+          }
+        }
+      }
     },
     "permissions.authorized" : {
       "extractionState" : "manual",
@@ -1822,6 +2078,75 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已拒絕"
+          }
+        }
+      }
+    },
+    "permissions.health.feature1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writes your completed walks (steps, distance, duration and route) to the Health app."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步行结束后将步数、距离、时长和路线写入健康 App。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "步行結束後將步數、距離、時長和路線寫入健康 App。"
+          }
+        }
+      }
+    },
+    "permissions.health.feature2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only writes — never reads Health data; data stays on your device."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只写入、不读取任何健康数据；数据仅保存在本机。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只寫入、不讀取任何健康資料；資料僅保存在本機。"
+          }
+        }
+      }
+    },
+    "permissions.health.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unavailable on this device"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备不支持"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置不支援"
           }
         }
       }
@@ -2631,75 +2956,6 @@
         }
       }
     },
-    "permissions.health.feature1" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Writes your completed walks (steps, distance, duration and route) to the Health app."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "步行结束后将步数、距离、时长和路线写入健康 App。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "步行結束後將步數、距離、時長和路線寫入健康 App。"
-          }
-        }
-      }
-    },
-    "permissions.health.feature2" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Only writes — never reads Health data; data stays on your device."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只写入、不读取任何健康数据；数据仅保存在本机。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "只寫入、不讀取任何健康資料；資料僅保存在本機。"
-          }
-        }
-      }
-    },
-    "permissions.health.unavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unavailable on this device"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此设备不支持"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此裝置不支援"
-          }
-        }
-      }
-    },
     "settings.health" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3276,7 +3532,20 @@
       }
     },
     " Weather" : {
-
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " Weather"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " Weather"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -1,16 +1,40 @@
 import CoreLocation
 
 /// Shared GPS→screen coordinate projector used by both HUD and poster.
-struct PathProjector {
-    let points: [PathPoint]
+final class PathProjector {
+    /// Lightweight value-type point — lets the poster render off the main
+    /// thread from a snapshot instead of touching thread-unsafe
+    /// NSManagedObject instances.
+    struct Point: Equatable {
+        let latitude: Double
+        let longitude: Double
+        let torchBrightness: Double
+    }
+
+    private let points: [Point]
     let area: CGRect
 
     private let minLat: Double
     private let maxLat: Double
     private let minLon: Double
     private let maxLon: Double
+    /// Precomputed once at init: projection, dedup, pacing collapse, and
+    /// Douglas-Peucker are pure functions of (points, area, tunables), and
+    /// `forEachSegment` + `anchors()` both consume it — computing it once
+    /// avoids repeating the O(n) simplification twice per rendered frame.
+    private lazy var simplified: SimplifiedPath? = computeSimplifiedPath().map {
+        SimplifiedPath(points: $0.points, segTorch: $0.torch)
+    }
 
-    init?(points: [PathPoint], area: CGRect) {
+    convenience init?(points: [PathPoint], area: CGRect) {
+        self.init(points: points.map {
+            Point(latitude: $0.latitude,
+                  longitude: $0.longitude,
+                  torchBrightness: $0.torchBrightness)
+        }, area: area)
+    }
+
+    init?(points: [Point], area: CGRect) {
         guard points.count >= 1 else { return nil }
         self.points = points
         self.area = area
@@ -70,6 +94,13 @@ struct PathProjector {
     /// shape identical regardless of the drawing area's aspect ratio (HUD vs
     /// poster) — only the overall size changes, never the shape.
     func project(_ p: PathPoint) -> CGPoint {
+        project(Point(latitude: p.latitude,
+                      longitude: p.longitude,
+                      torchBrightness: p.torchBrightness))
+    }
+
+    /// Project a value-type point (used by the poster's off-main snapshot).
+    func project(_ p: Point) -> CGPoint {
         let geoWidth = lonRange * lonScale
         let geoHeight = latRange
         let scale = min(area.width / geoWidth, area.height / geoHeight)
@@ -98,9 +129,9 @@ struct PathProjector {
     /// — the mean torch (flashlight) brightness of every original point the
     /// segment represents after simplification.
     func forEachSegment(_ drawSegment: (CGPoint, CGPoint, CGPoint, CGPoint, Double) -> Void) {
-        guard let path = simplifiedPath() else { return }
+        guard let path = simplified else { return }
         let aPts = path.points
-        let aSegTorch = path.torch
+        let aSegTorch = path.segTorch
 
         for i in 0..<(aPts.count - 1) {
             let p0 = aPts[max(i - 1, 0)]
@@ -121,7 +152,7 @@ struct PathProjector {
     /// once, returning the anchor array the curve is drawn through plus one
     /// torch value per segment. Shared by the drawing pass and the footprint
     /// markers so both describe exactly the same curve.
-    private func simplifiedPath() -> (points: [CGPoint], torch: [Double])? {
+    private func computeSimplifiedPath() -> (points: [CGPoint], torch: [Double])? {
         guard points.count >= 2 else { return nil }
 
         // Project once; drop points that land on the same spot (GPS jitter in
@@ -172,7 +203,7 @@ struct PathProjector {
     /// first and last original points always survive, so the front footprint
     /// marker can sit exactly on the curve's end tip.
     func anchors() -> [CGPoint] {
-        simplifiedPath()?.points ?? []
+        simplified?.points ?? []
     }
 
     // MARK: - Douglas-Peucker simplification

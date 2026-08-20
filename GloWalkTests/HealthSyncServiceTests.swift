@@ -114,6 +114,37 @@ final class HealthSyncServiceTests: XCTestCase {
         XCTAssertEqual(failed.healthSyncState, HealthSyncState.skipped.rawValue)
         XCTAssertNil(mock.savedWorkout)
     }
+
+    func testRetryRequestsAuthorizationWhenNotDetermined() async {
+        let mock = MockHealthStore(status: .notDetermined)
+        mock.statusAfterRequest = .sharingAuthorized
+        let service = HealthSyncService(store: mock, context: context)
+        let pending = makeSession(state: HealthSyncState.pending.rawValue)
+
+        await service.retryPending()
+
+        XCTAssertEqual(mock.requestCallCount, 1)
+        XCTAssertEqual(pending.healthSyncState, HealthSyncState.synced.rawValue)
+    }
+
+    func testDeleteWorkoutsWhenAuthorized() async {
+        let mock = MockHealthStore(status: .sharingAuthorized)
+        let service = HealthSyncService(store: mock, context: context)
+        let session = makeSession()
+
+        await service.deleteWorkouts(sessionIDs: [session.id!.uuidString])
+
+        XCTAssertEqual(mock.deletedSessionIDs, [session.id!.uuidString])
+    }
+
+    func testDeleteWorkoutsSkipsWhenDenied() async {
+        let mock = MockHealthStore(status: .sharingDenied)
+        let service = HealthSyncService(store: mock, context: context)
+
+        await service.deleteWorkouts(sessionIDs: ["missing"])
+
+        XCTAssertTrue(mock.deletedSessionIDs.isEmpty)
+    }
 }
 
 @MainActor
@@ -124,9 +155,11 @@ private final class MockHealthStore: HealthStoreProtocol {
     var requestError: Error?
     var saveError: Error?
     var requestCallCount = 0
+    var deleteError: Error?
     private(set) var savedWorkout: HKWorkout?
     private(set) var savedWorkouts: [HKWorkout] = []
     private(set) var savedSamples: [HKQuantitySample] = []
+    private(set) var deletedSessionIDs: [String] = []
 
     init(status: HKAuthorizationStatus, isAvailable: Bool = true) {
         self.status = status
@@ -147,5 +180,10 @@ private final class MockHealthStore: HealthStoreProtocol {
         savedWorkout = workout
         savedWorkouts.append(workout)
         savedSamples = samples
+    }
+
+    func deleteWorkouts(sessionID: String) async throws {
+        if let deleteError { throw deleteError }
+        deletedSessionIDs.append(sessionID)
     }
 }

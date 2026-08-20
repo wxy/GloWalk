@@ -148,7 +148,7 @@ final class SensorManager: ObservableObject {
             }
             device.unlockForConfiguration()
         } catch {
-            print("Torch error: \(error)")
+            Log.error("Torch error: \(error)")
         }
     }
 
@@ -160,7 +160,7 @@ final class SensorManager: ObservableObject {
             device.torchMode = .off
             device.unlockForConfiguration()
         } catch {
-            print("Torch off error: \(error)")
+            Log.error("Torch off error: \(error)")
         }
     }
 
@@ -205,14 +205,14 @@ final class SensorManager: ObservableObject {
                    d.height >= 360 && d.height <= 720 && supports30(fmt)
         }
         let pool = preferred.isEmpty ? multiCam.filter(supports30) : preferred
-        print("[Sensor] setMultiCamFormat: \(device.position == .back ? "back" : "front") preferred=\(preferred.count)/\(multiCam.count)/\(device.formats.count) multiCamSupported=\(multiCam.count)")
+        Log.debug("[Sensor] setMultiCamFormat: \(device.position == .back ? "back" : "front") preferred=\(preferred.count)/\(multiCam.count)/\(device.formats.count) multiCamSupported=\(multiCam.count)")
         guard let fmt = pool.min(by: {
             let a = CMVideoFormatDescriptionGetDimensions($0.formatDescription)
             let b = CMVideoFormatDescriptionGetDimensions($1.formatDescription)
             return a.width * a.height < b.width * b.height
         }) else { return }
         let dims = CMVideoFormatDescriptionGetDimensions(fmt.formatDescription)
-        print("[Sensor] setMultiCamFormat: chosen \(dims.width)x\(dims.height)@30 multiCam=\(fmt.isMultiCamSupported)")
+        Log.debug("[Sensor] setMultiCamFormat: chosen \(dims.width)x\(dims.height)@30 multiCam=\(fmt.isMultiCamSupported)")
         do {
             try device.lockForConfiguration()
             device.activeFormat = fmt
@@ -223,7 +223,7 @@ final class SensorManager: ObservableObject {
             device.activeVideoMaxFrameDuration = dur
             device.unlockForConfiguration()
         } catch {
-            print("[Sensor] Set multi-cam format failed: \(error)")
+            Log.error("[Sensor] Set multi-cam format failed: \(error)")
         }
     }
 
@@ -235,13 +235,13 @@ final class SensorManager: ObservableObject {
               let back = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
               let input = try? AVCaptureDeviceInput(device: back) else { return }
         guard session.canAddInput(input) else {
-            print("[Sensor] addBackCamera: canAddInput == false")
+            Log.error("[Sensor] addBackCamera: canAddInput == false")
             return
         }
         // Multi-cam wiring is always explicit: add inputs/outputs without
         // connections and form connections manually (WWDC19 session 249).
         session.addInputWithNoConnections(input)
-        print("[Sensor] addBackCamera: input added")
+        Log.debug("[Sensor] addBackCamera: input added")
         setMultiCamFormat(on: back)
 
         let out = AVCaptureVideoDataOutput()
@@ -255,20 +255,20 @@ final class SensorManager: ObservableObject {
         backDelegate = delegate
         out.setSampleBufferDelegate(delegate, queue: backQueue)
         guard session.canAddOutput(out) else {
-            print("[Sensor] addBackCamera: canAddOutput == false")
+            Log.error("[Sensor] addBackCamera: canAddOutput == false")
             return
         }
         session.addOutputWithNoConnections(out)
-        print("[Sensor] addBackCamera: output added")
+        Log.debug("[Sensor] addBackCamera: output added")
         if let port = input.ports.first(where: { $0.mediaType == .video }) {
             let conn = AVCaptureConnection(inputPorts: [port], output: out)
             if session.canAddConnection(conn) {
                 session.addConnection(conn)
                 backConnection = conn
                 backCameraEnabled = true
-                print("[Sensor] addBackCamera: connection added")
+                Log.debug("[Sensor] addBackCamera: connection added")
             } else {
-                print("[Sensor] addBackCamera: canAddConnection == false")
+                Log.error("[Sensor] addBackCamera: canAddConnection == false")
             }
         }
         lockBackExposure()
@@ -289,14 +289,14 @@ final class SensorManager: ObservableObject {
             back.unlockForConfiguration()
             backExposureLocked = true
         } catch {
-            print("[Sensor] Back exposure lock error: \(error)")
+            Log.error("[Sensor] Back exposure lock error: \(error)")
         }
     }
 
     private func applyBackSample(_ sample: BackLuminanceSample, epoch: Int) {
         guard epoch == sessionEpoch else { return }
         if backGroundLuminance == nil {
-            print("[Sensor] back first sample roi=\(sample.roi) full=\(sample.fullFrame)")
+            Log.debug("[Sensor] back first sample roi=\(sample.roi) full=\(sample.fullFrame)")
         }
         backFullFrameLuminance = sample.fullFrame
         backGroundLuminance = sample.roi
@@ -330,7 +330,7 @@ final class SensorManager: ObservableObject {
             }
             device.unlockForConfiguration()
         } catch {
-            print("[Sensor] Set continuous exposure failed: \(error)")
+            Log.error("[Sensor] Set continuous exposure failed: \(error)")
         }
         let output = AVCaptureVideoDataOutput()
         // Request BGRA explicitly — without this, iOS delivers the device-native
@@ -364,29 +364,29 @@ final class SensorManager: ObservableObject {
                 let conn = AVCaptureConnection(inputPorts: [port], output: output)
                 if session.canAddConnection(conn) {
                     session.addConnection(conn)
-                    print("[Sensor] front connection added")
+                    Log.debug("[Sensor] front connection added")
                 } else {
-                    print("[Sensor] front canAddConnection == false")
+                    Log.error("[Sensor] front canAddConnection == false")
                 }
             }
         } else {
             session.addInput(input)
             session.addOutput(output)
         }
-        print("[Sensor] start: multiCam=\(isMultiCam) front output added")
+        Log.debug("[Sensor] start: multiCam=\(isMultiCam) front output added")
         if isMultiCam {
             addBackCamera(to: session)
         }
         captureSession = session
         if let multiCam = session as? AVCaptureMultiCamSession {
-            print("[Sensor] multiCam hardwareCost=\(multiCam.hardwareCost)")
+            Log.debug("[Sensor] multiCam hardwareCost=\(multiCam.hardwareCost)")
         }
         nonisolated(unsafe) let s = session
         sessionQueue.async {
             s.startRunning()
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 Task { @MainActor in
-                    print("[Sensor] session isRunning=\(s.isRunning) multiCam=\(self.isMultiCam)")
+                    Log.debug("[Sensor] session isRunning=\(s.isRunning) multiCam=\(self.isMultiCam)")
                 }
             }
         }
@@ -416,9 +416,9 @@ final class SensorManager: ObservableObject {
 
     @objc private func captureRuntimeError(_ note: Notification) {
         if let error = note.userInfo?[AVCaptureSessionErrorKey] as? NSError {
-            print("[Sensor] capture runtime error: domain=\(error.domain) code=\(error.code) \(error.localizedDescription)")
+            Log.error("[Sensor] capture runtime error: domain=\(error.domain) code=\(error.code) \(error.localizedDescription)")
         } else {
-            print("[Sensor] capture runtime error: (no error payload)")
+            Log.error("[Sensor] capture runtime error: (no error payload)")
         }
     }
 
@@ -436,7 +436,7 @@ final class SensorManager: ObservableObject {
                 reasonDesc = "raw=\(reason)"
             }
         }
-        print("[Sensor] capture session interrupted: \(reasonDesc)")
+        Log.debug("[Sensor] capture session interrupted: \(reasonDesc)")
     }
 
     /// Force the auto-exposure to re-converge to the current scene. Setting
@@ -484,7 +484,7 @@ final class SensorManager: ObservableObject {
             }
             device.unlockForConfiguration()
         } catch {
-            print("[Sensor] Exposure refresh error: \(error)")
+            Log.error("[Sensor] Exposure refresh error: \(error)")
         }
         // Restore continuous auto-exposure after the brief custom window.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
@@ -504,7 +504,7 @@ final class SensorManager: ObservableObject {
             }
             device.unlockForConfiguration()
         } catch {
-            print("[Sensor] Exposure restore error: \(error)")
+            Log.error("[Sensor] Exposure restore error: \(error)")
         }
     }
 
@@ -696,7 +696,7 @@ private final class AmbientLightDelegate: NSObject, AVCaptureVideoDataOutputSamp
         guard pixelFormat == kCVPixelFormatType_32BGRA else {
             droppedCount += 1
             if droppedCount == 1 || droppedCount % 50 == 0 {
-                print("[Sensor] Dropping ambient frame — format \(pixelFormat) != BGRA (total dropped \(droppedCount))")
+                Log.debug("[Sensor] Dropping ambient frame — format \(pixelFormat) != BGRA (total dropped \(droppedCount))")
             }
             return
         }
@@ -786,7 +786,7 @@ private final class BackLuminanceDelegate: NSObject, AVCaptureVideoDataOutputSam
         let height = CVPixelBufferGetHeight(pixelBuffer)
         emittedCount += 1
         if emittedCount == 1 {
-            print("[Sensor] back frame: \(width)x\(height) format=\(CVPixelBufferGetPixelFormatType(pixelBuffer))")
+            Log.debug("[Sensor] back frame: \(width)x\(height) format=\(CVPixelBufferGetPixelFormatType(pixelBuffer))")
         }
         let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
         let bytesPerPixel = 4

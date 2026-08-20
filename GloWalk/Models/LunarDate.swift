@@ -19,6 +19,22 @@ enum LunarDate {
         "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十",
         "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十"
     ]
+    /// Cached formatters — DateFormatter creation is expensive, and this is
+    /// called once per second while the HUD is walking.
+    private static let zhShortFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.calendar = Calendar(identifier: .gregorian)
+        df.locale = Locale(identifier: "zh-Hans")
+        df.dateFormat = "M月d日"
+        return df
+    }()
+    private static let enShortFormatter: DateFormatter = {
+        let df = DateFormatter()
+        df.calendar = Calendar(identifier: .gregorian)
+        df.locale = Locale(identifier: "en_US")
+        df.dateFormat = "M/d"
+        return df
+    }()
 
     /// Chinese display: "六月十五"
     static func chineseDisplay(for date: Date = Date()) -> String {
@@ -50,12 +66,7 @@ enum LunarDate {
 
     /// Short gregorian date: "M/d" in en, "M月d日" in zh
     static func gregorianShort(for date: Date = Date()) -> String {
-        let df = DateFormatter()
-        if L10n.isZh {
-            df.dateFormat = "M月d日"
-        } else {
-            df.dateFormat = "M/d"
-        }
-        return df.string(from: date)
+        L10n.isZh ? zhShortFormatter.string(from: date)
+                  : enShortFormatter.string(from: date)
     }
 }

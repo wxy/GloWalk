@@ -13,6 +13,10 @@ final class HUDViewModel: ObservableObject {
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
+    /// True while the thermal cap (serious/critical) has actually reduced the
+    /// torch output — drives the HUD notice so the dimming never looks like a
+    /// mystery.
+    @Published var isThermalNoticeVisible: Bool = false
     /// True when camera permission is denied — ambient light sensing unavailable.
     @Published var cameraDeniedForAmbient: Bool = false
     @Published var pathPoints: [PathPoint] = []
@@ -93,7 +97,7 @@ final class HUDViewModel: ObservableObject {
         hasStarted = true
         isActive = true
         sessionStartTime = Date()
-        print("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
+        Log.debug("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
         // Reset the startup probe for this walk. Seeding happens on the first
         // closed-loop tick, from the front-camera ambient level.
@@ -152,6 +156,11 @@ final class HUDViewModel: ObservableObject {
     private var sensorTick: Int = 0
     private var cachedMoonPhase: (phase: String, illumination: Double)?
     private var lastMoonUpdateTick: Int = -60  // force first compute
+    /// Weather auto-retry: the start-of-walk attempts can all fail (cold
+    /// start, airplane mode), which would otherwise leave the weather factor
+    /// off for the whole walk. Re-attempt every 5 minutes while it's missing.
+    private var weatherRetryTick = 0
+    private var isFetchingWeather = false
 
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -216,7 +225,7 @@ final class HUDViewModel: ObservableObject {
         }
         if FeatureFlags.torchClosedLoop, sensorManager.backGroundLuminance == nil, !loggedBackFallback {
             loggedBackFallback = true
-            print("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
+            Log.debug("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
         if lightEngine.isManual {
             // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
@@ -242,6 +251,14 @@ final class HUDViewModel: ObservableObject {
             brightness = thermallyCapped(lightEngine.targetBrightness)
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
+        }
+        let thermal = ProcessInfo.processInfo.thermalState
+        isThermalNoticeVisible = (thermal == .serious || thermal == .critical)
+            && brightness > 0.05
+
+        weatherRetryTick += 1
+        if weatherRetryTick % 300 == 0 {
+            retryWeatherIfNeeded()
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -338,6 +355,22 @@ final class HUDViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Weather Auto-Retry
+
+    /// Re-attempt the weather fetch mid-walk when it failed at start. The
+    /// 5-minute cadence is cheap (one request), and a nil condition would
+    /// otherwise silently disable the weather factor for the whole walk.
+    private func retryWeatherIfNeeded() {
+        guard !isFetchingWeather,
+              weatherService.currentCondition == nil,
+              let loc = locationManager.currentLocation else { return }
+        isFetchingWeather = true
+        Task { [weak self] in
+            defer { self?.isFetchingWeather = false }
+            await self?.weatherService.fetch(at: loc)
+        }
+    }
+
     // MARK: - Torch Closed Loop (spike)
 
     private func closedLoopBrightness(measured y: Double, gate: LoopGate) -> Double {
@@ -415,7 +448,7 @@ final class HUDViewModel: ObservableObject {
             if torchProbeTicks >= torchCeilingTicksNeeded {
                 torchProbeState = .calibrated
                 if let cal = torchCalibration {
-                    print("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
+                    Log.debug("[Loop] calibrated floor=\(cal.floor) ceiling=\(cal.ceiling) range=\(cal.ceiling - cal.floor)")
                 }
             }
         case .calibrated:
@@ -424,6 +457,21 @@ final class HUDViewModel: ObservableObject {
     }
 
     // MARK: - End Walk
+
+    /// End a walk that never produced a step: stop all sensors and delete the
+    /// empty session. Shared by the HUD's double-tap-to-end path (which shows
+    /// a dedicated zero-step overlay) and the normal end flows, so the cleanup
+    /// stays in one place.
+    func discardZeroStepWalk() {
+        isActive = false
+        sensorManager.stop()
+        locationManager.stopRecording()
+        sensorTimer?.invalidate()
+        if let s = currentWalkSession {
+            PersistenceController.shared.container.viewContext.delete(s)
+            PersistenceController.shared.save()
+        }
+    }
 
     func endWalkAndNotify() {
         isActive = false
@@ -436,7 +484,7 @@ final class HUDViewModel: ObservableObject {
         sensorManager.stop()
         locationManager.stopRecording()
         sensorTimer?.invalidate()
-        print("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
+        Log.debug("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
 
         if let s = currentWalkSession {
             s.endTime = Date()
@@ -445,8 +493,7 @@ final class HUDViewModel: ObservableObject {
             s.avgLightLevel = sensorManager.ambientLightLevel
             // Don't save walks with zero steps
             if sensorManager.stepCount == 0 {
-                PersistenceController.shared.container.viewContext.delete(s)
-                PersistenceController.shared.save()
+                discardZeroStepWalk()
                 showArrivalSummary = false
                 return
             }
@@ -473,8 +520,7 @@ final class HUDViewModel: ObservableObject {
         if let s = currentWalkSession {
             // Don't keep empty walks (consistent with endWalkAndNotify).
             if sensorManager.stepCount == 0 {
-                PersistenceController.shared.container.viewContext.delete(s)
-                PersistenceController.shared.save()
+                discardZeroStepWalk()
                 return
             }
             s.endTime = Date()

@@ -129,9 +129,22 @@ struct SettingsView: View {
 
     private func clearData() {
         let ctx = PersistenceController.shared.container.viewContext
+        // Snapshot the Health-linked IDs before wiping the store.
+        let request = NSFetchRequest<WalkSession>(entityName: "WalkSession")
+        let allSessions = (try? ctx.fetch(request)) ?? []
+        let ids = allSessions.compactMap { $0.id?.uuidString }
         let req: NSFetchRequest<NSFetchRequestResult> = WalkSession.fetchRequest()
         _ = try? ctx.execute(NSBatchDeleteRequest(fetchRequest: req))
-        PersistenceController.shared.save()
+        // NSBatchDeleteRequest bypasses the context's registered objects; reset
+        // so the in-memory state matches the store (stale "ghost" objects
+        // would otherwise trigger "could not fulfill fault" on later access).
+        ctx.reset()
+        if !ids.isEmpty {
+            let service = HealthSyncService(
+                store: HealthKitStore(),
+                context: PersistenceController.shared.container.viewContext)
+            Task { await service.deleteWorkouts(sessionIDs: ids) }
+        }
         clearDone = true
         Haptic.medium()
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { clearDone = false }

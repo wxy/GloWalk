@@ -43,13 +43,43 @@ final class HealthSyncService {
 
     func retryPending() async {
         guard store.isAvailable else { return }
-        let status = store.authorizationStatus(for: HKObjectType.workoutType())
         let sessions = pendingSessions()
-        for session in sessions {
-            if status == .sharingAuthorized {
+        guard !sessions.isEmpty else { return }
+
+        var status = store.authorizationStatus(for: HKObjectType.workoutType())
+        // Mirror sync(): a pending walk that was never decided must ask for
+        // permission instead of silently discarding the record as skipped.
+        if status == .notDetermined {
+            do {
+                try await store.requestAuthorization(toShare: HealthKitStore.writeTypes, read: [])
+            } catch {
+                sessions.forEach { setState(.skipped, session: $0) }
+                return
+            }
+            status = store.authorizationStatus(for: HKObjectType.workoutType())
+        }
+
+        if status == .sharingAuthorized {
+            for session in sessions {
                 await write(session: session)
-            } else {
-                setState(.skipped, session: session)
+            }
+        } else {
+            sessions.forEach { setState(.skipped, session: $0) }
+        }
+    }
+
+    /// Delete the Health workouts written for the given sessions (metadata
+    /// keyed by GloWalkSessionID). No-op when Health is unavailable or the
+    /// user hasn't granted write access — mirrors the write path.
+    func deleteWorkouts(sessionIDs: [String]) async {
+        guard store.isAvailable,
+              store.authorizationStatus(for: HKObjectType.workoutType())
+                == .sharingAuthorized else { return }
+        for id in sessionIDs {
+            do {
+                try await store.deleteWorkouts(sessionID: id)
+            } catch {
+                Log.error("Health workout delete failed: \(error)")
             }
         }
     }
@@ -79,7 +109,7 @@ final class HealthSyncService {
         session.healthSyncState = state.rawValue
         if context.hasChanges {
             do { try context.save() } catch {
-                print("Health sync state save error: \(error)")
+                Log.error("Health sync state save error: \(error)")
             }
         }
     }

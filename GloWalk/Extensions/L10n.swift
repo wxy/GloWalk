@@ -20,6 +20,7 @@ enum L10n {
 
     static var hudOccluded: LocalizedStringKey { "hud.occluded" }
     static var hudDaylight: LocalizedStringKey { "hud.daylight" }
+    static var hudThermalNotice: LocalizedStringKey { "hud.thermalNotice" }
     static var hudCameraDenied: LocalizedStringKey { "hud.cameraDenied" }
     static var hudCameraDeniedTitle: LocalizedStringKey { "hud.cameraDeniedTitle" }
     static var hudCameraDeniedMessage: LocalizedStringKey { "hud.cameraDeniedMessage" }
@@ -38,6 +39,9 @@ enum L10n {
     static var posterClose: LocalizedStringKey { "poster.close" }
 
     static var historyTitle: LocalizedStringKey { "history.title" }
+    static var historyWeekHeader: String { str("history.weekHeader") }
+    static var historyWeekWalks: String { str("history.weekWalks") }
+    static var historyWeekSteps: String { str("history.weekSteps") }
     static var historyEmpty: LocalizedStringKey { "history.empty" }
     static var historyEmptyHint1: LocalizedStringKey { "history.emptyHint1" }
     static var historyEmptyHint2: LocalizedStringKey { "history.emptyHint2" }

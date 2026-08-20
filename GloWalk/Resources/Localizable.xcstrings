@@ -1094,7 +1094,7 @@
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本週"
+            "value" : "本星期"
           }
         }
       }
@@ -1425,19 +1425,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Swipe to adjust, tap to restore"
+            "value" : "Drag to adjust brightness"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "滑动调整亮度    单击恢复自动"
+            "value" : "拖动调整亮度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "滑動調整亮度    單擊恢復自動"
+            "value" : "拖動調整亮度"
           }
         }
       }
@@ -1454,13 +1454,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "双击结束"
+            "value" : "双击结束步行"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "雙擊結束"
+            "value" : "雙擊結束步行"
           }
         }
       }
@@ -1493,19 +1493,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device is warm — brightness reduced"
+            "value" : "Phone is warm — brightness reduced"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "设备温度较高，已自动降低亮度"
+            "value" : "手机较热，已自动降低亮度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "設備溫度較高，已自動降低亮度"
+            "value" : "手机较热，已自动降低亮度"
           }
         }
       }

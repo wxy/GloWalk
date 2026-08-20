@@ -1077,6 +1077,72 @@
         }
       }
     },
+    "history.weekHeader" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本周"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本週"
+          }
+        }
+      }
+    },
+    "history.weekWalks" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d walks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 次"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 次"
+          }
+        }
+      }
+    },
+    "history.weekSteps" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d steps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 步"
+          }
+        }
+      }
+    },
     "history.unit.meters" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1382,19 +1448,19 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-tap to end, long-press for torch"
+            "value" : "Double-tap to end"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "双击结束步行    长按开关灯光"
+            "value" : "双击结束"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "雙擊結束步行    長按開關燈光"
+            "value" : "雙擊結束"
           }
         }
       }
@@ -1418,6 +1484,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "閃光燈被遮擋，已自動關閉"
+          }
+        }
+      }
+    },
+    "hud.thermalNotice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device is warm — brightness reduced"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设备温度较高，已自动降低亮度"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設備溫度較高，已自動降低亮度"
           }
         }
       }

@@ -141,16 +141,17 @@ final class PosterGenerator {
 
     // MARK: - Celestial Corner Decoration
 
-    /// Large celestial body peeking into the top-left corner: the disc is
-    /// centred up-left of the canvas so only its lower-right arc is visible.
-    /// The visible arc spans ~0.54 of the poster width (the disc itself is
-    /// 1.6×), so the sun/moon reads as a prominent backdrop. The arc's rim
-    /// falls in the track band's far-left corner — a dark part of the disc —
-    /// so the gold track stays readable without recolouring it.
+    /// Large celestial body peeking into the top-left corner. The disc shares
+    /// CelestialGeometry with the HUD (1.0× width, centered just off the
+    /// corner) so roughly half of it is visible — enough to tell the moon's
+    /// phase (full vs half vs crescent) — while staying a backdrop, not a
+    /// full centered disc.
     private static func drawCelestialCorner(_ image: UIImage?, size: CGSize,
                                              ctx: UIGraphicsRendererContext) {
-        let radius = size.width * 0.80
-        let center = CGPoint(x: -radius * 0.30, y: -radius * 0.22)
+        let radius = size.width * CelestialGeometry.radiusFactor
+        let center = CGPoint(
+            x: radius * CelestialGeometry.centerXFactor,
+            y: radius * CelestialGeometry.centerYFactor)
         let celestialRect = CGRect(x: center.x - radius, y: center.y - radius,
                                    width: radius * 2, height: radius * 2)
 

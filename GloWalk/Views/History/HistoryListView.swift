@@ -59,6 +59,17 @@ struct HistoryListView: View {
                         .padding(.top, 8)
                         .padding(.bottom, 12)
 
+                        // This week's totals — a lightweight motivation line
+                        // and the seed of the planned weekly report posters.
+                        if let week = weeklySummaryText {
+                            Text(week)
+                                .font(.gloBody(12))
+                                .foregroundColor(.gloGold.opacity(0.6))
+                                .frame(maxWidth: .infinity)
+                                .padding(.horizontal, 20)
+                                .padding(.bottom, 10)
+                        }
+
                         // List
                         List {
                             ForEach(sessions, id: \.objectID) { session in
@@ -169,8 +180,37 @@ struct HistoryListView: View {
     }
 
     private func deleteSessions(offsets: IndexSet) {
-        offsets.map { sessions[$0] }.forEach(viewContext.delete)
+        let toDelete = offsets.map { sessions[$0] }
+        // Capture session IDs before deletion so the Health cleanup never
+        // touches Core Data objects that have been deleted.
+        let ids = toDelete.compactMap { $0.id?.uuidString }
+        toDelete.forEach(viewContext.delete)
         PersistenceController.shared.save()
+        guard !ids.isEmpty else { return }
+        let service = HealthSyncService(
+            store: HealthKitStore(),
+            context: PersistenceController.shared.container.viewContext)
+        Task { await service.deleteWorkouts(sessionIDs: ids) }
+    }
+
+    /// "This week · 3 walks · 2.4 km · 12,000 steps" for the current calendar
+    /// week, or nil when there are no walks this week.
+    private var weeklySummaryText: String? {
+        guard let week = Calendar.current.dateInterval(of: .weekOfYear, for: Date())
+        else { return nil }
+        let weekSessions = sessions.filter { ($0.startTime ?? .distantPast) >= week.start }
+        guard !weekSessions.isEmpty else { return nil }
+
+        let count = weekSessions.count
+        let distance = weekSessions.reduce(0.0) { $0 + $1.totalDistance }
+        let steps = weekSessions.reduce(0) { $0 + $1.totalSteps }
+        let distStr = distance < 1000
+            ? String(format: "%.0f%@", distance, L10n.historyUnitMeters)
+            : String(format: "%.1f%@", distance / 1000, L10n.posterKmUnit)
+        return "\(L10n.historyWeekHeader) · "
+            + String(format: L10n.historyWeekWalks, count) + " · "
+            + distStr + " · "
+            + String(format: L10n.historyWeekSteps, steps)
     }
 }
 

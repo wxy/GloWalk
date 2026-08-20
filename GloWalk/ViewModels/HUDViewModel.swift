@@ -13,6 +13,10 @@ final class HUDViewModel: ObservableObject {
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
+    /// True while the thermal cap (serious/critical) has actually reduced the
+    /// torch output — drives the HUD notice so the dimming never looks like a
+    /// mystery.
+    @Published var isThermalNoticeVisible: Bool = false
     /// True when camera permission is denied — ambient light sensing unavailable.
     @Published var cameraDeniedForAmbient: Bool = false
     @Published var pathPoints: [PathPoint] = []
@@ -152,6 +156,11 @@ final class HUDViewModel: ObservableObject {
     private var sensorTick: Int = 0
     private var cachedMoonPhase: (phase: String, illumination: Double)?
     private var lastMoonUpdateTick: Int = -60  // force first compute
+    /// Weather auto-retry: the start-of-walk attempts can all fail (cold
+    /// start, airplane mode), which would otherwise leave the weather factor
+    /// off for the whole walk. Re-attempt every 5 minutes while it's missing.
+    private var weatherRetryTick = 0
+    private var isFetchingWeather = false
 
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -242,6 +251,14 @@ final class HUDViewModel: ObservableObject {
             brightness = thermallyCapped(lightEngine.targetBrightness)
             sensorManager.setTorchLevel(brightness)
             locationManager.currentTorchBrightness = brightness
+        }
+        let thermal = ProcessInfo.processInfo.thermalState
+        isThermalNoticeVisible = (thermal == .serious || thermal == .critical)
+            && brightness > 0.05
+
+        weatherRetryTick += 1
+        if weatherRetryTick % 300 == 0 {
+            retryWeatherIfNeeded()
         }
         stepCount = sensorManager.stepCount
         let dist = locationManager.totalDistance
@@ -335,6 +352,22 @@ final class HUDViewModel: ObservableObject {
         // Batch Core Data saves: every 5 ticks instead of every second
         if sensorTick % 5 == 0 {
             PersistenceController.shared.save()
+        }
+    }
+
+    // MARK: - Weather Auto-Retry
+
+    /// Re-attempt the weather fetch mid-walk when it failed at start. The
+    /// 5-minute cadence is cheap (one request), and a nil condition would
+    /// otherwise silently disable the weather factor for the whole walk.
+    private func retryWeatherIfNeeded() {
+        guard !isFetchingWeather,
+              weatherService.currentCondition == nil,
+              let loc = locationManager.currentLocation else { return }
+        isFetchingWeather = true
+        Task { [weak self] in
+            defer { self?.isFetchingWeather = false }
+            await self?.weatherService.fetch(at: loc)
         }
     }
 

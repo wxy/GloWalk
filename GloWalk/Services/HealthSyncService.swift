@@ -68,6 +68,22 @@ final class HealthSyncService {
         }
     }
 
+    /// Delete the Health workouts written for the given sessions (metadata
+    /// keyed by GloWalkSessionID). No-op when Health is unavailable or the
+    /// user hasn't granted write access — mirrors the write path.
+    func deleteWorkouts(sessionIDs: [String]) async {
+        guard store.isAvailable,
+              store.authorizationStatus(for: HKObjectType.workoutType())
+                == .sharingAuthorized else { return }
+        for id in sessionIDs {
+            do {
+                try await store.deleteWorkouts(sessionID: id)
+            } catch {
+                Log.error("Health workout delete failed: \(error)")
+            }
+        }
+    }
+
     private func write(session: WalkSession) async {
         setState(.pending, session: session)
         do {

@@ -4,10 +4,58 @@
     "CFBundleDisplayName" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk: Path of Light"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
           }
         },
         "zh-Hans" : {
@@ -27,13 +75,67 @@
     "CFBundleName" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk"
           }
         },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
         "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk"
+          }
+        },
+        "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk"
@@ -44,16 +146,70 @@
     "NSCameraUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk nutzt die vordere und hintere Kamera, um Umgebungshelligkeit und Bodenreflexionen zu erfassen und Taschenlampe und Bildschirmhelligkeit automatisch anzupassen. Keine Fotos, kein Video, keine Speicherung."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk uses the rear camera to sense ambient brightness. No photos, no video, no storage."
+            "value" : "GloWalk uses the front and rear cameras to sense ambient brightness and ground reflection for automatic flashlight and screen brightness. No photos, no video, no storage."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa las cámaras delantera y trasera para detectar la luz ambiental y los reflejos del suelo, y ajustar automáticamente la linterna y el brillo de la pantalla. Sin fotos, sin vídeos, sin almacenamiento."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk utilise les caméras avant et arrière pour détecter la luminosité ambiante et les reflets au sol, et ajuster automatiquement la torche et la luminosité de l'écran. Aucune photo, aucune vidéo, aucune conservation."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa le fotocamere anteriore e posteriore per rilevare la luminosità ambientale e i riflessi del suolo, e regolare automaticamente torcia e luminosità dello schermo. Niente foto, niente video, nessuna memorizzazione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk は前後のカメラで環境の明るさと路面の反射光を感知し、フラッシュと画面の明るさを自動調整します。写真や動画は撮影・保存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk는 전후면 카메라로 주변 밝기와 바닥 반사광을 감지해 플래시와 화면 밝기를 자동으로 조절합니다. 사진이나 영상을 촬영하거나 저장하지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O GloWalk usa as câmeras frontal e traseira para detectar a luminosidade ambiente e o reflexo do chão, e ajustar automaticamente a lanterna e o brilho da tela. Sem fotos, sem vídeos, sem armazenamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk использует переднюю и заднюю камеры для определения окружающей освещённости и отражения от земли и автоматически регулирует фонарик и яркость экрана. Без фото, без видео, без сохранения."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 用后摄像头感知环境明暗变化，不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。"
+            "value" : "GloWalk 使用前后摄像头感知环境明暗与路面反光，自动调节闪光灯和屏幕亮度；不拍照、不录像、不存储任何画面。拒绝后需手动调节亮度。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 使用前後相機感知環境明暗與路面反光，自動調節閃光燈與螢幕亮度；不拍照、不錄影、不儲存任何畫面。拒絕後需手動調整亮度。"
           }
         }
       }
@@ -61,10 +217,58 @@
     "NSLocationWhenInUseUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk nutzt Ihren Standort, um Ihren Weg aufzuzeichnen und das aktuelle Wetter abzurufen (über Apple WeatherKit oder Open-Meteo)."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk uses your location to record your walking path and to fetch current weather (via Apple WeatherKit or Open-Meteo)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa tu ubicación para registrar tu ruta y obtener el tiempo actual (a través de Apple WeatherKit u Open-Meteo)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk utilise votre position pour enregistrer votre parcours et obtenir la météo actuelle (via Apple WeatherKit ou Open-Meteo)."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa la tua posizione per registrare il percorso e ottenere il meteo attuale (tramite Apple WeatherKit o Open-Meteo)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk は歩行経路の記録と現在の天気の取得（Apple WeatherKit / Open-Meteo）に位置情報を使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk는 걷기 경로를 기록하고 현재 날씨를 가져오기 위해(Apple WeatherKit / Open-Meteo) 위치 정보를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O GloWalk usa sua localização para registrar seu trajeto e obter o clima atual (via Apple WeatherKit ou Open-Meteo)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk использует вашу геопозицию для записи маршрута и получения текущей погоды (через Apple WeatherKit или Open-Meteo)."
           }
         },
         "zh-Hans" : {
@@ -72,16 +276,70 @@
             "state" : "translated",
             "value" : "GloWalk 使用你的位置记录步行路径，并用于获取当前天气（通过 Apple WeatherKit 或 Open-Meteo）。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 使用你的位置記錄步行路徑，並用於取得目前天氣（透過 Apple WeatherKit 或 Open-Meteo）。"
+          }
         }
       }
     },
     "NSMotionUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk nutzt Bewegungssensoren, um Gehstatus und Handyhaltung zu erkennen und die Taschenlampenhelligkeit automatisch anzupassen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk uses motion sensors to detect walking state and phone posture for adaptive brightness."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa sensores de movimiento para detectar el estado de marcha y la postura del teléfono y ajustar automáticamente el brillo de la linterna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk utilise les capteurs de mouvement pour détecter l'état de marche et la posture du téléphone et ajuster automatiquement la luminosité de la torche."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk usa i sensori di movimento per rilevare lo stato di camminata e la postura del telefono e regolare automaticamente la luminosità della torcia."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk は歩行状態とスマホの姿勢を認識し、フラッシュの明るさを自動調整するためにモーションセンサーを使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk는 걷기 상태와 기기 자세를 인식해 플래시 밝기를 자동으로 조절하기 위해 모션 센서를 사용합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O GloWalk usa sensores de movimento para detectar o estado de caminhada e a postura do aparelho e ajustar automaticamente o brilho da lanterna."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk использует датчики движения для определения состояния ходьбы и положения телефона и автоматической регулировки яркости фонарика."
           }
         },
         "zh-Hans" : {
@@ -89,16 +347,70 @@
             "state" : "translated",
             "value" : "GloWalk 用运动传感器识别步行状态和手机持握姿态，自动调节闪光灯亮度。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk 用動作感應器辨識步行狀態與手機持握姿態，自動調節閃光燈亮度。"
+          }
         }
       }
     },
     "NSPhotoLibraryAddUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nachtposter von Spaziergängen in Ihrer Fotomediathek speichern."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save night walk posters to your photo library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar los pósters de paseos nocturnos en tu fototeca."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer les posters de marches nocturnes dans votre photothèque."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva i poster delle passeggiate notturne nella tua libreria foto."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜の歩行ポスターをフォトライブラリに保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "밤 산책 포스터를 사진 보관함에 저장합니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvar os pôsteres de caminhadas noturnas na sua biblioteca de fotos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохранение ночных постеров прогулок в вашу фотобиблиотеку."
           }
         },
         "zh-Hans" : {
@@ -106,16 +418,70 @@
             "state" : "translated",
             "value" : "保存夜路海报到相册。"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存夜路海報到相簿。"
+          }
         }
       }
     },
     "NSHealthShareUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk schreibt Ihre Gehdaten (Schritte, Distanz, Dauer und Route) in die Health-App, um Trainingseinheiten zu erzeugen. Die Daten bleiben auf Ihrem Gerät und werden nicht hochgeladen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk escribe tus registros de caminata (pasos, distancia, duración y ruta) en la app Salud para generar sesiones de ejercicio. Los datos permanecen en tu dispositivo y no se suben."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk écrit vos enregistrements de marche (pas, distance, durée et trajet) dans l'app Santé pour créer des séances d'exercice. Les données restent sur votre appareil et ne sont pas téléchargées."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk scrive i tuoi record di camminata (passi, distanza, durata e percorso) nell'app Salute per creare sessioni di allenamento. I dati restano sul tuo dispositivo e non vengono caricati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk は歩行記録（歩数・距離・時間・経路）をヘルスケア App に書き込み、運動記録を生成します。データは端末内にのみ保存され、アップロードされません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk는 걷기 기록(걸음 수·거리·시간·경로)을 건강 App에 기록해 운동 기록을 생성합니다. 데이터는 기기에만 저장되며 업로드되지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O GloWalk grava seus registros de caminhada (passos, distância, duração e trajeto) no app Saúde para gerar sessões de exercício. Os dados ficam no seu aparelho e não são enviados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk записывает ваши данные о прогулках (шаги, дистанция, длительность и маршрут) в приложение «Здоровье» для создания тренировок. Данные остаются на вашем устройстве и не загружаются."
           }
         },
         "zh-Hans" : {
@@ -135,10 +501,58 @@
     "NSHealthUpdateUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk schreibt Ihre Gehdaten (Schritte, Distanz, Dauer und Route) in die Health-App, um Trainingseinheiten zu erzeugen. Die Daten bleiben auf Ihrem Gerät und werden nicht hochgeladen."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk escribe tus registros de caminata (pasos, distancia, duración y ruta) en la app Salud para generar sesiones de ejercicio. Los datos permanecen en tu dispositivo y no se suben."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk écrit vos enregistrements de marche (pas, distance, durée et trajet) dans l'app Santé pour créer des séances d'exercice. Les données restent sur votre appareil et ne sont pas téléchargées."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk scrive i tuoi record di camminata (passi, distanza, durata e percorso) nell'app Salute per creare sessioni di allenamento. I dati restano sul tuo dispositivo e non vengono caricati."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk は歩行記録（歩数・距離・時間・経路）をヘルスケア App に書き込み、運動記録を生成します。データは端末内にのみ保存され、アップロードされません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk는 걷기 기록(걸음 수·거리·시간·경로)을 건강 App에 기록해 운동 기록을 생성합니다. 데이터는 기기에만 저장되며 업로드되지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O GloWalk grava seus registros de caminhada (passos, distância, duração e trajeto) no app Saúde para gerar sessões de exercício. Os dados ficam no seu aparelho e não são enviados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GloWalk записывает ваши данные о прогулках (шаги, дистанция, длительность и маршрут) в приложение «Здоровье» для создания тренировок. Данные остаются на вашем устройстве и не загружаются."
           }
         },
         "zh-Hans" : {

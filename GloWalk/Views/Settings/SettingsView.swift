@@ -40,6 +40,12 @@ struct SettingsView: View {
                         attributionRow(icon: "textformat", label: "LXGW WenKai (霞鹜文楷)",
                                        linkLabel: L10n.aboutFontLicense,
                                        url: "https://github.com/lxgw/LxgwWenKai")
+                        attributionRow(icon: "textformat", label: "Klee One",
+                                       linkLabel: L10n.aboutFontLicense,
+                                       url: "https://github.com/fontworks-fonts/Klee")
+                        attributionRow(icon: "textformat", label: "LXGW WenKai KR (霞鶩文楷 KR)",
+                                       linkLabel: L10n.aboutFontLicense,
+                                       url: "https://github.com/lxgw/LxgwWenkaiKR")
                         attributionRow(icon: "doc.text", label: "Apache 2.0",
                                        linkLabel: L10n.aboutGitHub,
                                        url: "https://github.com/wxy/GloWalk")
@@ -69,6 +75,14 @@ struct SettingsView: View {
             Text("English").tag("en")
             Text(L10n.settingsLanguageSimplified).tag("zh-Hans")
             Text(L10n.settingsLanguageTraditional).tag("zh-Hant")
+            Text("日本語").tag("ja")
+            Text("한국어").tag("ko")
+            Text("Français").tag("fr")
+            Text("Deutsch").tag("de")
+            Text("Español").tag("es")
+            Text("Português").tag("pt-BR")
+            Text("Italiano").tag("it")
+            Text("Русский").tag("ru")
         }
         .font(.gloBody(14)).foregroundColor(.white)
     }

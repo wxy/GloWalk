@@ -24,6 +24,14 @@ struct ContentView: View {
         case "en": return Locale(identifier: "en")
         case "zh-Hans": return Locale(identifier: "zh-Hans")
         case "zh-Hant": return Locale(identifier: "zh-Hant")
+        case "ja": return Locale(identifier: "ja")
+        case "ko": return Locale(identifier: "ko")
+        case "fr": return Locale(identifier: "fr")
+        case "de": return Locale(identifier: "de")
+        case "es": return Locale(identifier: "es")
+        case "pt-BR": return Locale(identifier: "pt-BR")
+        case "it": return Locale(identifier: "it")
+        case "ru": return Locale(identifier: "ru")
         default: return .autoupdatingCurrent
         }
     }

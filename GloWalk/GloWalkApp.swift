@@ -5,18 +5,17 @@ struct GloWalkApp: App {
     let persistenceController = PersistenceController.shared
 
     init() {
-        // Use LXGW WenKai for all navigation bar titles
+        // Use the bundled handwriting family for all navigation bar titles
+        // (Klee One in Japanese, LXGW WenKai KR in Korean, WenKai otherwise).
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor.black
         appearance.titleTextAttributes = [
-            .font: UIFont(name: "LXGW WenKai Medium", size: 17)
-                ?? UIFont.systemFont(ofSize: 17, weight: .medium),
+            .font: GloUIFont.headline(17),
             .foregroundColor: UIColor.white
         ]
         appearance.largeTitleTextAttributes = [
-            .font: UIFont(name: "LXGW WenKai Medium", size: 34)
-                ?? UIFont.systemFont(ofSize: 34, weight: .medium),
+            .font: GloUIFont.headline(34),
             .foregroundColor: UIColor.white
         ]
         UINavigationBar.appearance().standardAppearance = appearance

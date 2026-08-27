@@ -7,67 +7,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Nachttaschenlampe"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Path of Light"
+            "value" : "GloWalk: Night Flashlight"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Linterna nocturna"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Lampe de nuit"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Torcia notturna"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: ナイトライト"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: 야간 손전등"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Lanterna Noturna"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk"
+            "value" : "GloWalk: Ночной фонарик"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "随行路灯"
+            "value" : "GloWalk: 智能夜灯手电筒"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "隨行路燈"
+            "value" : "GloWalk: 夜間手電筒"
           }
         }
       }

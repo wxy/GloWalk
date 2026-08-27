@@ -1,12 +1,12 @@
 # GloWalk App Store 元数据存档
 
-维护 App Store Connect 各版本提交文案（en-US / zh-Hans / zh-Hant 三语）。
+维护 App Store Connect 各版本提交文案（en-US / zh-Hans / zh-Hant / ja / ko / fr / de / es / pt-BR / it / ru 十一语）。
 
 ## 使用说明
 
 - 每次发版前：参考上一版本的「更新内容」与「描述」撰写新版本，并对照下方「提交字段清单」逐项核对。
 - 提交审核后：把实际提交的文案追加为新版本章节；上架后更新状态与日期。
-- 所有本地化字段都需提供 en-US、zh-Hans、zh-Hant 三语；历史数据以「已上架」版本为准。
+- 所有本地化字段都需提供十一语；历史数据以「已上架」版本为准。
 
 ## 提交字段清单（每次发版核对）
 
@@ -19,6 +19,40 @@
 | 隐私政策 URL | 公开可访问 | — |
 | 隐私标签 | 健康与健身按「不收集」申报 | — |
 | 版本号 + 构建号 | 如 1.1.0（build 6） | — |
+
+---
+
+## 1.1.2（build 7）— 待上架
+
+**应用名称（App 名称）**
+
+- en-US：GloWalk: Night Flashlight
+- zh-Hans：GloWalk: 智能夜灯手电筒
+- zh-Hant：GloWalk: 夜間手電筒
+- de：GloWalk: Nachttaschenlampe
+- es：GloWalk: Linterna nocturna
+- fr：GloWalk: Lampe de nuit
+- it：GloWalk: Torcia notturna
+- ja：GloWalk: ナイトライト
+- ko：GloWalk: 야간 손전등
+- pt-BR：GloWalk: Lanterna Noturna
+- ru：GloWalk: Ночной фонарик
+
+**副标题**
+
+- en-US：5-Axis Adaptive Brightness
+- zh-Hans：五维自适应亮度，记录金色星座轨迹
+- zh-Hant：五軸自適應亮度
+- de：5-Achsen Adaptive Helligkeit
+- es：Brillo adaptativo 5 ejes
+- fr：Luminosité adaptative 5 axes
+- it：Luminosità adattiva 5 assi
+- ja：5軸適応輝度
+- ko：5축 적응 밝기
+- pt-BR：Brilho adaptativo 5 eixos
+- ru：5-осевая адаптивная яркость
+
+> 推广文本 / 更新内容 / 软件描述待定。
 
 ---
 

@@ -1432,67 +1432,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk erfasst die Umgebungshelligkeit über die rückseitige Kamera.\n\nEs werden keine Fotos aufgenommen und keine Videos aufgezeichnet.\nEin kurzer Blick alle paar Sekunden – dann verworfen.\n\nSie können die Helligkeit auch manuell einstellen."
+            "value" : "GloWalk erfasst die Umgebungshelligkeit mit der vorderen Kamera und, auf unterstützten Geräten, Bodenreflexionen mit der hinteren Kamera.\n\nEs werden keine Fotos aufgenommen und keine Videos aufgezeichnet.\nEin kurzer Blick alle paar Sekunden – dann verworfen.\n\nSie können die Helligkeit auch manuell einstellen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk senses the darkness around you through the rear camera.\n\nNo photos are taken. No video is recorded.\nA glance every few seconds, then forgotten.\n\nYou may also adjust brightness by hand."
+            "value" : "GloWalk senses ambient brightness with the front camera and reads ground reflection with the rear camera where supported.\n\nNo photos are taken. No video is recorded.\nA glance every few seconds, then forgotten.\n\nYou may also adjust brightness by hand."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk detecta la luz ambiental con la cámara trasera.\n\nNo se toman fotos ni se graban vídeos.\nUna mirada cada pocos segundos y nada se guarda.\n\nTambién puedes ajustar el brillo manualmente."
+            "value" : "GloWalk detecta la luz ambiental con la cámara delantera y, en los dispositivos compatibles, lee los reflejos del suelo con la cámara trasera.\n\nNo se toman fotos ni se graban vídeos.\nUna mirada cada pocos segundos y nada se guarda.\n\nTambién puedes ajustar el brillo manualmente."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk détecte la luminosité ambiante grâce à la caméra arrière.\n\nAucune photo n'est prise. Aucune vidéo n'est enregistrée.\nUn coup d'œil toutes les quelques secondes, puis tout est oublié.\n\nVous pouvez aussi régler la luminosité à la main."
+            "value" : "GloWalk détecte la luminosité ambiante avec la caméra avant et, sur les appareils compatibles, lit les reflets du sol avec la caméra arrière.\n\nAucune photo n'est prise. Aucune vidéo n'est enregistrée.\nUn coup d'œil toutes les quelques secondes, puis tout est oublié.\n\nVous pouvez aussi régler la luminosité à la main."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk rileva la luminosità intorno a te con la fotocamera posteriore.\n\nNessuna foto. Nessun video.\nUno sguardo ogni pochi secondi, poi tutto viene dimenticato.\n\nPuoi anche regolare la luminosità a mano."
+            "value" : "GloWalk rileva la luminosità ambientale con la fotocamera anteriore e, sui dispositivi supportati, legge i riflessi del suolo con quella posteriore.\n\nNessuna foto. Nessun video.\nUno sguardo ogni pochi secondi, poi tutto viene dimenticato.\n\nPuoi anche regolare la luminosità a mano."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk は背面カメラで周囲の明るさを感知します。\n\n写真は撮りません。動画も録画しません。\n数秒ごとにひと目だけ確認し、すぐに破棄されます。\n\n明るさは手動でも調整できます。"
+            "value" : "GloWalk は前面カメラで環境の明るさを感知し、対応デバイスでは背面カメラで路面の反射光も読み取ります。\n\n写真は撮りません。動画も録画しません。\n数秒ごとにひと目だけ確認し、すぐに破棄されます。\n\n明るさは手動でも調整できます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk는 후면 카메라로 주변 밝기를 감지합니다.\n\n사진을 찍지 않으며, 영상을 녹화하지 않습니다.\n몇 초마다 한 번씩 살펴본 뒤 바로 버려집니다.\n\n밝기는 손으로 직접 조절할 수도 있습니다."
+            "value" : "GloWalk는 전면 카메라로 주변 밝기를 감지하고, 지원되는 기기에서는 후면 카메라로 바닥 반사광도 읽습니다.\n\n사진을 찍지 않으며, 영상을 녹화하지 않습니다.\n몇 초마다 한 번씩 살펴본 뒤 바로 버려집니다.\n\n밝기는 손으로 직접 조절할 수도 있습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O GloWalk detecta a luminosidade ao redor com a câmera traseira.\n\nNenhuma foto é tirada. Nenhum vídeo é gravado.\nUma olhada a cada poucos segundos, e logo é descartada.\n\nVocê também pode ajustar o brilho manualmente."
+            "value" : "O GloWalk detecta a luminosidade ambiente com a câmera frontal e, em aparelhos compatíveis, lê o reflexo do chão com a câmera traseira.\n\nNenhuma foto é tirada. Nenhum vídeo é gravado.\nUma olhada a cada poucos segundos, e logo é descartada.\n\nVocê também pode ajustar o brilho manualmente."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk определяет освещённость вокруг вас с помощью задней камеры.\n\nНикаких фото. Никакого видео.\nВзгляд каждые несколько секунд — и всё забыто.\n\nЯркость также можно регулировать вручную."
+            "value" : "GloWalk определяет окружающую освещённость передней камерой, а на поддерживаемых устройствах считывает отражение от земли задней камерой.\n\nНикаких фото. Никакого видео.\nВзгляд каждые несколько секунд — и всё забыто.\n\nЯркость также можно регулировать вручную."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 用后摄像头感知环境明暗变化\n\n不拍照、不录像、不存储任何画面\n每 5 秒采样一次即丢弃\n\n拒绝后需手动调节亮度"
+            "value" : "GloWalk 用前置摄像头感知环境明暗，支持的设备上以后置摄像头读取路面反光\n\n不拍照、不录像、不存储任何画面\n每 5 秒采样一次即丢弃\n\n拒绝后需手动调节亮度"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 用後置鏡頭感知環境明暗變化\n\n不拍照、不錄影、不儲存任何畫面\n每 5 秒取樣一次即丟棄\n\n拒絕後需手動調整亮度"
+            "value" : "GloWalk 用前置鏡頭感知環境明暗，支援的裝置上以後置鏡頭讀取路面反光\n\n不拍照、不錄影、不儲存任何畫面\n每 5 秒取樣一次即丟棄\n\n拒絕後需手動調整亮度"
           }
         }
       }
@@ -1569,7 +1569,9 @@
       }
     },
     "Deutsch" : {
+      "localizations" : {
 
+      }
     },
     "English" : {
       "localizations" : {
@@ -1636,7 +1638,9 @@
       }
     },
     "Español" : {
+      "localizations" : {
 
+      }
     },
     "factor.ambient" : {
       "extractionState" : "manual",
@@ -1852,7 +1856,9 @@
       }
     },
     "Français" : {
+      "localizations" : {
 
+      }
     },
     "help.autoDesc" : {
       "extractionState" : "manual",
@@ -1860,67 +1866,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk erfasst die Umgebungshelligkeit über die Rückkamera und berechnet aus Handyhaltung, Dunkeladaptation, Mondphase und Wetter in Echtzeit die optimale Helligkeit. Kein manuelles Eingreifen nötig."
+            "value" : "GloWalk erfasst die Umgebungshelligkeit über die vordere Kamera (und auf unterstützten Geräten Bodenreflexionen über die hintere) und berechnet aus Handyhaltung, Dunkeladaptation, Mondphase und Wetter in Echtzeit die optimale Helligkeit. Kein manuelles Eingreifen nötig."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk senses ambient brightness via the rear camera and combines phone posture, dark adaptation, moon phase, and weather to compute optimal brightness in real time. No manual input needed."
+            "value" : "GloWalk senses ambient brightness via the front camera (plus rear-camera ground reflection where supported) and combines phone posture, dark adaptation, moon phase, and weather to compute optimal brightness in real time. No manual input needed."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk detecta la luminosidad ambiental con la cámara trasera y combina la postura del teléfono, la adaptación a la oscuridad, la fase lunar y el tiempo para calcular el brillo óptimo en tiempo real. No requiere intervención manual."
+            "value" : "GloWalk detecta la luminosidad ambiental con la cámara delantera (y los reflejos del suelo con la trasera en los dispositivos compatibles) y combina la postura del teléfono, la adaptación a la oscuridad, la fase lunar y el tiempo para calcular el brillo óptimo en tiempo real. No requiere intervención manual."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk mesure la luminosité ambiante via la caméra arrière et combine posture du téléphone, adaptation à l'obscurité, phase de lune et météo pour calculer en temps réel la luminosité idéale. Aucune intervention manuelle requise."
+            "value" : "GloWalk mesure la luminosité ambiante via la caméra avant (et les reflets du sol via la caméra arrière sur les appareils compatibles) et combine posture du téléphone, adaptation à l'obscurité, phase de lune et météo pour calculer en temps réel la luminosité idéale. Aucune intervention manuelle requise."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk rileva la luminosità ambientale con la fotocamera posteriore e combina postura del telefono, adattamento al buio, fase lunare e meteo per calcolare in tempo reale la luminosità ottimale. Nessun intervento manuale richiesto."
+            "value" : "GloWalk rileva la luminosità ambientale con la fotocamera anteriore (e i riflessi del suolo con quella posteriore sui dispositivi supportati) e combina postura del telefono, adattamento al buio, fase lunare e meteo per calcolare in tempo reale la luminosità ottimale. Nessun intervento manuale richiesto."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk は背面カメラで環境の明るさを感知し、スマホの姿勢・暗順応・月相・天気を組み合わせて、最適な明るさをリアルタイムに計算します。手動操作は不要です。"
+            "value" : "GloWalk は前面カメラで環境の明るさを感知し（対応デバイスでは背面カメラの路面反射光も加味）、スマホの姿勢・暗順応・月相・天気を組み合わせて、最適な明るさをリアルタイムに計算します。手動操作は不要です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk는 후면 카메라로 주변 밝기를 감지하고, 기기 자세·암순응·달의 위상·날씨를 종합해 최적의 밝기를 실시간으로 계산합니다. 수동 조작이 필요 없습니다."
+            "value" : "GloWalk는 전면 카메라로 주변 밝기를 감지하고(지원되는 기기에서는 후면 카메라의 바닥 반사광도 반영), 기기 자세·암순응·달의 위상·날씨를 종합해 최적의 밝기를 실시간으로 계산합니다. 수동 조작이 필요 없습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O GloWalk detecta a luminosidade ambiente pela câmera traseira e combina postura do aparelho, adaptação ao escuro, fase da lua e clima para calcular o brilho ideal em tempo real. Nenhuma ação manual é necessária."
+            "value" : "O GloWalk detecta a luminosidade ambiente pela câmera frontal (e o reflexo do chão pela traseira em aparelhos compatíveis) e combina postura do aparelho, adaptação ao escuro, fase da lua e clima para calcular o brilho ideal em tempo real. Nenhuma ação manual é necessária."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk определяет окружающую освещённость задней камерой и сочетает положение телефона, адаптацию к темноте, фазу Луны и погоду, чтобы в реальном времени вычислять оптимальную яркость. Ручное управление не требуется."
+            "value" : "GloWalk определяет окружающую освещённость передней камерой (а на поддерживаемых устройствах — и отражение от земли задней) и сочетает положение телефона, адаптацию к темноте, фазу Луны и погоду, чтобы в реальном времени вычислять оптимальную яркость. Ручное управление не требуется."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 通过后置摄像头感知环境明暗，结合手机姿态、暗适应、月相和天气，实时计算最合适的亮度。无需手动操作。"
+            "value" : "GloWalk 通过前置摄像头感知环境明暗（支持的设备还会结合后置摄像头的路面反光），结合手机姿态、暗适应、月相和天气，实时计算最合适的亮度。无需手动操作。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 透過後置鏡頭感知環境明暗，結合手機姿態、暗適應、月相和天氣，即時計算最合適的亮度。無需手動操作。"
+            "value" : "GloWalk 透過前置鏡頭感知環境明暗（支援的裝置還會結合後置鏡頭的路面反光），結合手機姿態、暗適應、月相和天氣，即時計算最合適的亮度。無需手動操作。"
           }
         }
       }
@@ -5050,7 +5056,9 @@
       }
     },
     "Italiano" : {
+      "localizations" : {
 
+      }
     },
     "location.continue" : {
       "extractionState" : "manual",
@@ -7318,7 +7326,9 @@
       }
     },
     "Português" : {
+      "localizations" : {
 
+      }
     },
     "poster.close" : {
       "extractionState" : "manual",
@@ -11084,13 +11094,19 @@
       }
     },
     "Русский" : {
+      "localizations" : {
 
+      }
     },
     "한국어" : {
+      "localizations" : {
 
+      }
     },
     "日本語" : {
+      "localizations" : {
 
+      }
     },
     " Weather" : {
       "localizations" : {

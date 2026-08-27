@@ -26,17 +26,19 @@
 
 **应用名称（App 名称）**
 
-- en-US：GloWalk: Night Flashlight
-- zh-Hans：GloWalk: 智能夜灯手电筒
-- zh-Hant：GloWalk: 夜間手電筒
-- de：GloWalk: Nachttaschenlampe
-- es：GloWalk: Linterna nocturna
-- fr：GloWalk: Lampe de nuit
-- it：GloWalk: Torcia notturna
-- ja：GloWalk: ナイトライト
-- ko：GloWalk: 야간 손전등
-- pt-BR：GloWalk: Lanterna Noturna
-- ru：GloWalk: Ночной фонарик
+- en-US：GloWalk
+- zh-Hans：随行路灯
+- zh-Hant：隨行路燈
+- de：GloWalk
+- es：GloWalk
+- fr：GloWalk
+- it：GloWalk
+- ja：GloWalk
+- ko：GloWalk
+- pt-BR：GloWalk
+- ru：GloWalk
+
+> 注：应用显示名仅影响手机桌面图标；ASO 相关文案以「副标题 / 描述 / 推广文本」为准。
 
 **副标题**
 

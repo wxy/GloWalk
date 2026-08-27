@@ -7,67 +7,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Nachttaschenlampe"
+            "value" : "GloWalk"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Night Flashlight"
+            "value" : "GloWalk"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Linterna nocturna"
+            "value" : "GloWalk"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Lampe de nuit"
+            "value" : "GloWalk"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Torcia notturna"
+            "value" : "GloWalk"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: ナイトライト"
+            "value" : "GloWalk"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: 야간 손전등"
+            "value" : "GloWalk"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Lanterna Noturna"
+            "value" : "GloWalk"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: Ночной фонарик"
+            "value" : "GloWalk"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: 智能夜灯手电筒"
+            "value" : "随行路灯"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk: 夜間手電筒"
+            "value" : "隨行路燈"
           }
         }
       }

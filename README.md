@@ -39,9 +39,9 @@
 - **Dark Interface** — Every pixel is designed for night use. Amber-on-black HUD, no white flashes.
 
     > **深色界面** — 每一像素都为夜间设计，琥珀金配色
-- **Trilingual** — Full English, 简体中文, and 繁體中文. Switch languages at runtime.
+- **11 Languages** — English, 简体中文, 繁體中文, 日本語, 한국어, Français, Deutsch, Español, Português, Italiano, Русский. Each language renders in its matching open-source handwriting font (LXGW WenKai, Klee One, LXGW WenKai KR — all SIL OFL). Switch languages at runtime.
 
-    > **中英繁三语** — 完整的中文简体、中文繁体与英文支持，运行时可切换
+    > **十一语言** — 中、英、繁、日、韩、法、德、西、葡、意、俄共 11 种语言，运行时即可切换；每种语言配对应的开源手写字体（霞鹜文楷、Klee One、霞鹜文楷韩文版，均为 SIL OFL 许可）
 - **Thermal-Aware** — The rear camera runs only when the adaptive loop needs it, and the torch steps down gently under heat — cooler in hand, longer on the night.
 
     > **更凉爽** — 后置摄像头按需启停，手电在高热时平缓降档，减少发热
@@ -86,7 +86,8 @@ GloWalk/
 │   ├── Settings/    # SettingsView, PermissionsView, HelpView
 │   └── Components/  # HUDButton, ShareSheet
 ├── Extensions/      # Color, Font, Haptic, L10n, ViewModifiers
-└── Resources/       # Fonts, MoonPhases, Taglines.json, Localizable.xcstrings
+└── Resources/       # Fonts (LXGW WenKai · Klee One · LXGW WenKai KR), Licenses (OFL),
+                     # MoonPhases, Taglines.json, Localizable.xcstrings
 ```
 
 <p align="center">

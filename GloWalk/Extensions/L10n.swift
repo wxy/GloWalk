@@ -80,6 +80,7 @@ enum L10n {
     static var aboutWeatherLegal: LocalizedStringKey { "about.weatherLegal" }
     static var aboutWebsite: LocalizedStringKey { "about.website" }
     static var aboutFontLicense: LocalizedStringKey { "about.fontLicense" }
+    static var licenseUnavailable: LocalizedStringKey { "license.unavailable" }
     static var aboutGitHub: LocalizedStringKey { "about.gitHub" }
 
     static var permissionsCamera: LocalizedStringKey { "permissions.camera" }

@@ -21,7 +21,9 @@ jobs:
       # Trailing whitespace and merge-conflict markers — the cheapest hygiene
       # signal a reviewer shouldn't have to point out.
       - name: Whitespace and conflict markers
-        run: git diff --check "${{ github.event.pull_request.base.sha }}"...HEAD
+        # The vendored SIL OFL texts keep their upstream bytes (incl. CRLF /
+        # trailing spaces in the official files), so exclude them here.
+        run: git diff --check "${{ github.event.pull_request.base.sha }}"...HEAD -- . ':(exclude)GloWalk/Resources/Licenses/**'
 
       - name: PR description present
         uses: actions/github-script@v7

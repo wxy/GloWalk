@@ -105,6 +105,17 @@ HARDCODED_STRINGS = [
 # GB2312, so it must be requested explicitly for the mono face).
 JA_MONO_UNITS = "歩分"
 
+# Runtime lunar-date strings (LunarDate.swift) rendered per language. These are
+# already covered by the JIS X 0208 level-1 / KS X 1001 buffers, but listed
+# explicitly so a future buffer reduction can't silently drop them.
+JA_LUNAR_STRINGS = (
+    "旧暦睦月如月弥生卯月皐月水無月文月葉月長月神無月霜月師走"
+    "一日二日三日四日五日六日七日八日九日十日"
+    "十一日十二日十三日十四日十五日十六日十七日十八日十九日二十日"
+    "二十一日二十二日二十三日二十四日二十五日二十六日二十七日二十八日二十九日三十日"
+)
+KO_LUNAR_STRINGS = "음력월일"
+
 
 def gb2312_level1_chars() -> str:
     """The 3755 most common Simplified Chinese characters (GB2312 level 1,
@@ -263,22 +274,22 @@ FACES = [
      HARDCODED_STRINGS + [JA_MONO_UNITS], EUROPEAN_RANGES),
     # ---- Klee One: Japanese (the original font LXGW WenKai derives from) ----
     ("KleeOne-Regular.ttf", "KleeOne-Regular.ttf", None,
-     JA_LANGS, jis_level1_chars(), [], JP_RANGES),
+     JA_LANGS, jis_level1_chars(), [JA_LUNAR_STRINGS], JP_RANGES),
     ("KleeOne-SemiBold.ttf", "KleeOne-SemiBold.ttf", None,
-     JA_LANGS, jis_level1_chars(), [], JP_RANGES),
+     JA_LANGS, jis_level1_chars(), [JA_LUNAR_STRINGS], JP_RANGES),
     # ---- LXGW WenKai KR: Korean (official Korean edition of WenKai) ----
     ("LXGWWenKaiKR-Light.ttf", "LXGWWenKaiKR-Light.ttf",
      ("LXGW WenKai KR Light", "LXGW WenKai KR", "Light"),
-     KO_LANGS, ko_common_syllables(), [], []),
+     KO_LANGS, ko_common_syllables(), [KO_LUNAR_STRINGS], []),
     ("LXGWWenKaiKR-Regular.ttf", "LXGWWenKaiKR-Regular.ttf",
      ("LXGW WenKai KR", "LXGW WenKai KR", "Regular"),
-     KO_LANGS, ko_common_syllables(), [], []),
+     KO_LANGS, ko_common_syllables(), [KO_LUNAR_STRINGS], []),
     ("LXGWWenKaiKR-Medium.ttf", "LXGWWenKaiKR-Medium.ttf",
      ("LXGW WenKai KR Medium", "LXGW WenKai KR", "Medium"),
-     KO_LANGS, ko_common_syllables(), [], []),
+     KO_LANGS, ko_common_syllables(), [KO_LUNAR_STRINGS], []),
     ("LXGWWenKaiMonoKR-Light.ttf", "LXGWWenKaiMonoKR-Light.ttf",
      ("LXGW WenKai Mono KR Light", "LXGW WenKai Mono KR", "Light"),
-     KO_LANGS, ko_common_syllables(), [], []),
+     KO_LANGS, ko_common_syllables(), [KO_LUNAR_STRINGS], []),
 ]
 
 

@@ -37,15 +37,12 @@ struct SettingsView: View {
                         attributionRow(icon: "globe", label: "Open-Meteo",
                                        linkLabel: L10n.aboutWebsite,
                                        url: "https://open-meteo.com/")
-                        attributionRow(icon: "textformat", label: "LXGW WenKai (霞鹜文楷)",
-                                       linkLabel: L10n.aboutFontLicense,
-                                       url: "https://github.com/lxgw/LxgwWenKai")
-                        attributionRow(icon: "textformat", label: "Klee One",
-                                       linkLabel: L10n.aboutFontLicense,
-                                       url: "https://github.com/fontworks-fonts/Klee")
-                        attributionRow(icon: "textformat", label: "LXGW WenKai KR (霞鶩文楷 KR)",
-                                       linkLabel: L10n.aboutFontLicense,
-                                       url: "https://github.com/lxgw/LxgwWenkaiKR")
+                        attributionLicenseRow(icon: "textformat", label: "LXGW WenKai (霞鹜文楷)",
+                                              fileName: "OFL-LXGWWenKai")
+                        attributionLicenseRow(icon: "textformat", label: "Klee One",
+                                              fileName: "OFL-KleeOne")
+                        attributionLicenseRow(icon: "textformat", label: "LXGW WenKai KR (霞鶩文楷 KR)",
+                                              fileName: "OFL-LXGWWenKaiKR")
                         attributionRow(icon: "doc.text", label: "Apache 2.0",
                                        linkLabel: L10n.aboutGitHub,
                                        url: "https://github.com/wxy/GloWalk")
@@ -179,6 +176,29 @@ struct SettingsView: View {
                     .foregroundColor(.white.opacity(0.4))
                 Spacer()
                 Text(linkLabel)
+                    .font(.gloBody(11))
+                    .foregroundColor(.gloGold.opacity(0.5))
+            }
+        }
+    }
+
+    /// Font attribution rows open the bundled OFL text instead of a web link,
+    /// satisfying SIL OFL's "include the license with redistribution" clause.
+    private func attributionLicenseRow(icon: String, label: String,
+                                       fileName: String) -> some View {
+        NavigationLink {
+            LicenseDetailView(title: label, fileName: fileName)
+        } label: {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(.white.opacity(0.35))
+                    .frame(width: 20)
+                Text(verbatim: label)
+                    .font(.gloBody(12))
+                    .foregroundColor(.white.opacity(0.4))
+                Spacer()
+                Text(L10n.aboutFontLicense)
                     .font(.gloBody(11))
                     .foregroundColor(.gloGold.opacity(0.5))
             }

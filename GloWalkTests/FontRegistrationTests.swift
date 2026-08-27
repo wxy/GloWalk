@@ -11,6 +11,12 @@ final class FontRegistrationTests: XCTestCase {
             "LXGW WenKai Light",
             "LXGW WenKai Medium",
             "LXGW WenKai Mono Light",
+            "Klee One",
+            "Klee One SemiBold",
+            "LXGW WenKai KR",
+            "LXGW WenKai KR Light",
+            "LXGW WenKai KR Medium",
+            "LXGW WenKai Mono KR Light",
         ]
         for name in names {
             XCTAssertNotNil(UIFont(name: name, size: 12),

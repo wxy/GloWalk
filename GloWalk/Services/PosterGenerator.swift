@@ -271,16 +271,16 @@ final class PosterGenerator {
             y: size.height - 30, size: size, ctx: ctx)
     }
 
-    // MARK: - WenKai Font Helpers
+    // MARK: - Handwriting Font Helpers (language-aware)
 
     private static func wenKaiLight(_ size: CGFloat) -> UIFont {
-        UIFont(name: "LXGW WenKai Light", size: size) ?? UIFont.systemFont(ofSize: size, weight: .light)
+        GloUIFont.display(size)
     }
     private static func wenKaiRegular(_ size: CGFloat) -> UIFont {
-        UIFont(name: "LXGW WenKai", size: size) ?? UIFont.systemFont(ofSize: size)
+        GloUIFont.body(size)
     }
     private static func wenKaiMedium(_ size: CGFloat) -> UIFont {
-        UIFont(name: "LXGW WenKai Medium", size: size) ?? UIFont.systemFont(ofSize: size, weight: .medium)
+        GloUIFont.headline(size)
     }
 
     // MARK: - Helpers

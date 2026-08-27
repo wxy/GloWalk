@@ -1,25 +1,34 @@
 #!/usr/bin/env python3
-"""Subset the LXGW WenKai fonts to the characters GloWalk actually renders.
+"""Subset the bundled fonts to the characters GloWalk actually renders.
 
-The full CJK fonts are ~25 MB each (103 MB total) and are *not* thinned by
-App Store app thinning, so every user downloads all four. The app's rendered
-text comes from a fixed set of sources (string catalog, taglines, lunar-date
-tables, units), so each face can be subset to:
+The full CJK fonts are large (WenKai ~25 MB/face, Klee One ~9 MB/face,
+WenKai KR ~14 MB/face) and are *not* thinned by App Store app thinning, so
+every user downloads every face. The app's rendered text comes from fixed
+sources (string catalog, taglines, lunar-date tables, units), so each face can
+be subset to:
 
-  * every character in Localizable.xcstrings + InfoPlist.xcstrings +
-    Taglines.json (both keys and values — SwiftUI falls back to key-as-text)
+  * the characters used by its language group's strings (Localizable.xcstrings
+    + InfoPlist.xcstrings + Taglines.json — keys too, since SwiftUI falls back
+    to key-as-text when a localization is missing)
   * hardcoded runtime strings (lunar month/day names, fallback taglines)
-  * GB2312 Level-1 common characters (the 3755 most common Simplified
-    Chinese characters), so future UI copy keeps the WenKai look
+  * a "future buffer" of common characters per script, so future UI copy keeps
+    the bundled look:
+      - GB2312 Level-1 (3755 common Simplified Chinese characters) for WenKai
+      - JIS X 0208 Level-1 (2965 common Japanese kanji) for Klee One
+      - KS X 1001 (2350 common Hangul syllables) for WenKai KR
   * ASCII / Latin-1 plus the punctuation and symbols used by format strings
+  * Latin Extended-A/B + Vietnamese extensions + Cyrillic for the European
+    languages (fr/de/es/pt-BR/it/ru) on the WenKai faces
 
-The original full fonts can be re-downloaded from:
-    https://github.com/lxgw/LxgwWenKai/releases
+Original full fonts:
+  WenKai:     https://github.com/lxgw/LxgwWenKai/releases
+  Klee One:   https://github.com/google/fonts (ofl/kleeone) / fontworks-fonts/Klee
+  WenKai KR:  https://github.com/lxgw/LxgwWenkaiKR/releases
 
 Usage:
-    python3 scripts/subset-fonts.py [FONT_DIR]
+    python3 scripts/subset-fonts.py [SRC_DIR] [OUT_DIR]
 
-Default FONT_DIR is GloWalk/Resources/Fonts (relative to the repo root).
+Default SRC_DIR/OUT_DIR is GloWalk/Resources/Fonts (relative to the repo root).
 """
 
 import json
@@ -33,28 +42,52 @@ from fontTools.ttLib import TTFont
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_FONT_DIR = REPO_ROOT / "GloWalk" / "Resources" / "Fonts"
 
+# Language groups and which Taglines.json field suffix each maps to.
+WENKAI_LANGS = ["en", "zh-Hans", "zh-Hant", "fr", "de", "es", "pt-BR", "it", "ru"]
+JA_LANGS = ["ja"]
+KO_LANGS = ["ko"]
 
-def text_from_xcstrings(path: Path) -> str:
-    """Return every string value *and* every key (keys render as text when a
-    localization is missing) from an .xcstrings catalog."""
+TAGLINE_SUFFIX = {
+    "en": "_en",
+    "zh-Hans": "",
+    "zh-Hant": "_ht",
+    "ja": "_ja",
+    "ko": "_ko",
+    "fr": "_fr",
+    "de": "_de",
+    "es": "_es",
+    "pt-BR": "_pt",
+    "it": "_it",
+    "ru": "_ru",
+}
+
+
+def text_from_xcstrings(path: Path, languages: list[str]) -> str:
+    """Return every string key *and* the values for the given languages (keys
+    render as text when a localization is missing)."""
     data = json.loads(path.read_text(encoding="utf-8"))
     parts: list[str] = []
     for key, entry in data.get("strings", {}).items():
         parts.append(key)
-        for lang, loc in entry.get("localizations", {}).items():
+        for lang in languages:
+            loc = entry.get("localizations", {}).get(lang)
+            if not loc:
+                continue
             unit = loc.get("stringUnit") or loc.get("variations", {}).get("plural", {}).get("other")
             if isinstance(unit, dict) and unit.get("value"):
                 parts.append(str(unit["value"]))
     return "".join(parts)
 
 
-def text_from_taglines(path: Path) -> str:
+def text_from_taglines(path: Path, languages: list[str]) -> str:
     data = json.loads(path.read_text(encoding="utf-8"))
     parts: list[str] = []
     for item in data:
-        for value in item.values():
-            if isinstance(value, str):
-                parts.append(value)
+        for lang in languages:
+            for field in ("phrase", "explanation"):
+                value = item.get(field + TAGLINE_SUFFIX[lang])
+                if isinstance(value, str):
+                    parts.append(value)
     return "".join(parts)
 
 
@@ -67,6 +100,10 @@ HARDCODED_STRINGS = [
     # PosterGenerator date formats
     "M月d日M/d",
 ]
+
+# Japanese HUD units rendered in the WenKai Mono face (shinjitai 歩 is not in
+# GB2312, so it must be requested explicitly for the mono face).
+JA_MONO_UNITS = "歩分"
 
 
 def gb2312_level1_chars() -> str:
@@ -84,10 +121,50 @@ def gb2312_level1_chars() -> str:
     return "".join(chars)
 
 
+def jis_level1_chars() -> str:
+    """The 2965 most common Japanese kanji (JIS X 0208 level 1, rows 16-47,
+    which encode in EUC-JP with a first byte of 0xB0-0xCF)."""
+    chars: list[str] = []
+    for cp in range(0x4E00, 0x9FFF + 1):
+        ch = chr(cp)
+        try:
+            raw = ch.encode("euc_jp")
+        except UnicodeEncodeError:
+            continue
+        if len(raw) == 2 and 0xB0 <= raw[0] <= 0xCF:
+            chars.append(ch)
+    return "".join(chars)
+
+
+def ko_common_syllables() -> str:
+    """The 2350 Hangul syllables of KS X 1001 (the standard's "ga-na-da" table,
+    ordered by frequency; the de-facto common-Korean set every Korean font
+    ships). Stored as a separate data file so the script stays readable."""
+    path = Path(__file__).resolve().parent / "ks-x-1001-syllables.txt"
+    return path.read_text(encoding="utf-8").strip()
+
+
 BASE_RANGES = [
     (0x0020, 0x007E),   # ASCII
     (0x00A0, 0x00FF),   # Latin-1 supplement
     (0x3000, 0x303F),   # CJK punctuation
+]
+
+# Latin Extended-A/B, Latin Extended Additional (Vietnamese), Cyrillic —
+# the glyphs needed by the Tier-2 European languages (fr/de/es/pt-BR/it/ru).
+# Verified against the full LXGW WenKai v1.522 fonts: Ext-A 128/128,
+# Ext-B 208/208, VN 256/256, common Cyrillic letters (ru/uk/be/bg/sr) present.
+EUROPEAN_RANGES = [
+    (0x0100, 0x017F),   # Latin Extended-A
+    (0x0180, 0x024F),   # Latin Extended-B
+    (0x1E00, 0x1EFF),   # Latin Extended Additional (Vietnamese)
+    (0x0400, 0x04FF),   # Cyrillic
+]
+
+# Japanese kana for the Klee One faces.
+JP_RANGES = [
+    (0x3040, 0x309F),   # Hiragana
+    (0x30A0, 0x30FF),   # Katakana
 ]
 
 BASE_EXTRA = (
@@ -97,8 +174,8 @@ BASE_EXTRA = (
 )
 
 
-def used_text() -> str:
-    parts = list(HARDCODED_STRINGS)
+def used_text_for(languages: list[str], extra: list[str]) -> str:
+    parts = list(extra)
     for rel in [
         "GloWalk/Resources/Localizable.xcstrings",
         "GloWalk/Resources/InfoPlist.xcstrings",
@@ -106,10 +183,9 @@ def used_text() -> str:
     ]:
         path = REPO_ROOT / rel
         if path.suffix == ".json" and path.name == "Taglines.json":
-            parts.append(text_from_taglines(path))
+            parts.append(text_from_taglines(path, languages))
         else:
-            parts.append(text_from_xcstrings(path))
-    parts.append(gb2312_level1_chars())
+            parts.append(text_from_xcstrings(path, languages))
     return "".join(parts)
 
 
@@ -117,7 +193,22 @@ def unicodes_from_text(text: str) -> set[int]:
     return {ord(ch) for ch in text if ord(ch) > 0x1F}
 
 
-def subset_font(src: Path, dst: Path, unicodes: set[int]) -> None:
+def rename_family(font: TTFont, family: str, typographic_family: str,
+                  subfamily: str) -> None:
+    """Rename a face so UIFont(name:) resolves via its English family name,
+    mirroring the LXGW WenKai naming convention (e.g. "LXGW WenKai KR Medium").
+    Only touches the name records that iOS consults."""
+    for record in font["name"].names:
+        if record.nameID in (1, 4):
+            record.string = family
+        elif record.nameID == 16:
+            record.string = typographic_family
+        elif record.nameID == 17:
+            record.string = subfamily
+
+
+def subset_font(src: Path, dst: Path, unicodes: set[int],
+                rename: tuple[str, str, str] | None) -> set[int]:
     opts = Options()
     opts.layout_features = ["*"]
     opts.name_IDs = ["*"]
@@ -136,6 +227,8 @@ def subset_font(src: Path, dst: Path, unicodes: set[int]) -> None:
     subsetter = Subsetter(options=opts)
     subsetter.populate(unicodes=unicodes)
     subsetter.subset(font)
+    if rename:
+        rename_family(font, *rename)
     font.save(dst)
     return source_cmap
 
@@ -154,31 +247,66 @@ def missing_chars(font_path: Path, source_cmap: set[int],
     return required - subset_cmap
 
 
+# (source, output, family rename, language groups, future set, extra text,
+#  extra ranges)
+FACES = [
+    # ---- LXGW WenKai SC: zh / en / Tier-2 European languages ----
+    ("LXGWWenKai-Light.ttf", "LXGWWenKai-Light.ttf", None,
+     WENKAI_LANGS, gb2312_level1_chars(), HARDCODED_STRINGS, EUROPEAN_RANGES),
+    ("LXGWWenKai-Regular.ttf", "LXGWWenKai-Regular.ttf", None,
+     WENKAI_LANGS, gb2312_level1_chars(), HARDCODED_STRINGS, EUROPEAN_RANGES),
+    ("LXGWWenKai-Medium.ttf", "LXGWWenKai-Medium.ttf", None,
+     WENKAI_LANGS, gb2312_level1_chars(), HARDCODED_STRINGS, EUROPEAN_RANGES),
+    # Mono also renders Japanese HUD units (歩/分) for the HUD data strip.
+    ("LXGWWenKaiMono-Light.ttf", "LXGWWenKaiMono-Light.ttf", None,
+     WENKAI_LANGS, gb2312_level1_chars(),
+     HARDCODED_STRINGS + [JA_MONO_UNITS], EUROPEAN_RANGES),
+    # ---- Klee One: Japanese (the original font LXGW WenKai derives from) ----
+    ("KleeOne-Regular.ttf", "KleeOne-Regular.ttf", None,
+     JA_LANGS, jis_level1_chars(), [], JP_RANGES),
+    ("KleeOne-SemiBold.ttf", "KleeOne-SemiBold.ttf", None,
+     JA_LANGS, jis_level1_chars(), [], JP_RANGES),
+    # ---- LXGW WenKai KR: Korean (official Korean edition of WenKai) ----
+    ("LXGWWenKaiKR-Light.ttf", "LXGWWenKaiKR-Light.ttf",
+     ("LXGW WenKai KR Light", "LXGW WenKai KR", "Light"),
+     KO_LANGS, ko_common_syllables(), [], []),
+    ("LXGWWenKaiKR-Regular.ttf", "LXGWWenKaiKR-Regular.ttf",
+     ("LXGW WenKai KR", "LXGW WenKai KR", "Regular"),
+     KO_LANGS, ko_common_syllables(), [], []),
+    ("LXGWWenKaiKR-Medium.ttf", "LXGWWenKaiKR-Medium.ttf",
+     ("LXGW WenKai KR Medium", "LXGW WenKai KR", "Medium"),
+     KO_LANGS, ko_common_syllables(), [], []),
+    ("LXGWWenKaiMonoKR-Light.ttf", "LXGWWenKaiMonoKR-Light.ttf",
+     ("LXGW WenKai Mono KR Light", "LXGW WenKai Mono KR", "Light"),
+     KO_LANGS, ko_common_syllables(), [], []),
+]
+
+
 def main() -> None:
-    font_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_FONT_DIR
-    faces = [
-        "LXGWWenKai-Light.ttf",
-        "LXGWWenKai-Regular.ttf",
-        "LXGWWenKai-Medium.ttf",
-        "LXGWWenKaiMono-Light.ttf",
-    ]
-    unicodes = unicodes_from_text(used_text())
-    for start, end in BASE_RANGES:
-        unicodes |= set(range(start, end + 1))
-    unicodes |= {ord(ch) for ch in BASE_EXTRA}
-    unicodes.add(0xF8FF)  # Apple logo used by " Weather"
+    args = [Path(a) for a in sys.argv[1:3]]
+    src_dir = args[0] if args else DEFAULT_FONT_DIR
+    out_dir = args[1] if len(args) > 1 else src_dir
 
     total_before = 0
     total_after = 0
-    for face in faces:
-        src = font_dir / face
+    for face, out_name, rename, languages, future, extra, extra_ranges in FACES:
+        src = src_dir / face
         if not src.exists():
             print(f"SKIP {face}: not found")
             continue
+        dst = out_dir / out_name
         size_before = src.stat().st_size
-        tmp = src.with_suffix(".subset.ttf")
-        source_cmap = subset_font(src, tmp, unicodes)
-        # Sanity check: every used character must survive in the subset.
+        unicodes = unicodes_from_text(used_text_for(languages, extra))
+        unicodes |= {ord(ch) for ch in future}
+        for start, end in BASE_RANGES:
+            unicodes |= set(range(start, end + 1))
+        unicodes |= {ord(ch) for ch in BASE_EXTRA}
+        for start, end in extra_ranges:
+            unicodes |= set(range(start, end + 1))
+        unicodes.add(0xF8FF)  # Apple logo used by " Weather"
+
+        tmp = src.with_name(face + ".subset.ttf")
+        source_cmap = subset_font(src, tmp, unicodes, rename)
         missing = missing_chars(tmp, source_cmap, unicodes)
         if missing:
             sample = " ".join(f"U+{cp:04X}" for cp in sorted(missing)[:20])
@@ -186,11 +314,11 @@ def main() -> None:
         else:
             covered = len(source_cmap & unicodes)
             print(f"OK   {face}: all {covered} requested glyphs preserved")
-        tmp.replace(src)
-        size_after = src.stat().st_size
+        tmp.replace(dst)
+        size_after = dst.stat().st_size
         total_before += size_before
         total_after += size_after
-        print(f"{face}: {size_before / 1e6:.1f}MB -> {size_after / 1e6:.1f}MB")
+        print(f"{out_name}: {size_before / 1e6:.1f}MB -> {size_after / 1e6:.1f}MB")
     print(f"TOTAL: {total_before / 1e6:.1f}MB -> {total_after / 1e6:.1f}MB "
           f"({(1 - total_after / total_before) * 100:.0f}% reduction)")
 

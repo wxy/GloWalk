@@ -118,16 +118,30 @@ enum L10n {
     // they follow Bundle's effective language (incl. the in-app override) and
     // support every language added to Localizable.xcstrings.
 
-    /// Resolved language code ("en" / "zh-Hans" / "zh-Hant") from the user preference.
+    /// Resolved language code ("en" / "zh-Hans" / "zh-Hant" / "ja" / "ko" /
+    /// "fr" / "de" / "es" / "pt-BR" / "it" / "ru") from the user preference.
     static var languageCode: String {
         switch UserPreferences.shared.language {
         case "en": return "en"
         case "zh-Hans": return "zh-Hans"
         case "zh-Hant": return "zh-Hant"
+        case "ja": return "ja"
+        case "ko": return "ko"
+        case "fr": return "fr"
+        case "de": return "de"
+        case "es": return "es"
+        case "pt-BR": return "pt-BR"
+        case "it": return "it"
+        case "ru": return "ru"
         default:
             let lang = Locale.preferredLanguages.first ?? "en"
             if lang.hasPrefix("zh") {
                 return lang.contains("Hant") ? "zh-Hant" : "zh-Hans"
+            }
+            for code in ["ja", "ko", "fr", "de", "es", "pt-BR", "it", "ru"] {
+                if lang == code || lang.hasPrefix(code) {
+                    return code
+                }
             }
             return "en"
         }

@@ -69,6 +69,14 @@ struct SettingsView: View {
             Text("English").tag("en")
             Text(L10n.settingsLanguageSimplified).tag("zh-Hans")
             Text(L10n.settingsLanguageTraditional).tag("zh-Hant")
+            Text("日本語").tag("ja")
+            Text("한국어").tag("ko")
+            Text("Français").tag("fr")
+            Text("Deutsch").tag("de")
+            Text("Español").tag("es")
+            Text("Português").tag("pt-BR")
+            Text("Italiano").tag("it")
+            Text("Русский").tag("ru")
         }
         .font(.gloBody(14)).foregroundColor(.white)
     }

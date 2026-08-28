@@ -164,10 +164,10 @@ final class HUDViewModel: ObservableObject {
 
     private func startSensorLoop() {
         UIDevice.current.isBatteryMonitoringEnabled = true
-        // Timer's block is @Sendable; hop to MainActor explicitly instead of
-        // MainActor.assumeIsolated, which emits "unsafeForcedSync called from
-        // Swift Concurrent context" because the runtime treats the block as a
-        // concurrent context even though it fires on the main run loop.
+        // Timer's block is @Sendable, so hop to MainActor explicitly. (The
+        // "unsafeForcedSync called from Swift Concurrent context" log is
+        // unrelated noise from the system AXCoreUtilities framework; it also
+        // appears in an empty project and cannot be silenced from app code.)
         sensorTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.tick()

@@ -216,14 +216,45 @@ final class SensorManager: ObservableObject {
         do {
             try device.lockForConfiguration()
             device.activeFormat = fmt
-            // Pin the device to 30fps (SDK: connection-level frame-duration
-            // APIs are unavailable; set the device's active durations instead).
-            let dur = CMTime(value: 1, timescale: 30)
+            // Pin the device to a low frame rate: the app consumes ~2 Hz
+            // samples, so running the sensor at 30 fps wastes the single
+            // biggest power/heat budget in the app (front + back ISP on
+            // multi-cam devices). Use 5 fps, or the slowest rate the format
+            // supports when it can't go that low. (SDK: connection-level
+            // frame-duration APIs are unavailable; set the device's active
+            // durations instead.)
+            let target = CMTime(value: 1, timescale: 5)
+            let slowest = fmt.videoSupportedFrameRateRanges
+                .map(\.maxFrameDuration)
+                .filter { CMTimeGetSeconds($0).isFinite && CMTimeGetSeconds($0) > 0 }
+                .max { CMTimeCompare($0, $1) < 0 } ?? target
+            let dur = CMTimeCompare(slowest, target) < 0 ? slowest : target
             device.activeVideoMinFrameDuration = dur
             device.activeVideoMaxFrameDuration = dur
             device.unlockForConfiguration()
         } catch {
             Log.error("[Sensor] Set multi-cam format failed: \(error)")
+        }
+    }
+
+    /// Pin the active format to the slowest frame rate we can get: 5 fps, or
+    /// the format's slowest supported rate if that's higher. The ambient/back
+    /// delegates already throttle their work to ~2 Hz, so a 30 fps sensor is
+    /// pure power and heat (dual-camera ISP is the biggest draw in the app).
+    private func pinLowFrameRate(on device: AVCaptureDevice) {
+        let target = CMTime(value: 1, timescale: 5)
+        let slowest = device.activeFormat.videoSupportedFrameRateRanges
+            .map(\.maxFrameDuration)
+            .filter { CMTimeGetSeconds($0).isFinite && CMTimeGetSeconds($0) > 0 }
+            .max { CMTimeCompare($0, $1) < 0 } ?? target
+        let dur = CMTimeCompare(slowest, target) < 0 ? slowest : target
+        do {
+            try device.lockForConfiguration()
+            device.activeVideoMinFrameDuration = dur
+            device.activeVideoMaxFrameDuration = dur
+            device.unlockForConfiguration()
+        } catch {
+            Log.error("[Sensor] Pin low frame rate failed: \(error)")
         }
     }
 
@@ -321,6 +352,10 @@ final class SensorManager: ObservableObject {
 
         captureDevice = device
         setMultiCamFormat(on: device)
+        // setMultiCamFormat returns early on devices without multi-cam formats,
+        // so pin the low frame rate explicitly — the front sensor is the
+        // always-on power draw for the whole walk.
+        pinLowFrameRate(on: device)
         // Continuous auto-exposure so the camera naturally tracks the scene
         // light between the periodic re-triggers.
         do {
@@ -591,9 +626,9 @@ final class SensorManager: ObservableObject {
             let pitch = motion.attitude.pitch * 180 / .pi
             let roll  = motion.attitude.roll  * 180 / .pi
             // The callback is a Sendable concurrent context even though it fires
-            // on the main run loop — writing the MainActor-isolated properties
-            // directly trips the runtime "unsafeForcedSync called from Swift
-            // Concurrent context" log. Hop to MainActor like the other callbacks.
+            // on the main run loop. Hop to MainActor like the other callbacks.
+            // (The "unsafeForcedSync called from Swift Concurrent context" log
+            // is unrelated system AXCoreUtilities noise, not this callback.)
             Task { @MainActor in
                 self?.devicePitch = abs(pitch)
                 self?.deviceRoll  = abs(roll)

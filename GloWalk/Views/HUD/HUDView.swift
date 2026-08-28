@@ -436,8 +436,9 @@ struct HUDView: View {
         // Flowing "water" on the bar: a sine wave of brightness travels along
         // the lit segments (screen → right, torch → left) so the bar reads as a
         // living level. Deliberately no shadows — the flow comes from the
-        // traveling brightness crest, keeping GPU cost low.
-        return TimelineView(.animation(minimumInterval: 1.0 / 20.0)) { context in
+        // traveling brightness crest, keeping GPU cost low. 5 fps is enough for
+        // the subtle crest motion and halves the render cost again vs 20 fps.
+        return TimelineView(.animation(minimumInterval: 1.0 / 5.0)) { context in
             let phase = context.date.timeIntervalSinceReferenceDate * 3.0
             HStack(spacing: 2) {
                 // Same-width slots on both sides (a transparent placeholder

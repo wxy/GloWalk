@@ -626,9 +626,9 @@ final class SensorManager: ObservableObject {
             let pitch = motion.attitude.pitch * 180 / .pi
             let roll  = motion.attitude.roll  * 180 / .pi
             // The callback is a Sendable concurrent context even though it fires
-            // on the main run loop — writing the MainActor-isolated properties
-            // directly trips the runtime "unsafeForcedSync called from Swift
-            // Concurrent context" log. Hop to MainActor like the other callbacks.
+            // on the main run loop. Hop to MainActor like the other callbacks.
+            // (The "unsafeForcedSync called from Swift Concurrent context" log
+            // is unrelated system AXCoreUtilities noise, not this callback.)
             Task { @MainActor in
                 self?.devicePitch = abs(pitch)
                 self?.deviceRoll  = abs(roll)

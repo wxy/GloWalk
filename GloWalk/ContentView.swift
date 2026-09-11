@@ -90,6 +90,7 @@ struct ContentView: View {
             }
         }
         .onChange(of: scenePhase) { phase in
+            if phase == .background { hudViewModel.didEnterBackground() }
             if phase == .active {
                 retryHealthSync()
             }

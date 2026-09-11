@@ -9,6 +9,8 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     @Published var isRecording: Bool = false
 
     private let manager = CLLocationManager()
+    private var segmentID: Int64 = 0
+    private var recordingStartedAt = Date.distantPast
     private var currentSession: WalkSession?
     private var lastRecordedCoord: CLLocationCoordinate2D?  // last valid GPS point saved to path
     private var lastStepCount: Int = 0
@@ -49,6 +51,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
     /// Call from sensor loop with current step count. Estimates position
     /// using stride length (~0.7m) × heading when GPS is unavailable.
     func updateDeadReckoning(stepCount: Int, heading: Double) {
+        guard isRecording else { return }
         let stepDelta = stepCount - lastStepCount
         lastStepCount = stepCount
 
@@ -85,7 +88,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                 _ = PathPoint.create(in: ctx, lat: estLat, lon: estLon,
                                      ambientLight: currentAmbientLight,
                                      torchBrightness: currentTorchBrightness,
-                                     session: session)
+                                     session: session, segmentID: segmentID)
                 batchSaveIfDue()
             }
         }
@@ -93,7 +96,17 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
 
     func startRecording(session: WalkSession) {
         currentSession = session
-        totalDistance = 0
+        totalDistance = session.totalDistance
+        segmentID = (session.pathPointsArray.map(\.segmentID).max() ?? -1) + 1
+        recordingStartedAt = Date()
+        lastRecordedCoord = nil
+        estimatedLat = nil
+        estimatedLon = nil
+        currentLocation = nil
+        currentHeading = nil
+        lastStepCount = 0
+        lastGPSRecordedStepCount = 0
+        externalStepCount = 0
         authorizationStatus = manager.authorizationStatus
         isRecording = true
         manager.requestWhenInUseAuthorization()
@@ -119,7 +132,9 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
 
     func locationManager(_ manager: CLLocationManager,
                          didUpdateLocations locations: [CLLocation]) {
-        guard let location = locations.last, let session = currentSession else { return }
+        guard isRecording, let location = locations.last,
+              location.timestamp >= recordingStartedAt,
+              let session = currentSession else { return }
         currentLocation = location
         // Reset dead reckoning origin when GPS gives a good fix
         if location.horizontalAccuracy < 30 {
@@ -161,7 +176,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
             _ = PathPoint.create(in: ctx, lat: newLat, lon: newLon,
                                  ambientLight: currentAmbientLight,
                                  torchBrightness: currentTorchBrightness,
-                                 session: session)
+                                 session: session, segmentID: segmentID)
             batchSaveIfDue()
         } else {
             if let prev = lastRecordedCoord {
@@ -173,7 +188,7 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
                                  lon: location.coordinate.longitude,
                                  ambientLight: currentAmbientLight,
                                  torchBrightness: currentTorchBrightness,
-                                 session: session)
+                                 session: session, segmentID: segmentID)
             batchSaveIfDue()
         }
     }

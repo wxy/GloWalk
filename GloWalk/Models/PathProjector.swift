@@ -1,4 +1,5 @@
 import CoreLocation
+import CoreGraphics
 
 /// Shared GPS→screen coordinate projector used by both HUD and poster.
 final class PathProjector {
@@ -9,6 +10,7 @@ final class PathProjector {
         let latitude: Double
         let longitude: Double
         let torchBrightness: Double
+        var segmentID: Int64 = 0
     }
 
     private let points: [Point]
@@ -22,15 +24,23 @@ final class PathProjector {
     /// Douglas-Peucker are pure functions of (points, area, tunables), and
     /// `forEachSegment` + `anchors()` both consume it — computing it once
     /// avoids repeating the O(n) simplification twice per rendered frame.
-    private lazy var simplified: SimplifiedPath? = computeSimplifiedPath().map {
-        SimplifiedPath(points: $0.points, segTorch: $0.torch)
-    }
+    private lazy var simplified: [SimplifiedPath] = {
+        var groups: [[Point]] = []
+        for point in points {
+            if groups.last?.last?.segmentID == point.segmentID {
+                groups[groups.count - 1].append(point)
+            } else { groups.append([point]) }
+        }
+        return groups.compactMap { computeSimplifiedPath(points: $0) }.map {
+            SimplifiedPath(points: $0.points, segTorch: $0.torch)
+        }
+    }()
 
     convenience init?(points: [PathPoint], area: CGRect) {
         self.init(points: points.map {
             Point(latitude: $0.latitude,
                   longitude: $0.longitude,
-                  torchBrightness: $0.torchBrightness)
+                  torchBrightness: $0.torchBrightness, segmentID: $0.segmentID)
         }, area: area)
     }
 
@@ -129,22 +139,23 @@ final class PathProjector {
     /// — the mean torch (flashlight) brightness of every original point the
     /// segment represents after simplification.
     func forEachSegment(_ drawSegment: (CGPoint, CGPoint, CGPoint, CGPoint, Double) -> Void) {
-        guard let path = simplified else { return }
-        let aPts = path.points
-        let aSegTorch = path.segTorch
+        for path in simplified {
+            let aPts = path.points
+            let aSegTorch = path.segTorch
 
-        for i in 0..<(aPts.count - 1) {
-            let p0 = aPts[max(i - 1, 0)]
-            let p1 = aPts[i]
-            let p2 = aPts[i + 1]
-            let p3 = aPts[min(i + 2, aPts.count - 1)]
+            for i in 0..<(aPts.count - 1) {
+                let p0 = aPts[max(i - 1, 0)]
+                let p1 = aPts[i]
+                let p2 = aPts[i + 1]
+                let p3 = aPts[min(i + 2, aPts.count - 1)]
 
-            let cp1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6.0,
-                              y: p1.y + (p2.y - p0.y) / 6.0)
-            let cp2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6.0,
-                              y: p2.y - (p3.y - p1.y) / 6.0)
+                let cp1 = CGPoint(x: p1.x + (p2.x - p0.x) / 6.0,
+                                  y: p1.y + (p2.y - p0.y) / 6.0)
+                let cp2 = CGPoint(x: p2.x - (p3.x - p1.x) / 6.0,
+                                  y: p2.y - (p3.y - p1.y) / 6.0)
 
-            drawSegment(p1, p2, cp1, cp2, aSegTorch[i])
+                drawSegment(p1, p2, cp1, cp2, aSegTorch[i])
+            }
         }
     }
 
@@ -152,7 +163,7 @@ final class PathProjector {
     /// once, returning the anchor array the curve is drawn through plus one
     /// torch value per segment. Shared by the drawing pass and the footprint
     /// markers so both describe exactly the same curve.
-    private func computeSimplifiedPath() -> (points: [CGPoint], torch: [Double])? {
+    private func computeSimplifiedPath(points: [Point]) -> (points: [CGPoint], torch: [Double])? {
         guard points.count >= 2 else { return nil }
 
         // Project once; drop points that land on the same spot (GPS jitter in
@@ -203,7 +214,7 @@ final class PathProjector {
     /// first and last original points always survive, so the front footprint
     /// marker can sit exactly on the curve's end tip.
     func anchors() -> [CGPoint] {
-        simplified?.points ?? []
+        simplified.flatMap(\.points)
     }
 
     // MARK: - Douglas-Peucker simplification

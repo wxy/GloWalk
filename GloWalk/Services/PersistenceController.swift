@@ -1,52 +1,56 @@
 import CoreData
+import Combine
 
-struct PersistenceController {
+final class PersistenceController: ObservableObject {
     static let shared = PersistenceController()
-
     let container: NSPersistentContainer
+    @Published private(set) var loadFailed = false
 
-    init(inMemory: Bool = false) {
+    init(inMemory: Bool = false, storeURL: URL? = nil) {
         container = NSPersistentContainer(name: "GloWalk")
+        if let storeURL { container.persistentStoreDescriptions.first?.url = storeURL }
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
         }
-        loadStores(recreatingOnFailure: !inMemory)
+        container.persistentStoreDescriptions.first?.shouldMigrateStoreAutomatically = true
+        container.persistentStoreDescriptions.first?.shouldInferMappingModelAutomatically = true
+        loadStores()
         container.viewContext.automaticallyMergesChangesFromParent = true
     }
 
-    /// Load the store; if it fails (e.g. an incompatible model after an update),
-    /// delete the on-disk store and retry once, then fall back to an in-memory
-    /// store so the app still launches instead of crashing.
-    private func loadStores(recreatingOnFailure: Bool) {
-        var loadError: Error?
-        container.loadPersistentStores { _, error in loadError = error }
-        guard let error = loadError else { return }
-        Log.error("Core Data load failed: \(error.localizedDescription)")
-        guard recreatingOnFailure else { return }
-
-        if let url = container.persistentStoreDescriptions.first?.url {
-            let fm = FileManager.default
-            for suffix in ["", "-wal", "-shm"] {
-                let sidecar = url.deletingLastPathComponent()
-                    .appendingPathComponent(url.lastPathComponent + suffix)
-                try? fm.removeItem(at: sidecar)
-            }
+    /// Never delete an unreadable store or silently start an empty replacement.
+    func loadStores() {
+        container.loadPersistentStores { _, error in
+            self.loadFailed = error != nil
+            if let error { Log.error("Core Data load failed: \(error.localizedDescription)") }
         }
+    }
 
-        var retryError: Error?
-        container.loadPersistentStores { _, error in retryError = error }
-        guard let retryError else { return }
-        Log.error("Core Data recovery failed, using in-memory store: \(retryError.localizedDescription)")
-        container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
-        container.loadPersistentStores { _, _ in }
+    /// Finish only complete checkpointed fragments after process termination.
+    /// Missing sensor data is never synthesized to make an incomplete walk pass.
+    func recoverInterruptedWalks() {
+        guard !loadFailed else { return }
+        let request: NSFetchRequest<WalkSession> = NSFetchRequest(entityName: "WalkSession")
+        request.predicate = NSPredicate(format: "endTime == nil")
+        do {
+            for session in try container.viewContext.fetch(request) {
+                if session.isCompleteRecord, let checkpoint = session.lastCheckpoint {
+                    session.endTime = checkpoint
+                    session.endType = "interrupted"
+                    session.healthSyncState = HealthSyncState.pending.rawValue
+                } else {
+                    container.viewContext.delete(session)
+                }
+            }
+            save()
+        } catch { Log.error("Walk recovery failed: \(error)") }
     }
 
     func save() {
+        guard !loadFailed else { return }
         let context = container.viewContext
         if context.hasChanges {
-            do { try context.save() } catch {
-                Log.error("Core Data save error: \(error)")
-            }
+            do { try context.save() } catch { Log.error("Core Data save error: \(error)") }
         }
     }
 }

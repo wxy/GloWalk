@@ -2,6 +2,7 @@ import CoreData
 
 @objc(PathPoint)
 public class PathPoint: NSManagedObject {
+    @NSManaged public var segmentID: Int64
     @NSManaged public var latitude: Double
     @NSManaged public var longitude: Double
     @NSManaged public var timestamp: Date?
@@ -15,8 +16,9 @@ public class PathPoint: NSManagedObject {
                        lat: Double, lon: Double,
                        ambientLight: Double,
                        torchBrightness: Double,
-                       session: WalkSession) -> PathPoint {
-        let point = PathPoint(context: context)
+                       session: WalkSession, segmentID: Int64 = 0) -> PathPoint {
+        let point = PathPoint(entity: NSEntityDescription.entity(forEntityName: "PathPoint", in: context)!, insertInto: context)
+        point.segmentID = segmentID
         point.latitude = lat
         point.longitude = lon
         point.timestamp = Date()

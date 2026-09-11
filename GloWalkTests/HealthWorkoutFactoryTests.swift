@@ -69,11 +69,9 @@ final class HealthWorkoutFactoryTests: XCTestCase {
         XCTAssertTrue(HealthWorkoutFactory.routeLocations(session: session).isEmpty)
     }
 
-    func testRouteLocationsSortedAndFiltered() {
+    func testRouteCoordinatesAreNotExportedEvenWhenPresent() {
         let (session, _) = makeSession()
-        let locations = HealthWorkoutFactory.routeLocations(session: session)
-        XCTAssertEqual(locations.count, 2)
-        XCTAssertEqual(locations[0].coordinate.latitude, 31.0, accuracy: 0.0001)
-        XCTAssertEqual(locations[1].coordinate.longitude, 121.01, accuracy: 0.0001)
+        XCTAssertEqual(session.pathPointsArray.count, 2)
+        XCTAssertTrue(HealthWorkoutFactory.routeLocations(session: session).isEmpty)
     }
 }

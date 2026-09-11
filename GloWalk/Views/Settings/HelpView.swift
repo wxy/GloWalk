@@ -18,6 +18,7 @@ struct HelpView: View {
                              title: L10n.helpEndTitle, desc: L10n.helpEndDesc)
                     helpItem(icon: "arrow.down",
                              title: L10n.helpDismissTitle, desc: L10n.helpDismissDesc)
+                    helpItem(icon: "moon", title: "help.quietTitle", desc: "help.quietDesc")
                     helpItem(icon: "clock.arrow.circlepath",
                              title: L10n.helpHistoryTitle, desc: L10n.helpHistoryDesc)
                 }

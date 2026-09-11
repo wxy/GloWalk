@@ -99,6 +99,7 @@ final class SensorManager: ObservableObject {
         captureSession = nil
         captureDevice = nil
         motionManager.stopDeviceMotionUpdates()
+        pedometerEpoch += 1
         pedometer.stopUpdates()
     }
 
@@ -638,12 +639,18 @@ final class SensorManager: ObservableObject {
 
     // MARK: - Pedometer
 
+    private var pedometerEpoch = 0
+
     private func startPedometer() {
+        pedometerEpoch += 1
+        let epoch = pedometerEpoch
+        stepCount = 0
         guard CMPedometer.isStepCountingAvailable() else { return }
         pedometer.startUpdates(from: Date()) { [weak self] data, _ in
             guard let data = data else { return }
             Task { @MainActor in
-                self?.stepCount = data.numberOfSteps.intValue
+                guard let self, self.pedometerEpoch == epoch else { return }
+                self.stepCount = data.numberOfSteps.intValue
             }
         }
     }

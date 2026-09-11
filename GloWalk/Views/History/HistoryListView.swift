@@ -5,7 +5,7 @@ struct HistoryListView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \WalkSession.startTime, ascending: false)],
-        predicate: NSPredicate(format: "endType != %@ AND totalSteps > 0 AND totalDistance > 0", "abandoned"),
+        predicate: NSPredicate(format: "endTime != nil AND endType != %@ AND totalSteps > 0 AND totalDistance > 0", "abandoned"),
         animation: .default
     ) private var sessions: FetchedResults<WalkSession>
     /// True while a walk is in progress — shows the "Resume Walk" banner and
@@ -17,6 +17,8 @@ struct HistoryListView: View {
     let onNewWalk: () -> Void
     @State private var selectedSession: WalkSession?
     @State private var showSettings = false
+    @State private var showNightMemories = false
+    @AppStorage(NightMemoryDiscovery.unseenDefaultsKey) private var hasUnseenNightMemory = false
 
     var body: some View {
         ZStack {
@@ -36,23 +38,48 @@ struct HistoryListView: View {
                 } else {
                     VStack(spacing: 0) {
                         // Header
-                        HStack {
-                            Button(action: { showSettings = true }) {
-                                Image(systemName: "gearshape")
-                                    .font(.system(size: 16))
-                                    .foregroundColor(.gloGold.opacity(0.4))
-                            }
-                            Spacer()
+                        ZStack {
                             Text(L10n.historyTitle)
                                 .font(.gloHeadline(17))
                                 .foregroundColor(.gloGold)
-                            Spacer()
-                            // "New Walk" only when no walk is in progress — while a
-                            // walk is active the resume banner is the primary action.
-                            if !hasActiveWalk {
-                                Button(L10n.historyNewWalk) { onNewWalk() }
-                                    .font(.gloBody(14))
-                                    .foregroundColor(.gloGold)
+
+                            HStack {
+                                HStack(spacing: 16) {
+                                    Button(action: { showSettings = true }) {
+                                        Image(systemName: "gearshape")
+                                    }
+                                    .accessibilityLabel(L10n.settingsTitle)
+                                    Button(action: {
+                                        hasUnseenNightMemory = false
+                                        showNightMemories = true
+                                    }) {
+                                        Image(systemName: "rectangle.stack")
+                                            .frame(width: 22, height: 22)
+                                            .overlay(alignment: .topTrailing) {
+                                                if hasUnseenNightMemory {
+                                                    Circle()
+                                                        .fill(Color.gloGold)
+                                                        .frame(width: 7, height: 7)
+                                                        .offset(x: 1, y: -1)
+                                                        .accessibilityHidden(true)
+                                                }
+                                            }
+                                    }
+                                    .accessibilityLabel(Text(verbatim: hasUnseenNightMemory
+                                        ? "\(NightMemoryCollectionView.localizedTitle), \(NightMemoryCollectionView.localizedNewImprint)"
+                                        : NightMemoryCollectionView.localizedTitle))
+                                }
+                                .font(.system(size: 16))
+                                .foregroundColor(.gloGold.opacity(0.5))
+
+                                Spacer()
+                                // "New Walk" only when no walk is in progress — while a
+                                // walk is active the resume banner is the primary action.
+                                if !hasActiveWalk {
+                                    Button(L10n.historyNewWalk) { onNewWalk() }
+                                        .font(.gloBody(14))
+                                        .foregroundColor(.gloGold)
+                                }
                             }
                         }
                         .padding(.horizontal, 20)
@@ -87,8 +114,8 @@ struct HistoryListView: View {
                                                     .font(.gloBody(12))
                                                 Text("📏\(String(format: "%.0f", session.totalDistance))\(L10n.historyUnitMeters)")
                                                     .font(.gloBody(12))
-                                                if let end = session.endTime {
-                                                    let min = Int(end.timeIntervalSince(session.wrappedStartTime) / 60)
+                                                if session.endTime != nil {
+                                                    let min = Int(session.duration / 60)
                                                     Text("⏱\(min)\(L10n.historyUnitMinutes)").font(.gloBody(12))
                                                 }
                                             }
@@ -118,6 +145,9 @@ struct HistoryListView: View {
             }
         }
         .sheet(isPresented: $showSettings) { SettingsView() }
+        .sheet(isPresented: $showNightMemories) {
+            NightMemoryCollectionView(sessions: Array(sessions))
+        }
         .fullScreenCover(item: $selectedSession) { session in
             HistoryPosterView(
                 sessions: Array(sessions),

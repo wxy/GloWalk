@@ -15,10 +15,10 @@ enum HealthWorkoutFactory {
             activityType: .walking,
             start: start,
             end: end,
-            duration: end.timeIntervalSince(start),
+            duration: session.duration,
             totalEnergyBurned: nil,
             totalDistance: distance > 0 ? HKQuantity(unit: .meter(), doubleValue: distance) : nil,
-            metadata: [sessionIDMetadataKey: session.id?.uuidString ?? UUID().uuidString]
+            metadata: metadata(session: session, kind: "workout")
         )
     }
 
@@ -30,32 +30,26 @@ enum HealthWorkoutFactory {
             result.append(HKQuantitySample(
                 type: HKQuantityType.quantityType(forIdentifier: .stepCount)!,
                 quantity: HKQuantity(unit: .count(), doubleValue: Double(session.totalSteps)),
-                start: start, end: end))
+                start: start, end: end, metadata: metadata(session: session, kind: "steps")))
         }
         if session.totalDistance > 0 {
             result.append(HKQuantitySample(
                 type: HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)!,
                 quantity: HKQuantity(unit: .meter(), doubleValue: session.totalDistance),
-                start: start, end: end))
+                start: start, end: end, metadata: metadata(session: session, kind: "distance")))
         }
         return result
     }
 
+    static func metadata(session: WalkSession, kind: String) -> [String: Any] {
+        let id = session.id?.uuidString ?? session.objectID.uriRepresentation().absoluteString
+        return [sessionIDMetadataKey: id,
+                HKMetadataKeySyncIdentifier: "glowalk.\(id).\(kind)",
+                HKMetadataKeySyncVersion: 1]
+    }
+
     static func routeLocations(session: WalkSession) -> [CLLocation] {
-        let points = session.pathPointsArray
-            .filter { $0.latitude != 0 || $0.longitude != 0 }
-            .sorted { ($0.timestamp ?? .distantPast) < ($1.timestamp ?? .distantPast) }
-        guard points.count >= 2 else { return [] }
-        return points.map { point in
-            CLLocation(
-                coordinate: CLLocationCoordinate2D(latitude: point.latitude,
-                                                   longitude: point.longitude),
-                altitude: 0,
-                horizontalAccuracy: 10,
-                verticalAccuracy: -1,
-                course: -1,
-                speed: -1,
-                timestamp: point.timestamp ?? Date())
-        }
+        // Exact coordinates stay in the local store. Never export routes to Health.
+        []
     }
 }

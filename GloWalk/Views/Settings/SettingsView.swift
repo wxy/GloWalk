@@ -101,7 +101,7 @@ struct SettingsView: View {
 
     private var taglineSection: some View {
         let _ = taglineSeed  // force refresh when seed changes
-        let t = Tagline.random()
+        let t = Tagline.randomBrand()
         return VStack(spacing: 8) {
             Text("\u{201C}\(t.localizedPhrase)\u{201D}")
                 .font(.gloHeadline(14)).foregroundColor(.gloGold)
@@ -146,6 +146,7 @@ struct SettingsView: View {
         let ids = allSessions.compactMap { $0.id?.uuidString }
         let req: NSFetchRequest<NSFetchRequestResult> = WalkSession.fetchRequest()
         _ = try? ctx.execute(NSBatchDeleteRequest(fetchRequest: req))
+        NightMemoryDiscovery.markSeen()
         // NSBatchDeleteRequest bypasses the context's registered objects; reset
         // so the in-memory state matches the store (stale "ghost" objects
         // would otherwise trigger "could not fulfill fault" on later access).

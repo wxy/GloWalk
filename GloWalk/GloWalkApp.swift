@@ -2,9 +2,10 @@ import SwiftUI
 
 @main
 struct GloWalkApp: App {
-    let persistenceController = PersistenceController.shared
+    @ObservedObject private var persistenceController = PersistenceController.shared
 
     init() {
+        PersistenceController.shared.recoverInterruptedWalks()
         // Use the bundled handwriting family for all navigation bar titles
         // (Klee One in Japanese, LXGW WenKai KR in Korean, WenKai otherwise).
         let appearance = UINavigationBarAppearance()
@@ -25,8 +26,21 @@ struct GloWalkApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            Group {
+                if persistenceController.loadFailed {
+                    VStack(spacing: 20) {
+                        Text("storage.unavailable")
+                        Text("storage.preserved").font(.body)
+                        Button("storage.retry") {
+                            persistenceController.loadStores()
+                            persistenceController.recoverInterruptedWalks()
+                        }
+                    }.padding().preferredColorScheme(.dark)
+                } else {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.container.viewContext)
+                }
+            }
         }
     }
 }

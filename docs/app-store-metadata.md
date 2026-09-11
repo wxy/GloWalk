@@ -1,3 +1,5 @@
+> 2026-09-11：本文保留历史设计／文案。涉及暂停、后台、健康路线、因素贡献与后续功能的内容，以 [最新已确认决策](superpowers/specs/2026-09-11-night-walk-experience.md) 为准；发布前须据此更新商店文案。
+
 # GloWalk App Store 元数据存档
 
 维护 App Store Connect 各版本提交文案（en-US / zh-Hans / zh-Hant / ja / ko / fr / de / es / pt-BR / it / ru 十一语）。

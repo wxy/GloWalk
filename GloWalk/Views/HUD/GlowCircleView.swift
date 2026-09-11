@@ -12,8 +12,6 @@ struct GlowCircleView: View {
 
     @State private var breathe: Double = 0
     @State private var stepPhase: Double = 0
-    /// 操作提示是否可见：刚进入时显示，几秒后自动淡出。
-    @State private var showHints = true
 
     private var warmth: Double { isDragging ? 1.0 : brightness }
 
@@ -58,16 +56,6 @@ struct GlowCircleView: View {
                 endRadius: 80
             )
             .frame(width: 160, height: 160)
-
-            // Operation hints — breathe with the glow
-            VStack(spacing: 4) {
-                Text(L10n.hintEndWalk)
-                Text(L10n.hintAdjust)
-            }
-            .font(.gloBody(11))
-            .foregroundColor(.white.opacity(0.5))
-            .offset(y: 100)
-            .opacity(showHints && !isPaused && !isResting ? 1 : 0)
         }
         // Breathing + rhythm pulse: gentle breath at 3s cycle, subtle step-sync flutter
         .scaleEffect(isPaused || isResting || reduceMotion ? 1 : 0.95 + breathe * 0.05 + cadence * 0.02 * sin(stepPhase))
@@ -81,14 +69,14 @@ struct GlowCircleView: View {
                     .foregroundColor(.black)
                     .padding(16)
                     .background(Circle().fill(Color.gloGold))
+                    // 0.8 不透明度：压暗后的光晕仍隐约透出，圆钮不再像一块
+                    // 实心金牌那样突兀，同时保持足够的辨识度。
+                    .opacity(0.8)
                     .accessibilityHidden(true)
             }
         }
-        .task {
-            // 操作提示：刚进入时显示，8 秒后自动淡出，避免长期占据视线。
-            try? await Task.sleep(nanoseconds: 8_000_000_000)
-            withAnimation(.easeOut(duration: 1.0)) { showHints = false }
-        }
+        // 暂停/恢复切换时光晕压暗与继续图标一起淡入淡出，避免硬切。
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: isPaused)
         .onAppear {
             withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
                 breathe = 1

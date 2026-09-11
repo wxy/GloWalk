@@ -28,8 +28,6 @@ enum L10n {
     static var hudCameraDeniedDismiss: LocalizedStringKey { "hud.cameraDeniedDismiss" }
     static var hudDrawing: LocalizedStringKey { "hud.drawing" }
     static var hudZeroStep: LocalizedStringKey { "hud.zeroStep" }
-    static var hintEndWalk: LocalizedStringKey { "hud.hint.endWalk" }
-    static var hintAdjust: LocalizedStringKey { "hud.hint.adjust" }
 
     static var posterShare: LocalizedStringKey { "poster.share" }
     static var posterSave: LocalizedStringKey { "poster.save" }

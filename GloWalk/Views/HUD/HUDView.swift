@@ -192,6 +192,13 @@ struct HUDView: View {
     }
 
     private var isManual: Bool { viewModel.lightEngine.isManual }
+    /// 状态感知手势提示：暂停 → 轻点继续；手动亮度 → 轻点恢复自动；
+    /// 自动亮度 → 拖动调亮。每个状态只列出当下真正可用的手势，
+    /// 与光晕上的继续图标职责互补（图标给状态，这行给下一步操作）。
+    private var walkHintKey: LocalizedStringKey {
+        if viewModel.isPaused { return LocalizedStringKey("walk.paused") }
+        return LocalizedStringKey(isManual ? "walk.holdHintManual" : "walk.holdHint")
+    }
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
@@ -275,10 +282,13 @@ struct HUDView: View {
 
                 // Central glow — double-tap to end；槽位静止，内容随拖动移动。
                 centralGlow
-                Text(LocalizedStringKey(viewModel.isPaused ? "walk.paused" : "walk.holdHint"))
+                Text(walkHintKey)
                     .font(.gloBody(12))
                     .foregroundColor(.gloGold.opacity(viewModel.isPaused ? 0.8 : 0.5))
                     .opacity(isQuiet ? 0 : 1)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .padding(.horizontal, 24)
                     .padding(.top, 8)
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
@@ -419,7 +429,7 @@ struct HUDView: View {
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("walk.light"))
-                .accessibilityValue(Text(LocalizedStringKey(viewModel.isPaused ? "walk.paused" : "walk.holdHint")))
+                .accessibilityValue(Text(walkHintKey))
                 .accessibilityAction(named: Text("walk.pause")) { viewModel.pauseWalk() }
                 .accessibilityAction(named: Text("walk.resume")) { viewModel.resumeWalk() }
                 .accessibilityAction(named: Text("walk.end")) { confirmEnd() }

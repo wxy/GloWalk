@@ -88,13 +88,84 @@ enum Tagline {
                     explanation_en: "GloWalk — your night companion")
     ]
 
-    static func random() -> TaglineItem {
-        pool.randomElement() ?? TaglineItem(key: "fallback",
-                                            phrase: "踽踽独行，脚下有光",
-                                            phrase_ht: "踽踽獨行，腳下有光",
-                                            phrase_en: "A solitary step, a lantern aglow",
-                                            explanation: "GloWalk 随行路灯",
-                                            explanation_ht: "GloWalk 隨行路燈",
-                                            explanation_en: "GloWalk — your night companion")
+    /// Product voice used before or outside a completed walk. Past-tense
+    /// keepsake copy must never leak into the splash screen or Settings.
+    private static let brandKeys: Set<String> = [
+        "tagline.moon", "tagline.streetlight", "tagline.adaptation", "tagline.rain",
+        "tagline.pocket", "tagline.pupil", "tagline.battery", "tagline.arrival"
+    ]
+
+    /// Copy grounded in something that happened during the recorded walk.
+    private static let nightMemoryKeys: Set<String> = [
+        "tagline.moon", "tagline.streetlight", "tagline.adaptation", "tagline.rain",
+        "tagline.resumed", "tagline.winding", "tagline.quiet"
+    ]
+
+    static var brandPool: [TaglineItem] {
+        let items = pool.filter { brandKeys.contains($0.key) }
+        return items.isEmpty ? fallbackPool : items
+    }
+
+    static var nightMemoryPool: [TaglineItem] {
+        let items = pool.filter { item in
+            nightMemoryKeys.contains { baseKey in
+                item.key == baseKey || item.key.hasPrefix(baseKey + ".")
+            }
+        }
+        return items.isEmpty ? fallbackPool : items
+    }
+
+    static func nightMemory(for profile: NightMemoryProfile, seed: UInt64,
+                            excluding acquiredKeys: Set<String> = []) -> TaglineItem {
+        nightMemory(key: profile.theme.taglineKey, seed: seed, excluding: acquiredKeys)
+    }
+
+    static func nightMemory(key: String, seed: UInt64,
+                            excluding acquiredKeys: Set<String> = []) -> TaglineItem {
+        let candidates = nightMemoryPool.filter {
+            $0.key == key || $0.key.hasPrefix(key + ".")
+        }.sorted { $0.key < $1.key }
+        guard !candidates.isEmpty else { return fallbackPool[0] }
+        let unacquired = candidates.filter { !acquiredKeys.contains($0.key) }
+        // Complete the current theme before repeating a phrase. The walk facts
+        // still choose the theme; this only makes its three equivalent poetic
+        // variants fair to collect.
+        let selectable = unacquired.isEmpty ? candidates : unacquired
+        var random = NightMemoryRandom(seed: seed)
+        return selectable[Int(random.next() % UInt64(selectable.count))]
+    }
+
+    /// Resolve an already persisted phrase exactly. Older records saved a base
+    /// key before variants existed, so they continue to show their original
+    /// sentence rather than being silently rerolled.
+    static func savedNightMemory(key: String) -> TaglineItem? {
+        nightMemoryPool.first { $0.key == key }
+    }
+
+    /// Stable brand line for a generated keepsake. Excluding the memory key
+    /// prevents the same sentence from appearing twice when a line is valid in
+    /// both curated collections.
+    static func brand(seed: UInt64, excludingKey: String? = nil) -> TaglineItem {
+        let distinct = brandPool.filter { $0.key != excludingKey }
+        let candidates = distinct.isEmpty ? brandPool : distinct
+        return candidates[Int(seed % UInt64(candidates.count))]
+    }
+
+    static func randomBrand() -> TaglineItem {
+        brandPool.randomElement() ?? fallbackPool[0]
+    }
+}
+
+/// A single lightweight unread signal. The collection itself remains derived
+/// from walk records, so this never duplicates route, date, or achievement data.
+enum NightMemoryDiscovery {
+    static let unseenDefaultsKey = "hasUnseenNightMemory"
+
+    static func markUnseen() {
+        UserDefaults.standard.set(true, forKey: unseenDefaultsKey)
+    }
+
+    static func markSeen() {
+        UserDefaults.standard.set(false, forKey: unseenDefaultsKey)
     }
 }

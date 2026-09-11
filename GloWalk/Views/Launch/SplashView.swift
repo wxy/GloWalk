@@ -4,7 +4,7 @@ struct SplashView: View {
     let onComplete: () -> Void
 
     @State private var opacity: Double = 1.0
-    private let tagline = Tagline.random()
+    private let tagline = Tagline.randomBrand()
 
     var body: some View {
         ZStack {

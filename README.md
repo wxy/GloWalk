@@ -11,9 +11,9 @@
 > A smart flashlight that reads the night.
 > 会读懂夜晚的智能手电筒。
 
-**GloWalk** is an iOS night-walking flashlight that adapts its brightness in real time to your surroundings — ambient light, phone posture, dark adaptation, moon phase, and weather. Record your path as a golden constellation trail and weave it into a shareable poster when you arrive.
+**GloWalk** is an iOS night-walking flashlight that adapts its brightness in real time to your surroundings — camera feedback, with a factor model as fallback. Record your path as a golden constellation trail and weave it into a shareable poster when you arrive.
 
-> **随行路灯** 是一款为夜间步行设计的智能手电筒。它根据环境光、手机姿态、暗适应、月相和天气五个因素实时调整亮度。把你的步行记录成一条金色星座轨迹，到达后生成一张可分享的夜路海报。
+> **随行路灯** 是一款为夜间步行设计的智能手电筒。它根据摄像头反馈实时调整亮度，并在反馈不可用时使用因素模型。把你的步行记录成一条金色星座轨迹，到达后生成一张可分享的夜路海报。
 
 ---
 
@@ -21,12 +21,12 @@
   <img src="assets/readme/section-features.svg" alt="Features · 功能" width="100%" />
 </p>
 
-- **5-Axis Adaptive Brightness** — Ambient light, posture, dark adaptation, moon phase, and weather all feed into a real-time brightness engine. Each factor can be toggled on or off.
+- **Adaptive Walking Light** — Rear-camera feedback controls the torch where available, with a factor model as fallback. Manual adjustments remain in your control.
 
-    > **五维自适应亮度** — 环境光、手机姿态、暗适应、月相、天气，五个因素实时计算最合适的亮度，每个因素可独立开关
-- **Apple Health Sync** — With your permission, completed walks are written to the Health app as full workout records: steps, distance, duration, and route. Write-only — GloWalk never reads your health data, and nothing leaves your device.
+    > **随行自适应照明** — 后摄反馈可用时由闭环控制，否则使用因素模型；手动调光由你掌握。
+- **Apple Health Sync** — With your permission, completed walks are written to the Health app as full workout records: steps, distance, and active duration. Write-only — GloWalk never reads your health data, and nothing leaves your device.
 
-    > **Apple 健康同步** — 经你授权后，完成的步行会以完整运动记录（步数、距离、时长与路线）写入「健康」App；仅写入、不读取，健康数据不出设备
+    > **Apple 健康同步** — 经你授权后，完成的步行会以完整运动记录（步数、距离和有效时长）写入「健康」App；仅写入、不读取，健康数据不出设备
 - **Drag-to-Adjust Brightness** — Drag the glow circle up or down through ten discrete levels and release to keep it, or drag all the way down to the brightness bars to turn the torch fully off.
 
     > **拖动调光** — 拖动中央光晕在十档亮度间调节，松手停留在所选档位；拖到最下方亮度条可完全关闭手电
@@ -36,6 +36,9 @@
 - **Night Walk Posters** — When your walk ends, GloWalk generates a poster with your path, the night's moon phase, and a poetic tagline. Share it or save it to your photo library.
 
     > **夜路海报** — 步行结束后自动生成海报，包含路径轨迹、当晚月相照片和诗意格言，可分享或保存
+- **Night Imprints** — Revisit the walk-specific lines that have appeared on your posters, including when each was first found and how often it returned.
+
+    > **夜行印记** — 回看曾在海报中出现的夜行纪念语，以及它们首次出现的时间和累计次数
 - **Dark Interface** — Every pixel is designed for night use. Amber-on-black HUD, no white flashes.
 
     > **深色界面** — 每一像素都为夜间设计，琥珀金配色
@@ -98,9 +101,9 @@ GloWalk/
 brightness = ambient(40%) + posture(15%) + darkAdapt(15%) + moon(15%) + weather(15%)
 ```
 
-All five factors contribute proportionally to the gap from optimal brightness. Toggle any factor to see its real-time impact.
+This formula describes the fallback model. During rear-camera closed-loop control, factor cards show context only (—); they do not claim to explain the actual LED output.
 
-> 五个因素按各自权重填补"最优亮度"的缺口，实时影响最终亮度。开关任意因素即可看到即时变化。
+> 以上为备用因素模型。后摄闭环控制时，卡片仅提供环境信息（—），不将模型估算显示成实际 LED 贡献。
 
 <p align="center">
   <img src="assets/readme/section-usage.svg" alt="Usage · 使用指南" width="100%" />
@@ -112,8 +115,9 @@ All five factors contribute proportionally to the gap from optimal brightness. T
 | **Manual adjust**<br>**手动调光** | Drag the glow circle up/down — ten discrete levels, release to keep the position<br>在光晕区域上下滑动，十档亮度，松手停留 |
 | **Restore auto**<br>**恢复自动** | Single-tap the glow circle<br>单击光晕 |
 | **Torch fully off / on**<br>**完全关灯 / 重新开灯** | Drag the glow circle down to the brightness bars (off), or drag it up (on)<br>把光晕拖到下方亮度条位置（关灯）；上拖一点即恢复 |
-| **End walk**<br>**结束步行** | Double-tap the glow circle → generates poster<br>双击光晕 → 生成海报 |
-| **Toggle a factor**<br>**因素开关** | Tap any factor card at the bottom<br>点击底部因素卡片 |
+| **Pause / resume**<br>**暂停／继续** | Hold the glow for 0.6s; tap to resume. Locking or leaving the app also pauses.<br>长按光晕 0.6 秒暂停，轻点继续；锁屏或离开应用也会暂停。 |
+| **End walk**<br>**结束步行** | Double-tap the glow circle → confirm → generates poster<br>双击光晕 → 确认 → 生成海报 |
+| **Toggle a fallback factor**<br>**切换备用因素** | In fallback automatic mode, tap a factor card; cards are informational during camera closed-loop control<br>备用自动模型生效时可点击因素卡片；摄像头闭环控制期间卡片仅作信息展示 |
 | **Dismiss poster**<br>**关闭海报** | Swipe down on the poster<br>向下滑动海报 |
 | **View past posters**<br>**查看历史海报** | Tap any walk in history to see its poster again<br>步行历史中点击记录，重新查看海报 |
 
@@ -134,6 +138,10 @@ Build with Xcode 26+ targeting iOS 15.0+. Run on a physical iPhone for full sens
 <p align="center">
   <img src="assets/readme/section-privacy.svg" alt="Privacy · 隐私" width="100%" />
 </p>
+
+New Health records contain no route coordinates. After 12 seconds without interaction, secondary HUD information fades; touch to reveal it. Paused intervals are excluded from records.
+
+> 新健康记录不含路线坐标。12 秒不操作后次要信息淡出，触摸唤回；暂停区间不计入记录。
 
 See [PRIVACY.md](PRIVACY.md) — all walk data stays on-device; health data is only written to Apple Health with your permission and never leaves your device.
 

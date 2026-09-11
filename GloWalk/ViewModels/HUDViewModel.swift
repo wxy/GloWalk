@@ -6,10 +6,18 @@ import CoreLocation
 final class HUDViewModel: ObservableObject {
     @Published var brightness: Double = 0.7
     @Published var isActive: Bool = false
+    @Published private(set) var isPaused = false
+    @Published private(set) var usesClosedLoop = false
+    private var walkClock = WalkClock()
+    private var completedSteps = 0
+
+    var canSaveWalk: Bool {
+        (isPaused ? completedSteps : completedSteps + sensorManager.stepCount) > 0 && locationManager.totalDistance > 0
+            && (currentWalkSession?.pathPointsArray.count ?? 0) >= 2 && walkClock.elapsed() > 0
+    }
     @Published var elapsedDistance: String = String(format: L10n.hudDistanceMeters, 0.0)
     private var displayDistance: Double = 0
     @Published var elapsedMinutes: Int = 0
-    @Published var estimatedMinutesRemaining: Int = 90
     @Published var batteryPercentage: Int = 100
     @Published var stepCount: Int = 0
     @Published var isTorchOccluded: Bool = false
@@ -49,7 +57,6 @@ final class HUDViewModel: ObservableObject {
     /// Current moon phase image filename (e.g. "full_moon") for corner decoration
     @Published var currentMoonPhaseName: String = "full_moon"
 
-    private var activeWalkSeconds: Double = 0
     private var lastStepCount: Int = 0
     /// Smoothed step cadence (0 = still, ~2 = brisk walk). Drives rhythm pulse in glow.
     @Published var cadence: Double = 0
@@ -86,7 +93,6 @@ final class HUDViewModel: ObservableObject {
     let weatherService = WeatherService()
     let locationManager = LocationManager()
 
-    private var sessionStartTime: Date?
     var sensorTimer: Timer?
     private var hasStarted = false
 
@@ -96,7 +102,7 @@ final class HUDViewModel: ObservableObject {
         guard !hasStarted else { return }
         hasStarted = true
         isActive = true
-        sessionStartTime = Date()
+        walkClock.resume()
         Log.debug("[Walk] startWalk — initial ambient=\(sensorManager.ambientLightLevel), brightness=\(brightness)")
 
         // Reset the startup probe for this walk. Seeding happens on the first
@@ -176,8 +182,9 @@ final class HUDViewModel: ObservableObject {
     }
 
     private func tick() {
-        guard isActive else { return }
+        guard isActive, !isPaused else { return }
         sensorTick += 1
+        updateBatteryState()
 
         // Cache moon phase — update once per 60 ticks
         if sensorTick - lastMoonUpdateTick >= 60 {
@@ -199,7 +206,7 @@ final class HUDViewModel: ObservableObject {
             deviceRoll: sensorManager.deviceRoll,
             moonIllumination: moonIllum,
             weather: weatherService.currentCondition,
-            darkAdaptationMinutes: Date().timeIntervalSince(sessionStartTime ?? Date()) / 60.0,
+            darkAdaptationMinutes: walkClock.elapsed() / 60.0,
             isDaylight: isDaylight
         )
         // The model (and its factor attribution) must stay fresh every tick —
@@ -227,6 +234,7 @@ final class HUDViewModel: ObservableObject {
             loggedBackFallback = true
             Log.debug("[Loop] backGroundLuminance nil — closed loop inactive, LightEngine fallback")
         }
+        usesClosedLoop = FeatureFlags.torchClosedLoop && sensorManager.backGroundLuminance != nil && !lightEngine.isManual
         if lightEngine.isManual {
             // 手动模式：所有自动调整机制关闭，亮度 = 手动值。
             // 仅遮挡仍优先关灯（安全），白天门控与因子模型都让位。
@@ -242,7 +250,7 @@ final class HUDViewModel: ObservableObject {
             if sensorManager.isOccluded || isDaylight {
                 brightness = 0
             } else {
-                brightness = min(max(thermallyCapped(closedLoopBrightness(measured: y, gate: gate)),
+                brightness = min(max(thermallyCapped(min(closedLoopBrightness(measured: y, gate: gate), lightEngine.batterySaverCap)),
                                      0.05), 1.0)
             }
             sensorManager.setTorchLevel(brightness)
@@ -260,12 +268,11 @@ final class HUDViewModel: ObservableObject {
         if weatherRetryTick % 300 == 0 {
             retryWeatherIfNeeded()
         }
-        stepCount = sensorManager.stepCount
+        stepCount = completedSteps + sensorManager.stepCount
         let dist = locationManager.totalDistance
 
         let isActuallyMoving = stepCount > lastStepCount
         if isActuallyMoving {
-            activeWalkSeconds += 1
             displayDistance = dist
         }
         lastStepCount = stepCount
@@ -278,7 +285,7 @@ final class HUDViewModel: ObservableObject {
         cadence = cadence * 0.7 + rawCadence * 0.3
 
         currentHeading = locationManager.currentHeading?.trueHeading ?? 0
-        locationManager.externalStepCount = stepCount
+        locationManager.externalStepCount = sensorManager.stepCount
         // Feed real sensor values so recorded path points carry true ambient
         // light and torch brightness (torch drives the constellation coloring).
         locationManager.currentAmbientLight = sensorManager.ambientLightLevel
@@ -300,7 +307,7 @@ final class HUDViewModel: ObservableObject {
             ? locationManager.currentLocation?.horizontalAccuracy
             : nil
         pathPoints = currentWalkSession?.pathPointsArray ?? []
-        elapsedMinutes = Int(Date().timeIntervalSince(sessionStartTime ?? Date()) / 60)
+        elapsedMinutes = Int(walkClock.elapsed() / 60)
 
         let d = lightEngine.factorDetails
         let phaseName = d.moonPhaseName.isEmpty ? "..." : d.moonPhaseName
@@ -341,7 +348,6 @@ final class HUDViewModel: ObservableObject {
                 isActive: lightEngine.darkAdaptationActive),
         ]
 
-        updateBatteryEstimate()
         let displayDist = displayDistance
         if displayDist < 1000 {
             elapsedDistance = String(format: L10n.hudDistanceMeters, displayDist)
@@ -351,7 +357,7 @@ final class HUDViewModel: ObservableObject {
 
         // Batch Core Data saves: every 5 ticks instead of every second
         if sensorTick % 5 == 0 {
-            PersistenceController.shared.save()
+            checkpoint()
         }
     }
 
@@ -458,80 +464,87 @@ final class HUDViewModel: ObservableObject {
 
     // MARK: - End Walk
 
-    /// End a walk that never produced a step: stop all sensors and delete the
-    /// empty session. Shared by the HUD's double-tap-to-end path (which shows
-    /// a dedicated zero-step overlay) and the normal end flows, so the cleanup
-    /// stays in one place.
+    func pauseWalk() {
+        guard isActive, !isPaused else { return }
+        walkClock.pause()
+        checkpoint()
+        completedSteps = stepCount
+        isPaused = true
+        sensorManager.onAmbientUpdate = nil
+        sensorManager.stop()
+        locationManager.stopRecording()
+        sensorTimer?.invalidate()
+        brightness = 0
+        cadence = 0
+        isTorchOccluded = false
+        isThermalNoticeVisible = false
+        gpsActive = false
+        UIApplication.shared.isIdleTimerDisabled = false
+        restoreScreenBrightness()
+    }
+
+    func resumeWalk() {
+        guard isActive, isPaused, let session = currentWalkSession else { return }
+        isPaused = false
+        walkClock.resume()
+        originalScreenBrightness = UIScreen.main.brightness
+        UIApplication.shared.isIdleTimerDisabled = true
+        torchSeeded = false
+        torchProbeState = .idle
+        torchCalibration = nil
+        lastStepCount = completedSteps
+        cadenceDeltas = []
+        sensorManager.start()
+        sensorManager.onAmbientUpdate = { [weak self] in self?.updateScreenBrightness() }
+        locationManager.startRecording(session: session)
+        startSensorLoop()
+        tick()
+    }
+
+    private func checkpoint() {
+        guard let session = currentWalkSession else { return }
+        // While paused the last sensor reading has already been accumulated.
+        stepCount = isPaused ? completedSteps : completedSteps + sensorManager.stepCount
+        session.totalSteps = Int64(stepCount)
+        session.totalDistance = locationManager.totalDistance
+        session.activeDuration = NSNumber(value: walkClock.elapsed())
+        session.lastCheckpoint = Date()
+        let points = session.pathPointsArray
+        if !points.isEmpty {
+            session.avgLightLevel = points.reduce(0) { $0 + $1.ambientLight } / Double(points.count)
+        }
+        session.weatherCondition = weatherService.currentCondition
+        PersistenceController.shared.save()
+    }
+
     func discardZeroStepWalk() {
-        isActive = false
-        sensorManager.stop()
-        locationManager.stopRecording()
-        sensorTimer?.invalidate()
-        if let s = currentWalkSession {
-            PersistenceController.shared.container.viewContext.delete(s)
-            PersistenceController.shared.save()
-        }
+        finishWalk(showPoster: false, discard: true)
     }
 
-    func endWalkAndNotify() {
-        isActive = false
-        sensorManager.onAmbientUpdate = nil
-        UIApplication.shared.isIdleTimerDisabled = false
-        // Hand the user back their screen brightness before the sensor loop
-        // stops — otherwise a walk that ends while dimmed (pocket) or boosted
-        // (daylight) would leave the screen stuck at 0 or 1.0.
-        restoreScreenBrightness()
-        sensorManager.stop()
-        locationManager.stopRecording()
-        sensorTimer?.invalidate()
-        Log.debug("[Walk] endWalk — steps=\(sensorManager.stepCount), distance=\(locationManager.totalDistance), ambient=\(sensorManager.ambientLightLevel)")
+    func endWalkAndNotify() { finishWalk(showPoster: true) }
+    func endWalkAbruptly() { finishWalk(showPoster: false) }
 
-        if let s = currentWalkSession {
-            s.endTime = Date()
-            s.totalSteps = Int64(sensorManager.stepCount)
-            s.totalDistance = locationManager.totalDistance
-            s.avgLightLevel = sensorManager.ambientLightLevel
-            // Don't save walks with zero steps
-            if sensorManager.stepCount == 0 {
-                discardZeroStepWalk()
-                showArrivalSummary = false
-                return
-            }
-            s.endType = "completed"
-            PersistenceController.shared.save()
-            Task {
-                healthSyncStatus = HealthSyncState.pending.rawValue
-                await healthSyncService.sync(session: s)
-                healthSyncStatus = s.healthSyncState
-            }
-        }
-        showArrivalSummary = true
-    }
-
-    func endWalkAbruptly() {
+    private func finishWalk(showPoster: Bool, discard: Bool = false) {
+        guard isActive else { return }
+        if !isPaused { pauseWalk() }
         isActive = false
-        sensorManager.onAmbientUpdate = nil
-        UIApplication.shared.isIdleTimerDisabled = false
-        // Same as endWalkAndNotify — never leave the screen dimmed/boosted.
-        restoreScreenBrightness()
-        sensorManager.stop()
-        locationManager.stopRecording()
-        sensorTimer?.invalidate()
-        if let s = currentWalkSession {
-            // Don't keep empty walks (consistent with endWalkAndNotify).
-            if sensorManager.stepCount == 0 {
-                discardZeroStepWalk()
-                return
-            }
-            s.endTime = Date()
-            s.endType = "interrupted"
-            s.totalSteps = Int64(sensorManager.stepCount)
-            s.totalDistance = locationManager.totalDistance
+        guard let session = currentWalkSession else { return }
+        session.endTime = Date()
+        guard !discard, session.isCompleteRecord else {
+            PersistenceController.shared.container.viewContext.delete(session)
             PersistenceController.shared.save()
-            Task {
-                await healthSyncService.sync(session: s)
-            }
+            showArrivalSummary = false
+            return
         }
+        session.endType = showPoster ? "completed" : "interrupted"
+        session.healthSyncState = HealthSyncState.pending.rawValue
+        PersistenceController.shared.save()
+        Task {
+            healthSyncStatus = HealthSyncState.pending.rawValue
+            await healthSyncService.sync(session: session)
+            healthSyncStatus = session.healthSyncState
+        }
+        showArrivalSummary = showPoster
     }
 
     // MARK: - Toggles
@@ -548,6 +561,7 @@ final class HUDViewModel: ObservableObject {
         Haptic.selection()
     }
     func setManualBrightness(_ level: Double) {
+        guard isActive, !isPaused else { return }
         // 允许 0：手动模式可把闪光灯完全关闭。
         let snapped = min(max((level * 10).rounded() / 10, 0.0), 1.0)
         // Immediate, discrete feedback during the drag — don't wait for the 1s
@@ -599,6 +613,7 @@ final class HUDViewModel: ObservableObject {
     /// normalized to sum 1 — colors the unfilled progress-line segments that
     /// the factors "deduct" from the brightness.
     var factorShares: [Double] {
+        guard !usesClosedLoop, !lightEngine.isManual else { return [0, 0, 0, 0, 0] }
         let d = lightEngine.factorDetails
         let sum = d.ambientShare + d.postureShare + d.darkShare
                 + d.moonShare + d.weatherShare
@@ -614,7 +629,7 @@ final class HUDViewModel: ObservableObject {
     /// 3. Otherwise → 0.25 + 0.75 × ambient (dark room dims the screen, a
     ///    bright room brightens it, within one tick of the ambient changing).
     private func updateScreenBrightness() {
-        guard isActive else {
+        guard isActive, !isPaused else {
             // Not walking — always hand the user's brightness back. A walk may
             // have ended while dimmed/boosted, and the sensor loop that would
             // have restored it has stopped.
@@ -647,63 +662,27 @@ final class HUDViewModel: ObservableObject {
         originalScreenBrightness = nil
     }
 
-    var enteredBackground = false
-    func willResignActive() {
-        enteredBackground = true
-        UIApplication.shared.isIdleTimerDisabled = false
-        // Give the user back their screen brightness in the background.
-        restoreScreenBrightness()
-        // Let timer and GPS keep running — path points recorded in background
-        // will naturally have torchBrightness=0 since iOS kills the flashlight.
-    }
-    func didBecomeActive() {
-        guard enteredBackground else { return }
-        enteredBackground = false
-        UIApplication.shared.isIdleTimerDisabled = true
-        // iOS stops the camera capture session while backgrounded — restart it
-        // so the ambient-light factor keeps working after returning.
-        sensorManager.resumeSessionIfNeeded()
-        // Re-apply the screen-brightness state (daylight boost / pocket dim).
-        updateScreenBrightness()
-        brightness = lightEngine.targetBrightness
+    func didEnterBackground() {
+        pauseWalk()
     }
 
     // MARK: - Private
 
-    private func updateBatteryEstimate() {
-        let state = UIDevice.current.batteryState
-        // Charging or full → unlimited
-        if state == .charging || state == .full {
-            batteryPercentage = 100
-            estimatedMinutesRemaining = -1  // -1 means unlimited
-            // Clear any low-battery cap so the torch isn't dimmed the whole
-            // time the phone is plugged in (the cap would otherwise only reset
-            // on a non-charging tick).
-            lightEngine.batterySaverCap = 1.0
-            return
-        }
+    private func updateBatteryState() {
         let level = UIDevice.current.batteryLevel
-        if level > 0 {
-            batteryPercentage = Int(level * 100)
-            let base = 90.0
-            let bf = 1.0 / max(brightness, 0.1)
-            let bat = Double(batteryPercentage) / 100.0
-            estimatedMinutesRemaining = Int(base * bf * bat)
-
-            // Low-battery power saving: cap max brightness to extend runtime
-            if batteryPercentage <= 10 {
-                lightEngine.batterySaverCap = 0.6   // critical: max 60%
-            } else if batteryPercentage <= 20 {
-                lightEngine.batterySaverCap = 0.8   // warning: max 80%
-            } else {
-                lightEngine.batterySaverCap = 1.0   // normal: no cap
-            }
+        batteryPercentage = level >= 0 ? Int(level * 100) : -1
+        let charging = UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full
+        if charging || batteryPercentage < 0 {
+            lightEngine.batterySaverCap = 1
+        } else if batteryPercentage <= 10 {
+            lightEngine.batterySaverCap = 0.6
+        } else if batteryPercentage <= 20 {
+            lightEngine.batterySaverCap = 0.8
         } else {
-            batteryPercentage = 100
-            estimatedMinutesRemaining = 90
-            lightEngine.batterySaverCap = 1.0
+            lightEngine.batterySaverCap = 1
         }
     }
+
 }
 
 // MARK: - Card Data Models

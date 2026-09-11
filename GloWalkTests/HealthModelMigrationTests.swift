@@ -5,10 +5,18 @@ import CoreData
 final class HealthModelMigrationTests: XCTestCase {
     /// 1.0.1 用户数据必须通过轻量迁移保留，且新属性初始为 nil。
     func testLightweightMigrationPreservesSessions() throws {
+        try verifyMigration(from: "GloWalk")
+    }
+
+    func testVersionTwoMigrationPreservesSessions() throws {
+        try verifyMigration(from: "GloWalk 2")
+    }
+
+    private func verifyMigration(from name: String) throws {
         let bundle = Bundle(for: WalkSession.self)
         let momd = bundle.url(forResource: "GloWalk", withExtension: "momd")
-        guard let oldURL = momd?.appendingPathComponent("GloWalk.mom"),
-              let newURL = momd?.appendingPathComponent("GloWalk 2.mom") else {
+        guard let oldURL = momd?.appendingPathComponent("\(name).mom"),
+              let newURL = momd?.appendingPathComponent("GloWalk 3.mom") else {
             XCTFail("Model versions not found in GloWalk.momd")
             return
         }
@@ -30,13 +38,15 @@ final class HealthModelMigrationTests: XCTestCase {
                                         options: nil as [AnyHashable: Any]?)
         let oldCtx = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         oldCtx.persistentStoreCoordinator = oldCoord
-        let oldSession = WalkSession(context: oldCtx)
+        let oldSession = WalkSession(entity: oldModel.entitiesByName["WalkSession"]!, insertInto: oldCtx)
         oldSession.id = UUID()
         oldSession.startTime = Date()
-        oldSession.endTime = Date().addingTimeInterval(600)
+        oldSession.endTime = oldSession.startTime!.addingTimeInterval(600)
         oldSession.totalSteps = 1234
         oldSession.totalDistance = 850
         try oldCtx.save()
+        oldCtx.reset()
+        for store in oldCoord.persistentStores { try oldCoord.remove(store) }
 
         // 用新模型 + 自动迁移打开同一 store。
         let newCoord = NSPersistentStoreCoordinator(managedObjectModel: newModel)
@@ -48,6 +58,10 @@ final class HealthModelMigrationTests: XCTestCase {
                       NSInferMappingModelAutomaticallyOption: true])
         let newCtx = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         newCtx.persistentStoreCoordinator = newCoord
+        defer {
+            newCtx.reset()
+            for store in newCoord.persistentStores { try? newCoord.remove(store) }
+        }
 
         let request: NSFetchRequest<WalkSession> = NSFetchRequest(entityName: "WalkSession")
         let sessions = try newCtx.fetch(request)
@@ -55,5 +69,8 @@ final class HealthModelMigrationTests: XCTestCase {
         XCTAssertEqual(sessions.first?.totalSteps, 1234)
         XCTAssertEqual(sessions.first?.totalDistance, 850)
         XCTAssertNil(sessions.first?.healthSyncState)
+        XCTAssertNil(sessions.first?.activeDuration)
+        XCTAssertNil(sessions.first?.memoryTaglineKey)
+        XCTAssertEqual(sessions.first?.duration, 600)
     }
 }

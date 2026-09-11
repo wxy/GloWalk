@@ -358,8 +358,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk uses the front and rear cameras to sense ambient brightness and ground reflection for automatic flashlight and screen brightness. No photos, no video, no storage.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "GloWalk writes steps, distance and active duration to Health. Route coordinates are not shared.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GloWalk writes steps, distance and active duration to Health. Route coordinates are not shared.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk records your walking path to generate night walk posters. Data stays on device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk uses motion sensors to detect walking state and phone posture for adaptive brightness.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save night walk posters to your photo library.";
@@ -454,8 +454,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSCameraUsageDescription = "GloWalk uses the front and rear cameras to sense ambient brightness and ground reflection for automatic flashlight and screen brightness. No photos, no video, no storage.";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GloWalk writes your walking records (steps, distance, duration and route) to the Health app. Data stays on your device.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "GloWalk writes steps, distance and active duration to Health. Route coordinates are not shared.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "GloWalk writes steps, distance and active duration to Health. Route coordinates are not shared.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "GloWalk records your walking path to generate night walk posters. Data stays on device.";
 				INFOPLIST_KEY_NSMotionUsageDescription = "GloWalk uses motion sensors to detect walking state and phone posture for adaptive brightness.";
 				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save night walk posters to your photo library.";

@@ -245,6 +245,25 @@
         }
       }
     },
+    "/ %@" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ / %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "×%@" : {
+
+    },
     "⏱ %@%@" : {
       "localizations" : {
         "de" : {
@@ -1569,9 +1588,7 @@
       }
     },
     "Deutsch" : {
-      "localizations" : {
 
-      }
     },
     "English" : {
       "localizations" : {
@@ -1638,9 +1655,7 @@
       }
     },
     "Español" : {
-      "localizations" : {
 
-      }
     },
     "factor.ambient" : {
       "extractionState" : "manual",
@@ -1856,9 +1871,7 @@
       }
     },
     "Français" : {
-      "localizations" : {
 
-      }
     },
     "help.autoDesc" : {
       "extractionState" : "manual",
@@ -1866,67 +1879,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk erfasst die Umgebungshelligkeit über die vordere Kamera (und auf unterstützten Geräten Bodenreflexionen über die hintere) und berechnet aus Handyhaltung, Dunkeladaptation, Mondphase und Wetter in Echtzeit die optimale Helligkeit. Kein manuelles Eingreifen nötig."
+            "value" : "Die Kameramessung steuert das Licht. Rückmeldung der Rückkamera hat Vorrang, sonst wird ein Faktorenmodell verwendet. Manuelle Helligkeit bleibt bis zur Rückkehr zur Automatik erhalten."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk senses ambient brightness via the front camera (plus rear-camera ground reflection where supported) and combines phone posture, dark adaptation, moon phase, and weather to compute optimal brightness in real time. No manual input needed."
+            "value" : "GloWalk adjusts light using camera measurements. Where available, rear-camera feedback controls the light; otherwise a factor model is used. Manual brightness is retained until you restore auto."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk detecta la luminosidad ambiental con la cámara delantera (y los reflejos del suelo con la trasera en los dispositivos compatibles) y combina la postura del teléfono, la adaptación a la oscuridad, la fase lunar y el tiempo para calcular el brillo óptimo en tiempo real. No requiere intervención manual."
+            "value" : "La luz se ajusta mediante las cámaras. Se usa la respuesta de la cámara trasera si está disponible; si no, un modelo de factores. El brillo manual se mantiene hasta volver a Auto."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk mesure la luminosité ambiante via la caméra avant (et les reflets du sol via la caméra arrière sur les appareils compatibles) et combine posture du téléphone, adaptation à l'obscurité, phase de lune et météo pour calculer en temps réel la luminosité idéale. Aucune intervention manuelle requise."
+            "value" : "L’éclairage utilise les mesures des caméras. Le retour de la caméra arrière est prioritaire ; sinon, un modèle de facteurs est utilisé. Le réglage manuel reste jusqu’au retour en Auto."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk rileva la luminosità ambientale con la fotocamera anteriore (e i riflessi del suolo con quella posteriore sui dispositivi supportati) e combina postura del telefono, adattamento al buio, fase lunare e meteo per calcolare in tempo reale la luminosità ottimale. Nessun intervento manuale richiesto."
+            "value" : "La luce usa le misurazioni delle fotocamere. Il feedback posteriore ha priorità; altrimenti viene usato un modello di fattori. La luminosità manuale resta fino al ritorno ad Auto."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk は前面カメラで環境の明るさを感知し（対応デバイスでは背面カメラの路面反射光も加味）、スマホの姿勢・暗順応・月相・天気を組み合わせて、最適な明るさをリアルタイムに計算します。手動操作は不要です。"
+            "value" : "カメラの測定で調光します。背面カメラのフィードバックが使える場合はそれを優先し、それ以外は要因モデルを使用します。手動設定は自動に戻すまで保持します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk는 전면 카메라로 주변 밝기를 감지하고(지원되는 기기에서는 후면 카메라의 바닥 반사광도 반영), 기기 자세·암순응·달의 위상·날씨를 종합해 최적의 밝기를 실시간으로 계산합니다. 수동 조작이 필요 없습니다."
+            "value" : "카메라 측정으로 밝기를 조절합니다. 후면 카메라 피드백이 가능하면 이를 사용하고, 아니면 요인 모델을 사용합니다. 수동 설정은 자동으로 돌아갈 때까지 유지됩니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O GloWalk detecta a luminosidade ambiente pela câmera frontal (e o reflexo do chão pela traseira em aparelhos compatíveis) e combina postura do aparelho, adaptação ao escuro, fase da lua e clima para calcular o brilho ideal em tempo real. Nenhuma ação manual é necessária."
+            "value" : "A luz usa medições das câmeras. O retorno da câmera traseira tem prioridade; caso contrário, usa um modelo de fatores. O brilho manual permanece até voltar ao automático."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk определяет окружающую освещённость передней камерой (а на поддерживаемых устройствах — и отражение от земли задней) и сочетает положение телефона, адаптацию к темноте, фазу Луны и погоду, чтобы в реальном времени вычислять оптимальную яркость. Ручное управление не требуется."
+            "value" : "Свет регулируется по данным камер. Приоритет у обратной связи задней камеры; иначе используется модель факторов. Ручная яркость сохраняется до возврата в авторежим."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 通过前置摄像头感知环境明暗（支持的设备还会结合后置摄像头的路面反光），结合手机姿态、暗适应、月相和天气，实时计算最合适的亮度。无需手动操作。"
+            "value" : "GloWalk 根据摄像头测量自动调光。后摄反馈可用时由闭环控制，否则使用因素模型。手动亮度会保持，直到你恢复自动。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "GloWalk 透過前置鏡頭感知環境明暗（支援的裝置還會結合後置鏡頭的路面反光），結合手機姿態、暗適應、月相和天氣，即時計算最合適的亮度。無需手動操作。"
+            "value" : "GloWalk 根據攝像頭測量自動調光。後攝反饋可用時由閉環控制，否則使用因素模型。手動亮度會保持，直到你恢復自動。"
           }
         }
       }
@@ -2150,67 +2163,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ziehen Sie den Leuchtkreis nach oben oder unten, um die Helligkeit manuell einzustellen. Nach dem Loslassen bleibt der Wert erhalten. Tippen Sie auf die Prozentzahl, um in den Automatikmodus zurückzukehren."
+            "value" : "Licht zum Dimmen ziehen. Ganz unten geht nur das Licht aus; die Aufzeichnung läuft weiter. Tippen stellt Automatik wieder her."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag up or down on the glow circle to manually adjust brightness. The level holds after release. Tap the percentage number to return to auto mode."
+            "value" : "Drag the glow to adjust brightness; drag to the bottom to turn off only the light. Recording continues. Tap the glow to restore auto brightness."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Desliza hacia arriba o abajo sobre el círculo de luz para ajustar el brillo manualmente. El nivel se mantiene al soltar. Toca el porcentaje para volver al modo automático."
+            "value" : "Arrastra la luz para ajustar el brillo. Abajo del todo solo se apaga la luz; el registro continúa. Toca para volver a Auto."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Faites glisser le cercle lumineux vers le haut ou le bas pour régler la luminosité manuellement. Le niveau reste après le lâcher. Touchez le pourcentage pour revenir au mode automatique."
+            "value" : "Faites glisser la lueur pour régler l’intensité. Tout en bas, seule la lumière s’éteint ; l’enregistrement continue. Touchez pour rétablir Auto."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trascina il cerchio di luce verso l'alto o il basso per regolare la luminosità manualmente. Il livello resta dopo il rilascio. Tocca la percentuale per tornare in modalità automatica."
+            "value" : "Trascina la luce per regolare la luminosità. In fondo si spegne solo la luce; la registrazione continua. Tocca per tornare ad Auto."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "光の輪を上下にドラッグすると明るさを手動調整できます。離すとその明るさに固定されます。パーセント表示をタップすると自動モードに戻ります。"
+            "value" : "光をドラッグして調光。最下部では照明だけ消え、記録は続きます。タップで自動調光に戻ります。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "빛 원을 위아래로 드래그하면 밝기를 수동으로 조절할 수 있습니다. 손을 떼면 그 밝기가 유지됩니다. 백분율 숫자를 탭하면 자동 모드로 돌아갑니다."
+            "value" : "빛을 드래그하여 밝기를 조절하세요. 맨 아래로 내리면 조명만 꺼지고 기록은 계속됩니다. 탭하면 자동으로 돌아갑니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Arraste o círculo de luz para cima ou para baixo para ajustar o brilho manualmente. O nível é mantido ao soltar. Toque no percentual para voltar ao modo automático."
+            "value" : "Arraste a luz para ajustar o brilho. Na parte inferior, só a luz se apaga; o registro continua. Toque para voltar ao automático."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Свайпните по светящемуся кругу вверх или вниз, чтобы вручную отрегулировать яркость. Уровень сохранится после отпускания. Нажмите на процент, чтобы вернуться в автоматический режим."
+            "value" : "Перетаскивайте свечение для регулировки яркости. Внизу выключается только свет; запись продолжается. Касание возвращает авторежим."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在光晕区域上下滑动手指，可手动调节亮度。松开后保持当前亮度。单击光晕区域的百分比数字，恢复自动调光。"
+            "value" : "拖动光晕调节亮度；拖到底部仅关灯，记录继续。轻点光晕恢复自动调光。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在光暈區域上下滑動手指，可手動調整亮度。放開後保持目前亮度。點擊光暈區域的百分比數字，恢復自動調光。"
+            "value" : "拖動光暈調節亮度；拖到底部僅關燈，記錄繼續。輕點光暈恢復自動調光。"
           }
         }
       }
@@ -2292,67 +2305,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doppeltippen Sie auf den Leuchtkreis, um den Spaziergang zu beenden und ein Nachtposter zu erzeugen. Spaziergänge ohne Schritte werden nicht gespeichert."
+            "value" : "Doppelt auf das Licht oder auf Stopp tippen und bestätigen. Nur Spaziergänge mit Schritten, Strecke, Verlauf und aktiver Dauer werden gespeichert."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-tap the glow circle to end your walk and generate a night poster. Walks with zero steps are not recorded."
+            "value" : "Double-tap the glow or tap Stop, then confirm to end. Only walks with steps, distance, a recorded path and active time are saved."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toca dos veces el círculo de luz para terminar el paseo y generar un póster nocturno. Los paseos con cero pasos no se registran."
+            "value" : "Toca dos veces la luz o pulsa Detener y confirma. Solo se guardan paseos con pasos, distancia, trazado y tiempo activo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-touchez le cercle lumineux pour terminer votre marche et générer un poster nocturne. Les marches à zéro pas ne sont pas enregistrées."
+            "value" : "Touchez deux fois la lueur ou le bouton Arrêter, puis confirmez. Seules les marches avec pas, distance, tracé et durée active sont enregistrées."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocca due volte il cerchio di luce per terminare la passeggiata e generare un poster notturno. Le passeggiate con zero passi non vengono registrate."
+            "value" : "Tocca due volte la luce o il pulsante Stop, poi conferma. Si salvano solo camminate con passi, distanza, tracciato e durata attiva."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "光の輪をダブルタップすると歩行を終了し、夜のポスターが生成されます。歩数がゼロの歩行は記録されません。"
+            "value" : "光をダブルタップするか終了ボタンを押し、確認します。歩数・距離・軌跡・有効時間が揃った歩行だけ保存します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "빛 원을 두 번 탭하면 걷기를 마치고 밤 포스터가 생성됩니다. 걸음 수가 0이면 기록되지 않습니다."
+            "value" : "빛을 두 번 탭하거나 종료 버튼을 누른 뒤 확인하세요. 걸음 수, 거리, 경로와 유효 시간이 모두 있는 기록만 저장합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque duas vezes no círculo de luz para encerrar a caminhada e gerar um pôster noturno. Caminhadas com zero passos não são registradas."
+            "value" : "Toque duas vezes na luz ou em Parar e confirme. Só são salvas caminhadas com passos, distância, trajeto e tempo ativo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Дважды коснитесь светящегося круга, чтобы завершить прогулку и создать ночной постер. Прогулки с нулём шагов не записываются."
+            "value" : "Дважды коснитесь свечения или нажмите Стоп, затем подтвердите. Сохраняются только прогулки с шагами, расстоянием, треком и активным временем."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "双击光晕区域结束本次步行，自动生成夜路海报。若步数为零，步行不会记录。"
+            "value" : "双击光晕或点击结束按钮，确认后结束。仅保存同时具备步数、距离、轨迹和有效时长的步行。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "雙擊光暈區域結束本次步行，自動生成夜路海報。若步數為零，步行不會記錄。"
+            "value" : "按兩下光暈或點擊結束按鈕，確認後結束。僅儲存同時具備步數、距離、軌跡和有效時長的步行。"
           }
         }
       }
@@ -2576,67 +2589,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Langes Drücken (0,8 s) auf den Leuchtkreis schaltet die Taschenlampe vorübergehend aus, ohne den Spaziergang zu beenden. Erneut langes Drücken setzt fort. Bei Pause wird die Prozentzahl durchgestrichen."
+            "value" : "Das Licht 0,6 Sekunden halten, um Beleuchtung und Aufzeichnung zu pausieren. Zum Fortsetzen tippen. Sperren oder Verlassen der App pausiert ebenfalls. Pausenzeit und Bewegung werden nicht gezählt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Long-press the glow circle for 0.8 seconds to temporarily turn off the flashlight without ending your walk. Long-press again to resume. The percentage shows a strikethrough when paused."
+            "value" : "Hold the glow for 0.6 seconds to pause the light and recording. Tap to continue. Locking or leaving the app also pauses; return and tap to continue. Paused time and movement are excluded."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantén pulsado el círculo de luz 0,8 s para apagar temporalmente la linterna sin terminar el paseo. Pulsa de nuevo para reanudar. Durante la pausa, el porcentaje aparece tachado."
+            "value" : "Mantén la luz 0,6 segundos para pausar la iluminación y el registro. Toca para continuar. Bloquear o salir de la app también pausa. El tiempo y movimiento en pausa no cuentan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Appuyez longuement sur le cercle lumineux (0,8 s) pour éteindre temporairement la torche sans terminer la marche. Appuyez de nouveau longuement pour reprendre. Le pourcentage est barré pendant la pause."
+            "value" : "Maintenez la lueur 0,6 seconde pour arrêter l’éclairage et l’enregistrement. Touchez pour reprendre. Verrouiller ou quitter l’app met aussi en pause. Le temps et les déplacements en pause sont exclus."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tieni premuto il cerchio di luce per 0,8 secondi per spegnere temporaneamente la torcia senza terminare la passeggiata. Tieni premuto di nuovo per riprendere. In pausa la percentuale è barrata."
+            "value" : "Tieni premuta la luce per 0,6 secondi per sospendere luce e registrazione. Tocca per riprendere. Anche bloccare o uscire dall’app mette in pausa. Tempo e spostamenti in pausa sono esclusi."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "光の輪を 0.8 秒長押しすると、歩行を終了せずに一時的にライトを消せます。もう一度長押しすると再開します。一時停止中はパーセント表示に取り消し線が付きます。"
+            "value" : "光を0.6秒長押しすると照明と記録が一時停止します。タップで再開。画面ロックやアプリを離れた場合も停止します。停止中の時間と移動は含みません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "빛 원을 0.8초 길게 누르면 걷기를 끝내지 않고 손전등을 잠시 끌 수 있습니다. 다시 길게 누르면 재개됩니다. 일시정지 중에는 백분율에 취소선이 표시됩니다."
+            "value" : "빛을 0.6초간 누르면 조명과 기록이 정지됩니다. 탭하여 계속하세요. 화면 잠금이나 앱 이탈 시에도 정지됩니다. 정지 중 시간과 이동은 제외합니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pressione e segure o círculo de luz por 0,8 s para desligar temporariamente a lanterna sem encerrar a caminhada. Pressione novamente para retomar. Durante a pausa, o percentual fica riscado."
+            "value" : "Segure a luz por 0,6 segundo para pausar a iluminação e o registro. Toque para continuar. Bloquear ou sair do app também pausa. Tempo e movimento durante a pausa não contam."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Долгое нажатие (0,8 с) на светящийся круг временно выключает фонарик, не завершая прогулку. Нажмите ещё раз, чтобы возобновить. На паузе процент перечёркнут."
+            "value" : "Удерживайте свечение 0,6 секунды для паузы света и записи. Коснитесь для продолжения. Блокировка или выход из приложения также включает паузу. Время и движение на паузе не учитываются."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "长按光晕区域 0.8 秒，可临时关闭手电筒，不结束步行。再次长按恢复。关灯时百分比显示删除线。"
+            "value" : "长按光晕 0.6 秒暂停照明与记录，轻点继续。锁屏或离开应用也会暂停，回来轻点继续。暂停期间的时长与移动不计入记录。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "長按光暈區域 0.8 秒，可暫時關閉手電筒，不結束步行。再次長按恢復。關燈時百分比顯示刪除線。"
+            "value" : "長按光暈 0.6 秒暫停照明與記錄，輕點繼續。鎖屏或離開應用也會暫停，回來輕點繼續。暫停期間的時長與移動不計入記錄。"
           }
         }
       }
@@ -2647,67 +2660,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Langes Drücken = Pause"
+            "value" : "Pause und Fortsetzen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Long Press to Pause"
+            "value" : "Pause and continue"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pulsación larga: pausa"
+            "value" : "Pausar y continuar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Appui long = pause"
+            "value" : "Pause et reprise"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tieni premuto per pausa"
+            "value" : "Pausa e ripresa"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "長押しで一時停止"
+            "value" : "一時停止と再開"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "길게 눌러 일시정지"
+            "value" : "정지와 계속"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Segurar para pausar"
+            "value" : "Pausar e continuar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Долгое нажатие — пауза"
+            "value" : "Пауза и продолжение"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "长按关灯"
+            "value" : "暂停与继续"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "長按關燈"
+            "value" : "暫停與繼續"
           }
         }
       }
@@ -2783,73 +2796,215 @@
         }
       }
     },
+    "help.quietDesc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nach 12 Sekunden ohne Eingabe verblassen Zusatzinformationen. Berühren blendet sie ein. Pausen und Hinweise bleiben sichtbar. Poster zeigen abstrakte Wege und Lichtwechsel ohne Ortsnamen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After 12 seconds without interaction, secondary information fades. Touch to reveal it. Pauses and notices stay visible. Posters preserve abstract paths and light changes without place labels."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras 12 segundos sin interacción se atenúa la información secundaria. Toca para verla. Pausas y avisos siguen visibles. Los pósteres conservan trazos abstractos y cambios de luz, sin nombres de lugares."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Après 12 secondes sans action, les informations secondaires s’effacent. Touchez pour les retrouver. Pauses et alertes restent visibles. Les affiches gardent un tracé abstrait et les variations de lumière, sans noms de lieux."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dopo 12 secondi senza interazioni, le informazioni secondarie sfumano. Tocca per mostrarle. Pause e avvisi restano visibili. I poster conservano tracce astratte e variazioni di luce senza nomi di luoghi."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12秒操作しないと補助情報が薄くなり、触れると戻ります。停止と通知は表示されます。ポスターには地名のない抽象的な足跡と光の変化を残します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12초간 조작하지 않으면 보조 정보가 사라지고 터치하면 돌아옵니다. 정지와 알림은 유지됩니다. 포스터는 장소 이름 없이 추상적인 발자취와 빛의 변화를 남깁니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Após 12 segundos sem interação, informações secundárias desaparecem. Toque para vê-las. Pausas e avisos continuam visíveis. Pôsteres guardam traços abstratos e mudanças de luz sem nomes de lugares."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Через 12 секунд без действий второстепенные данные исчезают. Коснитесь для возврата. Паузы и уведомления остаются видимыми. Постеры сохраняют абстрактные следы и изменения света без названий мест."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 秒不操作后，次要信息淡出；触摸即可唤回。暂停和提示保持可见。海报保留抽象足迹和灯光变化，不标注地点。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "12 秒不操作後，次要資訊淡出；觸摸即可喚回。暫停和提示保持可見。海報保留抽象足跡和燈光變化，不標註地點。"
+          }
+        }
+      }
+    },
+    "help.quietTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weniger Bildschirm, mehr Nacht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Less screen, more night"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menos pantalla, más noche"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moins d’écran, plus de nuit"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meno schermo, più notte"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面より夜道に集中"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면보다 밤길에 집중"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menos tela, mais noite"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Меньше экрана, больше ночи"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "少看屏幕，专注夜路"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "少看螢幕，專注夜路"
+          }
+        }
+      }
+    },
     "help.togglesDesc" : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tippen Sie auf eine der fünf Faktor-Karten unten, um sie zu aktivieren oder zu deaktivieren. Deaktivierte Faktoren fließen nicht mehr in die Helligkeit ein und ihre Werte gehen auf null. Die Breite der Karten spiegelt das Gewicht – Umgebung ist am breitesten (40 %), die übrigen je 15 %."
+            "value" : "Bei Rückkamerasteuerung zeigen Karten nur Informationen (—), ohne Schalter. Im Ersatzmodus sind Faktoren schaltbar. Prozentwerte sind Modellschätzungen."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tap any of the five factor cards at the bottom to toggle it. When off, it no longer affects brightness and its delta goes to zero. Card width reflects weight — Ambient is widest (40%), others 15% each."
+            "value" : "With rear-camera feedback, factor cards show context only (—); toggles are unavailable. In fallback auto mode, cards control the factor model. The displayed percentages are model estimates."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toca cualquiera de las cinco tarjetas de factores para activarla o desactivarla. Al desactivarla, deja de influir en el brillo y su valor pasa a cero. La anchura refleja su peso: Ambiente es la más ancha (40 %), las demás un 15 % cada una."
+            "value" : "Con la cámara trasera, las tarjetas solo informan (—) y no se pueden cambiar. En el modo alternativo se pueden activar factores. Los porcentajes son estimaciones del modelo."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Touchez l'une des cinq cartes en bas pour l'activer ou la désactiver. Désactivée, elle n'influence plus la luminosité et sa valeur revient à zéro. La largeur des cartes reflète leur poids — Ambiante est la plus large (40 %), les autres 15 % chacune."
+            "value" : "Avec la caméra arrière, les cartes sont informatives (—), sans interrupteurs. En mode automatique de secours, les facteurs sont réglables. Les pourcentages sont des estimations du modèle."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tocca una delle cinque schede dei fattori in basso per attivarla o disattivarla. Quando è spenta, non influenza più la luminosità e il suo valore torna a zero. La larghezza riflette il peso: Ambiente è la più larga (40%), le altre al 15% ciascuna."
+            "value" : "Con la fotocamera posteriore, le schede sono informative (—) e non modificabili. Nella modalità alternativa puoi cambiare i fattori. Le percentuali sono stime del modello."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下部の5つの要素カードをタップするとオン/オフを切り替えられます。オフにすると明るさ計算に影響せず、数値はゼロになりグレー表示されます。カードの幅は重みを表し、環境光が最も広く（40%）、他は各15%です。"
+            "value" : "背面カメラ制御中のカードは参考情報（—）で、切り替えできません。代替の自動モードでは要因を切り替えられ、割合はモデルの推定値です。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "하단의 다섯 가지 요소 카드를 탭하면 켜고 끌 수 있습니다. 끄면 밝기 계산에 영향을 주지 않으며 수치는 0이 되고 회색으로 표시됩니다. 카드의 너비는 가중치를 나타냅니다 — 주변광이 가장 넓고(40%), 나머지는 각 15%입니다."
+            "value" : "후면 카메라 제어 중 카드는 참고 정보(—)이며 전환할 수 없습니다. 대체 자동 모드에서는 요인을 전환할 수 있으며 백분율은 모델 추정치입니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque em qualquer um dos cinco cartões de fatores na parte de baixo para ativá-lo ou desativá-lo. Quando desativado, ele não influencia mais o brilho e seu valor vai a zero. A largura do cartão reflete o peso — Ambiente é o mais largo (40%), os demais 15% cada."
+            "value" : "Com a câmera traseira, os cartões apenas informam (—), sem controles. No modo alternativo, é possível alternar fatores. Os percentuais são estimativas do modelo."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Коснитесь любой из пяти карточек факторов внизу, чтобы включить или выключить её. В выключенном состоянии фактор не влияет на яркость, а его значение становится нулевым. Ширина карточки отражает вес — «Свет» самая широкая (40%), остальные по 15%."
+            "value" : "При управлении задней камерой карточки только информируют (—), без переключателей. В резервном авторежиме факторы можно менять. Проценты — оценки модели."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "底部五个因素卡片均可点击开关。关闭后该因素不再影响亮度计算，数值归零变灰。卡片宽度反映其在亮度决策中的权重——环境光最宽（40%），其余四个各 15%。"
+            "value" : "后摄闭环可用时，因素卡片仅提供环境信息（—），不可开关。备用自动模式下可切换因素，百分比为模型估算。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "底部五個因素卡片均可點擊開關。關閉後該因素不再影響亮度計算，數值歸零變灰。卡片寬度反映其在亮度決策中的權重——環境光最寬（40%），其餘四個各 15%。"
+            "value" : "後攝閉環可用時，因素卡片僅提供環境資訊（—），不可開關。備用自動模式下可切換因素，百分比為模型估算。"
           }
         }
       }
@@ -4635,67 +4790,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doppeltippen zum Beenden"
+            "value" : "Doppelt tippen zum Beenden · Halten zum Pausieren"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-tap to end"
+            "value" : "Double-tap to finish · Hold to pause"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doble toque para terminar"
+            "value" : "Dos toques para terminar · Mantén para pausar"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double-toucher pour finir"
+            "value" : "Deux touches pour terminer · Maintenez pour mettre en pause"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doppio tocco per terminare"
+            "value" : "Due tocchi per terminare · Tieni premuto per la pausa"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ダブルタップで終了"
+            "value" : "ダブルタップで終了 · 長押しで一時停止"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "두 번 탭으로 종료"
+            "value" : "두 번 탭하여 종료 · 길게 눌러 정지"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque duplo para encerrar"
+            "value" : "Dois toques para encerrar · Segure para pausar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Двойное касание для завершения"
+            "value" : "Двойное касание — завершить · Удержание — пауза"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "双击结束步行"
+            "value" : "双击结束 · 长按暂停"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "雙擊結束步行"
+            "value" : "按兩下結束 · 長按暫停"
           }
         }
       }
@@ -5056,8 +5211,77 @@
       }
     },
     "Italiano" : {
-      "localizations" : {
 
+    },
+    "license.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lizenztext nicht verfügbar"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License text unavailable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto de licencia no disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texte de licence indisponible"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Testo della licenza non disponibile"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライセンス文を表示できません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이선스 전문을 표시할 수 없습니다"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto de licença indisponível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текст лицензии недоступен"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "许可文本不可用"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可文本不可用"
+          }
+        }
       }
     },
     "location.continue" : {
@@ -6621,67 +6845,67 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schreibt Ihre abgeschlossenen Spaziergänge (Schritte, Distanz, Dauer und Route) in die Health-App."
+            "value" : "Vollständige Spaziergänge werden mit Schritten, Strecke und aktiver Dauer in Health gespeichert. Routenkoordinaten werden nicht geteilt."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Writes your completed walks (steps, distance, duration and route) to the Health app."
+            "value" : "Writes completed walks (steps, distance and active duration) to Health. Route coordinates are not shared."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escribe tus paseos completados (pasos, distancia, duración y ruta) en la app Salud."
+            "value" : "Guarda pasos, distancia y tiempo activo de paseos completos en Salud. No comparte coordenadas de la ruta."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Écrit vos marches terminées (pas, distance, durée et trajet) dans l'app Santé."
+            "value" : "Enregistre les pas, la distance et la durée active des marches complètes dans Santé. Aucune coordonnée de trajet n’est partagée."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scrive le tue passeggiate completate (passi, distanza, durata e percorso) nell'app Salute."
+            "value" : "Salva passi, distanza e durata attiva delle camminate complete in Salute. Le coordinate del percorso non vengono condivise."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "完了した歩行（歩数・距離・時間・経路）をヘルスケア App に書き込みます。"
+            "value" : "完全な歩行の歩数・距離・有効時間をヘルスケアに記録します。ルート座標は共有しません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "완료된 걷기(걸음 수·거리·시간·경로)를 건강 App에 기록합니다."
+            "value" : "완전한 걷기의 걸음 수, 거리, 유효 시간을 건강 앱에 기록합니다. 경로 좌표는 공유하지 않습니다."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escreve suas caminhadas concluídas (passos, distância, duração e trajeto) no app Saúde."
+            "value" : "Salva passos, distância e tempo ativo de caminhadas completas no Saúde. Não compartilha coordenadas da rota."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Записывает завершённые прогулки (шаги, дистанцию, длительность и маршрут) в приложение «Здоровье»."
+            "value" : "Записывает шаги, расстояние и активное время полных прогулок в Здоровье. Координаты маршрута не передаются."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "步行结束后将步数、距离、时长和路线写入健康 App。"
+            "value" : "将完整步行的步数、距离和有效时长写入健康 App，不分享路线坐标。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "步行結束後將步數、距離、時長和路線寫入健康 App。"
+            "value" : "將完整步行的步數、距離和有效時長寫入健康 App，不分享路線座標。"
           }
         }
       }
@@ -7326,9 +7550,7 @@
       }
     },
     "Português" : {
-      "localizations" : {
 
-      }
     },
     "poster.close" : {
       "extractionState" : "manual",
@@ -10525,6 +10747,219 @@
         }
       }
     },
+    "storage.preserved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Originaldaten bleiben erhalten. Vor einem neuen Spaziergang bitte erneut versuchen."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your original data has been preserved. Try again before starting a new walk."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus datos originales se han conservado. Reinténtalo antes de empezar otro paseo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vos données originales sont conservées. Réessayez avant de commencer une marche."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I dati originali sono conservati. Riprova prima di iniziare una camminata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "元のデータは保持されています。歩行を始める前に再試行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "원본 데이터는 보존되어 있습니다. 걷기를 시작하기 전에 다시 시도하세요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seus dados originais foram preservados. Tente novamente antes de iniciar outra caminhada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Исходные данные сохранены. Повторите попытку перед началом прогулки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始数据已保留。请重试后再开始步行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始資料已保留。請重試後再開始步行。"
+          }
+        }
+      }
+    },
+    "storage.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut versuchen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riprova"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再試行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 시도"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentar novamente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повторить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重試"
+          }
+        }
+      }
+    },
+    "storage.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf kann nicht geöffnet werden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walk history could not be opened"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo abrir el historial"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’ouvrir l’historique"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossibile aprire la cronologia"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歩行履歴を開けません"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "걷기 기록을 열 수 없습니다"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível abrir o histórico"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось открыть историю"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法打开步行历史"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法開啟步行歷史"
+          }
+        }
+      }
+    },
     "summary.health.failed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10734,6 +11169,858 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在同步到健康…"
+          }
+        }
+      }
+    },
+    "walk.end" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End walk"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar paseo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina camminata"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歩行を終了"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "걷기 종료"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encerrar caminhada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить прогулку"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束步行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束步行"
+          }
+        }
+      }
+    },
+    "walk.endDiscard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Speichern beenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End without saving"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar sin guardar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer sans enregistrer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina senza salvare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存せず終了"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "저장하지 않고 종료"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encerrar sem salvar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить без сохранения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束且不保存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束且不儲存"
+          }
+        }
+      }
+    },
+    "walk.endMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus dem vollständigen Spaziergang entsteht ein Nachtposter."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your complete walk will become a night poster."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu paseo completo se convertirá en un póster nocturno."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre marche complète deviendra une affiche nocturne."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La camminata completa diventerà un poster notturno."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完全な歩行記録から夜道のポスターを作ります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "완전한 걷기 기록으로 밤길 포스터를 만듭니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sua caminhada completa se tornará um pôster noturno."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Полная запись прогулки станет ночным постером."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整的步行将生成一张夜路海报。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整的步行將生成一張夜路海報。"
+          }
+        }
+      }
+    },
+    "walk.endSave" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beenden und speichern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End and save"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminar y guardar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer et enregistrer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina e salva"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "終了して保存"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "종료 후 저장"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encerrar e salvar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить и сохранить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束并保存"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束並儲存"
+          }
+        }
+      }
+    },
+    "walk.endTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spaziergang beenden?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "End this walk?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Terminar este paseo?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminer cette marche ?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminare la camminata?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歩行を終了しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "걷기를 종료할까요?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encerrar esta caminhada?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Завершить прогулку?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "结束本次步行？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "結束本次步行？"
+          }
+        }
+      }
+    },
+    "walk.holdHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halten zum Pausieren · Tippen für Automatik"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold to pause · Tap to restore auto"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén para pausar · Toca para volver a Auto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenez pour mettre en pause · Touchez pour rétablir Auto"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tieni premuto per la pausa · Tocca per Auto"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長押しで一時停止 · タップで自動に戻す"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "길게 눌러 정지 · 탭하여 자동 복원"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segure para pausar · Toque para voltar ao automático"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удерживайте для паузы · Коснитесь для авторежима"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "长按暂停 · 轻点恢复自动"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "長按暫停 · 輕點恢復自動"
+          }
+        }
+      }
+    },
+    "walk.incomplete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten sind unvollständig. Dieser Spaziergang wird nicht gespeichert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This walk has incomplete data and will not be saved."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los datos están incompletos. Este paseo no se guardará."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les données sont incomplètes. Cette marche ne sera pas enregistrée."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I dati sono incompleti. La camminata non verrà salvata."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記録が不完全なため、終了後は保存されません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데이터가 불완전하여 종료 후 저장하지 않습니다."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os dados estão incompletos. Esta caminhada não será salva."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Данные неполные. Эта прогулка не будет сохранена."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次步行数据不完整，结束后不保存。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "本次步行資料不完整，結束後不儲存。"
+          }
+        }
+      }
+    },
+    "walk.keepWalking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revenir"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Indietro"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "戻る"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "돌아가기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voltar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назад"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回步行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回步行"
+          }
+        }
+      }
+    },
+    "walk.light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gehlicht"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walking light"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luz de paseo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Éclairage de marche"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luce per camminare"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歩行ライト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "걷기 조명"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luz de caminhada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Свет для прогулки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "随行灯光"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨行燈光"
+          }
+        }
+      }
+    },
+    "walk.pause" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일시 정지"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暫停"
+          }
+        }
+      }
+    },
+    "walk.paused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausiert · Zum Fortsetzen tippen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused · Tap to continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pausa · Toca para continuar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pause · Touchez pour reprendre"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In pausa · Tocca per riprendere"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一時停止中 · タップで再開"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일시 정지됨 · 탭하여 계속"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Em pausa · Toque para continuar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пауза · Коснитесь для продолжения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暂停 · 轻点继续"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已暫停 · 輕點繼續"
+          }
+        }
+      }
+    },
+    "walk.resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spaziergang fortsetzen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue walk"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar paseo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reprendre la marche"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riprendi camminata"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "歩行を続ける"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "걷기 계속"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar caminhada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить прогулку"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续步行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續步行"
           }
         }
       }
@@ -11094,19 +12381,13 @@
       }
     },
     "Русский" : {
-      "localizations" : {
 
-      }
     },
     "한국어" : {
-      "localizations" : {
 
-      }
     },
     "日本語" : {
-      "localizations" : {
 
-      }
     },
     " Weather" : {
       "localizations" : {
@@ -11168,77 +12449,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : " Weather"
-          }
-        }
-      }
-    },
-    "license.unavailable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lizenztext nicht verfügbar"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "License text unavailable"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Texto de licencia no disponible"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Texte de licence indisponible"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Testo della licenza non disponibile"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ライセンス文を表示できません"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "라이선스 전문을 표시할 수 없습니다"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Texto de licença indisponível"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Текст лицензии недоступен"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "许可文本不可用"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "許可文本不可用"
           }
         }
       }

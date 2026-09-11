@@ -156,7 +156,42 @@ struct HUDView: View {
         .allowsHitTesting(false)
     }
 
-    @State private var isManual = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
+    @State private var showEndConfirmation = false
+    @State private var lastInteraction = Date()
+    @State private var isQuiet = false
+    @State private var isPressing = false
+    @State private var holdProgress: CGFloat = 0
+    @State private var ignoreTapUntil = Date.distantPast
+    private let idleTimer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    private var hasNotice: Bool {
+        viewModel.cameraDeniedForAmbient || viewModel.occlusionNoticeVisible
+            || viewModel.isThermalNoticeVisible || viewModel.isDaylight
+    }
+
+    private func wakeControls() {
+        lastInteraction = Date()
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) { isQuiet = false }
+    }
+
+    private func confirmEnd() {
+        wakeControls()
+        showEndConfirmation = true
+    }
+
+    private func finishWalk() {
+        if viewModel.canSaveWalk {
+            isEnding = true
+            viewModel.endWalkAndNotify()
+        } else {
+            viewModel.discardZeroStepWalk()
+            goToHistory()
+        }
+    }
+
+    private var isManual: Bool { viewModel.lightEngine.isManual }
     @State private var isEnding = false
     @State private var showSettings = false
     @State private var isEndingZeroStep = false
@@ -193,6 +228,18 @@ struct HUDView: View {
                 // Walk-independent controls — very top right, not in the moon row.
                 HStack {
                     Spacer()
+                    Button(action: {
+                        wakeControls()
+                        if viewModel.isPaused { viewModel.resumeWalk() } else { viewModel.pauseWalk() }
+                    }) {
+                        Image(systemName: viewModel.isPaused ? "play.fill" : "pause.fill")
+                            .frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel(Text(LocalizedStringKey(viewModel.isPaused ? "walk.resume" : "walk.pause")))
+                    Button(action: confirmEnd) {
+                        Image(systemName: "stop.fill").frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel(Text("walk.end"))
                     Button(action: { goToHistory() }) {
                         Image(systemName: "clock.arrow.circlepath")
                             .font(.system(size: 16))
@@ -206,6 +253,9 @@ struct HUDView: View {
                     }
                     .padding(.trailing, 16)
                 }
+                .foregroundColor(.gloGold)
+                .opacity(isQuiet ? 0 : 1)
+                .allowsHitTesting(!isQuiet)
                 .padding(.top, 12)
                 .background(
                     GeometryReader { geo in
@@ -216,6 +266,7 @@ struct HUDView: View {
 
                 // Unified system notice bar — camera denied / occlusion / daylight
                 topNoticeBar
+                    .opacity(isQuiet ? 0 : 1)
                 Spacer()
             }
 
@@ -224,24 +275,30 @@ struct HUDView: View {
 
                 // Central glow — double-tap to end；槽位静止，内容随拖动移动。
                 centralGlow
+                Text(LocalizedStringKey(viewModel.isPaused ? "walk.paused" : "walk.holdHint"))
+                    .font(.gloBody(12))
+                    .foregroundColor(.gloGold.opacity(viewModel.isPaused ? 0.8 : 0.5))
+                    .opacity(isQuiet ? 0 : 1)
+                    .padding(.top, 8)
                 // Constellation path — poster-sized band, fixed space (no layout jump)
                 ConstellationPathView(
                     points: viewModel.pathPoints,
-                    isActive: viewModel.isActive && viewModel.pathPoints.count >= 2,
+                    isActive: viewModel.isActive && !viewModel.isPaused && !isQuiet && viewModel.pathPoints.count >= 2,
                     stepCount: viewModel.stepCount
                 )
                 .frame(height: 170)
                 .padding(.horizontal, 32)
-                .opacity(viewModel.pathPoints.count >= 2 ? 0.7 : 0)
+                .opacity(viewModel.pathPoints.count >= 2 && !isQuiet ? 0.7 : 0)
 
                 Spacer().frame(height: 12)
 
                 // Brightness progress lines directly above the factor row so
                 // the levels and the factor deductions read as one unit.
                 brightnessProgressLines
+                    .opacity(isQuiet ? 0 : 1)
 
                 // Status row + bottom bar — tight grouping
-                topStatusRow
+                topStatusRow.opacity(isQuiet ? 0 : 1).allowsHitTesting(!isQuiet)
 
                 // Thin divider
                 Rectangle()
@@ -249,9 +306,10 @@ struct HUDView: View {
                     .frame(height: 0.5)
                     .padding(.horizontal, 24)
                     .padding(.top, 4)
+                    .opacity(isQuiet ? 0 : 1)
 
                 // Bottom bar — flush with screen bottom
-                bottomBar
+                bottomBar.opacity(isQuiet ? 0 : 1)
             }
         }
         .gloWalkHUD()
@@ -259,11 +317,22 @@ struct HUDView: View {
         .onPreferenceChange(TopControlsMaxYKey.self) { topControlsMaxY = $0 }
         .onPreferenceChange(BarsMinYKey.self) { barsY = $0 }
         .onAppear { viewModel.startWalk() }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
-            viewModel.willResignActive()
+        .simultaneousGesture(DragGesture(minimumDistance: 0).onChanged { _ in wakeControls() })
+        .onReceive(idleTimer) { now in
+            let quiet = !voiceOverEnabled && !viewModel.isPaused
+                && !isDragging && !isPressing && !showSettings && !showEndConfirmation
+                && now.timeIntervalSince(lastInteraction) >= 12
+            if quiet != isQuiet {
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.8)) { isQuiet = quiet }
+            }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            viewModel.didBecomeActive()
+        .onChange(of: viewModel.isPaused) { _ in wakeControls() }
+        .onChange(of: hasNotice) { _ in wakeControls() }
+        .confirmationDialog("walk.endTitle", isPresented: $showEndConfirmation, titleVisibility: .visible) {
+            Button(LocalizedStringKey(viewModel.canSaveWalk ? "walk.endSave" : "walk.endDiscard"), role: .destructive) { finishWalk() }
+            Button("walk.keepWalking", role: .cancel) { wakeControls() }
+        } message: {
+            Text(LocalizedStringKey(viewModel.canSaveWalk ? "walk.endMessage" : "walk.incomplete"))
         }
         // Loading overlay when ending walk
         .overlay {
@@ -310,35 +379,57 @@ struct HUDView: View {
         ZStack {
             GlowCircleView(brightness: viewModel.brightness,
                           cadence: viewModel.cadence,
-                          isPaused: viewModel.lightEngine.isManual && viewModel.brightness <= 0.001,
-                          isDragging: isDragging)
+                          isPaused: viewModel.isPaused,
+                          isDragging: isDragging,
+                          isResting: isQuiet)
                 .offset(y: dragOffset)
+                .overlay {
+                    Circle().trim(from: 0, to: holdProgress)
+                        .stroke(Color.gloGold.opacity(0.8), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                        .frame(width: 104, height: 104)
+                        .rotationEffect(.degrees(-90))
+                        .offset(y: dragOffset)
+                        .allowsHitTesting(false)
+                }
+                .onLongPressGesture(minimumDuration: 0.6, maximumDistance: 10, pressing: { pressing in
+                    isPressing = pressing
+                    if pressing && !viewModel.isPaused {
+                        wakeControls()
+                        withAnimation(reduceMotion ? nil : .linear(duration: 0.6)) { holdProgress = 1 }
+                    } else { holdProgress = 0 }
+                }, perform: {
+                    guard !viewModel.isPaused else { return }
+                    ignoreTapUntil = Date().addingTimeInterval(0.4)
+                    viewModel.pauseWalk()
+                    Haptic.light()
+                })
                 .onTapGesture(count: 2) {
-                    Haptic.heavy()
-                    if viewModel.stepCount == 0 {
-                        isEndingZeroStep = true
-                        viewModel.discardZeroStepWalk()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            goToHistory()
-                        }
-                    } else {
-                        isEnding = true
-                        viewModel.endWalkAndNotify()
-                    }
+                    guard Date() >= ignoreTapUntil else { return }
+                    confirmEnd()
                 }
                 .onTapGesture(count: 1) {
-                    if isManual {
-                        isManual = false
+                    guard Date() >= ignoreTapUntil else { return }
+                    wakeControls()
+                    if viewModel.isPaused { viewModel.resumeWalk(); Haptic.light() }
+                    else if isManual {
                         viewModel.resetToAutoBrightness()
-                        // 恢复自动时图标回中。
-                        withAnimation(.easeOut(duration: 0.2)) { dragOffset = 0 }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) { dragOffset = 0 }
                         Haptic.light()
                     }
                 }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("walk.light"))
+                .accessibilityValue(Text(LocalizedStringKey(viewModel.isPaused ? "walk.paused" : "walk.holdHint")))
+                .accessibilityAction(named: Text("walk.pause")) { viewModel.pauseWalk() }
+                .accessibilityAction(named: Text("walk.resume")) { viewModel.resumeWalk() }
+                .accessibilityAction(named: Text("walk.end")) { confirmEnd() }
+
         }
         .gesture(
             DragGesture(minimumDistance: 8)
                 .onChanged { v in
+                    guard !viewModel.isPaused else { return }
+                    wakeControls()
                     let slotFrame = glowSlotFrame
                         ?? CGRect(x: 0, y: UIScreen.main.bounds.midY - 120,
                                   width: 240, height: 240)
@@ -348,7 +439,7 @@ struct HUDView: View {
                     if !isDragging {
                         isDragging = true
                         dragStartCenterY = glowCenter + dragOffset
-                        if !isManual { isManual = true; Haptic.light() }
+                        if !isManual { Haptic.light() }
                     }
                     // 手指全局 y = 拖动起点图标中心 + 手指位移
                     // （手势绑定在静止槽位上，坐标不会随图标移动而漂移）。
@@ -363,13 +454,14 @@ struct HUDView: View {
                                                          topOffset: topBound - glowCenter,
                                                          bottomOffset: bottomBound - glowCenter)
                     let newLevel = BrightnessDrag.level(segment: segment)
-                    if abs(newLevel - viewModel.brightness) > 0.001 {
+                    if !isManual || abs(newLevel - viewModel.brightness) > 0.001 {
                         viewModel.setManualBrightness(newLevel)
                         Haptic.selection()
                     }
                 }
                 .onEnded { _ in
                     isDragging = false
+                    guard !viewModel.isPaused else { return }
                     let slotFrame = glowSlotFrame
                         ?? CGRect(x: 0, y: UIScreen.main.bounds.midY - 120,
                                   width: 240, height: 240)
@@ -438,7 +530,7 @@ struct HUDView: View {
         // living level. Deliberately no shadows — the flow comes from the
         // traveling brightness crest, keeping GPU cost low. 5 fps is enough for
         // the subtle crest motion and halves the render cost again vs 20 fps.
-        return TimelineView(.animation(minimumInterval: 1.0 / 5.0)) { context in
+        return TimelineView(.animation(minimumInterval: 1.0 / 5.0, paused: isQuiet || viewModel.isPaused || reduceMotion)) { context in
             let phase = context.date.timeIntervalSinceReferenceDate * 3.0
             HStack(spacing: 2) {
                 // Same-width slots on both sides (a transparent placeholder
@@ -561,6 +653,7 @@ struct HUDView: View {
 
     private func factorCol(_ cell: FactorCell, manual: Bool) -> some View {
         let boost = viewModel.uiBrightnessBoost
+        let informational = viewModel.usesClosedLoop
         return Button(action: { viewModel.toggleFactor(id: cell.id) }) {
             VStack(spacing: 1) {
                 Text(cell.label)
@@ -577,7 +670,7 @@ struct HUDView: View {
                         .frame(width: 4, height: 4)
                     Image(systemName: cell.icon)
                         .font(.system(size: 8))
-                    Text(cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%")
+                    Text(informational ? "—" : (cell.delta > 0 ? "+\(cell.delta)%" : "\(cell.delta)%"))
                         .font(.gloMono(10))
                 }
                 .foregroundColor(manual ? .white.opacity(0.30)
@@ -593,7 +686,7 @@ struct HUDView: View {
             )
         }
         .buttonStyle(.plain)
-        .disabled(manual)
+        .disabled(manual || informational || viewModel.isPaused)
         .opacity(manual ? 0.55 : min(cell.active ? 0.85 : 0.4 * boost, 1.0))
     }
 
@@ -663,9 +756,7 @@ struct HUDView: View {
                     .frame(width: cell, height: 16, alignment: .center)
                 Text("⏱ \(viewModel.elapsedMinutes)\(L10n.hudUnitMinutes)")
                     .frame(width: cell, height: 16, alignment: .center)
-                Text(viewModel.estimatedMinutesRemaining < 0
-                     ? "🔋 ∞"
-                     : "🔋 \(viewModel.estimatedMinutesRemaining)\(L10n.hudUnitMinutes)")
+                Text(viewModel.batteryPercentage < 0 ? "🔋 —" : "🔋 \(viewModel.batteryPercentage)%")
                     .frame(width: cell, height: 16, alignment: .center)
                 gpsIndicator
                     .frame(width: cell, height: 16, alignment: .center)

@@ -8,6 +8,7 @@ enum HealthSyncState: String {
 
 @MainActor
 final class HealthSyncService {
+    private static var inFlight: Set<NSManagedObjectID> = []
     private let store: HealthStoreProtocol
     private let context: NSManagedObjectContext
 
@@ -85,6 +86,10 @@ final class HealthSyncService {
     }
 
     private func write(session: WalkSession) async {
+        let id = session.objectID
+        guard !session.isDeleted, session.healthSyncState != HealthSyncState.synced.rawValue,
+              Self.inFlight.insert(id).inserted else { return }
+        defer { Self.inFlight.remove(id) }
         setState(.pending, session: session)
         do {
             try await store.save(
@@ -106,6 +111,7 @@ final class HealthSyncService {
     }
 
     private func setState(_ state: HealthSyncState, session: WalkSession) {
+        guard !session.isDeleted else { return }
         session.healthSyncState = state.rawValue
         if context.hasChanges {
             do { try context.save() } catch {

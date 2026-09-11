@@ -8,6 +8,7 @@ struct ArrivalSummaryView: View {
     @State private var isGenerating = true
     @State private var showShareSheet = false
     @State private var savedToPhotos = false
+    @State private var isNewMemory = false
 
     var body: some View {
         ZStack {
@@ -30,6 +31,23 @@ struct ArrivalSummaryView: View {
                                 onComplete()
                             }
                         })
+
+                    VStack {
+                        if isNewMemory {
+                            Label(NightMemoryCollectionView.localizedNewImprint,
+                                  systemImage: "sparkles")
+                                .font(.gloHeadline(13))
+                                .foregroundColor(.gloGold)
+                                .padding(.horizontal, 13)
+                                .padding(.vertical, 8)
+                                .background(Capsule().fill(Color.black.opacity(0.68)))
+                                .overlay(Capsule().stroke(Color.gloGold.opacity(0.42), lineWidth: 1))
+                                .shadow(color: Color.gloGold.opacity(0.18), radius: 10, y: 3)
+                                .accessibilityAddTraits(.isHeader)
+                        }
+                        Spacer()
+                    }
+                    .padding(.top, 18)
 
                     VStack {
                         Spacer()
@@ -70,7 +88,10 @@ struct ArrivalSummaryView: View {
 
     private func generatePoster() async {
         guard let session = viewModel.currentWalkSession else { isGenerating = false; return }
-        posterImage = await PosterGenerator.generate(session: session)
+        let result = await PosterGenerator.generateWithMetadata(session: session)
+        posterImage = result.image
+        isNewMemory = result.isNewMemory
+        if result.isNewMemory { Haptic.medium() }
         isGenerating = false
     }
 

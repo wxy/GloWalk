@@ -20,15 +20,25 @@ be subset to:
   * Latin Extended-A/B + Vietnamese extensions + Cyrillic for the European
     languages (fr/de/es/pt-BR/it/ru) on the WenKai faces
 
-Original full fonts:
-  WenKai:     https://github.com/lxgw/LxgwWenKai/releases
-  Klee One:   https://github.com/google/fonts (ofl/kleeone) / fontworks-fonts/Klee
-  WenKai KR:  https://github.com/lxgw/LxgwWenkaiKR/releases
+Original full fonts (subsetting is DESTRUCTIVE — the source must always be a
+full upstream font, never a previously subset one; see the guard in main()):
+  WenKai:     https://github.com/lxgw/LxgwWenKai/releases (v1.522)
+              LXGWWenKai-{Light,Regular,Medium}.ttf, LXGWWenKaiMono-Light.ttf
+  Klee One:   https://github.com/google/fonts/raw/main/ofl/kleeone/
+              KleeOne-{Regular,SemiBold}.ttf
+  WenKai KR:  https://github.com/lxgw/LxgwWenkaiKR/releases (v0.901)
+              LXGWWenKaiKR-{Light,Regular,Medium}.ttf, LXGWWenKaiMonoKR-Light.ttf
 
 Usage:
-    python3 scripts/subset-fonts.py [SRC_DIR] [OUT_DIR]
+    python3 scripts/subset-fonts.py FULL_FONT_DIR OUT_DIR
 
-Default SRC_DIR/OUT_DIR is GloWalk/Resources/Fonts (relative to the repo root).
+    # e.g. download the full fonts to /tmp/fullfonts, then:
+    python3 scripts/subset-fonts.py /tmp/fullfonts GloWalk/Resources/Fonts
+
+Passing the same directory for both (the old default) is rejected: re-running
+in place silently drops any glyph missing from the already-subset source while
+still reporting "OK" — that is how the Traditional-Chinese glyphs of the
+night-memory taglines were lost once already.
 """
 
 import json
@@ -40,7 +50,6 @@ from fontTools.ttLib import TTFont
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_FONT_DIR = REPO_ROOT / "GloWalk" / "Resources" / "Fonts"
 
 # Language groups and which Taglines.json field suffix each maps to.
 WENKAI_LANGS = ["en", "zh-Hans", "zh-Hant", "fr", "de", "es", "pt-BR", "it", "ru"]
@@ -295,8 +304,14 @@ FACES = [
 
 def main() -> None:
     args = [Path(a) for a in sys.argv[1:3]]
-    src_dir = args[0] if args else DEFAULT_FONT_DIR
-    out_dir = args[1] if len(args) > 1 else src_dir
+    if len(args) < 2:
+        sys.exit("usage: subset-fonts.py FULL_FONT_DIR OUT_DIR\n"
+                 "(see the module docstring for the upstream font download URLs)")
+    src_dir, out_dir = args[0], args[1]
+    if src_dir.resolve() == out_dir.resolve():
+        sys.exit("refusing to subset in place: the source must be a directory of "
+                 "FULL upstream fonts, never the already-subset output (a previous "
+                 "in-place run is how Traditional-Chinese glyphs were silently lost)")
 
     total_before = 0
     total_after = 0

@@ -289,7 +289,15 @@
     "phrase_ru": "Дождь протянул свет дальше по дороге",
     "explanation": "雨改变了路面的光，也改变了这一晚的质感",
     "explanation_ht": "雨改變了路面的光，也改變了這一晚的質感",
-    "explanation_en": "Rain changed the light on the road and the texture of the night"
+    "explanation_en": "Rain changed the light on the road and the texture of the night",
+    "explanation_ja": "雨は路面の光を変え、この夜の質感も変えました",
+    "explanation_ko": "비는 노면의 빛을 바꾸었고, 이 밤의 질감도 함께 바꾸었습니다",
+    "explanation_fr": "La pluie a changé la lumière de la route et la texture de la nuit",
+    "explanation_de": "Der Regen veränderte das Licht der Straße und die Textur dieser Nacht",
+    "explanation_es": "La lluvia cambió la luz del asfalto y la textura de la noche",
+    "explanation_pt": "A chuva mudou a luz do asfalto e a textura da noite",
+    "explanation_it": "La pioggia ha cambiato la luce della strada e la texture della notte",
+    "explanation_ru": "Дождь изменил свет на дороге и саму фактуру этой ночи"
   },
   {
     "key": "tagline.rain.3",
@@ -306,7 +314,15 @@
     "phrase_ru": "Капли падали, а шаги сохраняли своё направление",
     "explanation": "天气落在身上，方向仍由自己选择",
     "explanation_ht": "天氣落在身上，方向仍由自己選擇",
-    "explanation_en": "Weather falls around you; direction remains your own"
+    "explanation_en": "Weather falls around you; direction remains your own",
+    "explanation_ja": "天気は身に降りそそぎますが、進む方向は自分のままです",
+    "explanation_ko": "날씨는 몸에 내리지만, 방향은 여전히 스스로 선택합니다",
+    "explanation_fr": "La météo tombe autour de vous ; la direction reste la vôtre",
+    "explanation_de": "Das Wetter fällt um dich herum — die Richtung wählst du selbst",
+    "explanation_es": "El tiempo cae a tu alrededor; la dirección sigue siendo tuya",
+    "explanation_pt": "O clima cai ao seu redor; a direção continua sendo sua",
+    "explanation_it": "Il meteo cade intorno a te; la direzione resta tua",
+    "explanation_ru": "Погода падает вокруг — направление каждый выбирает сам"
   },
   {
     "key": "tagline.resumed.2",
@@ -323,7 +339,15 @@
     "phrase_ru": "Пауза — не уход; она даёт ночи ещё один вдох",
     "explanation": "暂停没有删去旅程，它只是改变了节奏",
     "explanation_ht": "暫停沒有刪去旅程，它只是改變了節奏",
-    "explanation_en": "A pause does not erase the journey; it only changes its rhythm"
+    "explanation_en": "A pause does not erase the journey; it only changes its rhythm",
+    "explanation_ja": "一時停止は旅を消すのではなく、リズムを変えただけです",
+    "explanation_ko": "일시 정지는 여정을 지우는 것이 아니라 리듬을 바꿀 뿐입니다",
+    "explanation_fr": "Une pause n'efface pas le trajet ; elle en change seulement le rythme",
+    "explanation_de": "Eine Pause löscht den Weg nicht — sie ändert nur seinen Rhythmus",
+    "explanation_es": "Una pausa no borra el camino; solo cambia su ritmo",
+    "explanation_pt": "Uma pausa não apaga o caminho; apenas muda o ritmo",
+    "explanation_it": "Una pausa non cancella il cammino; ne cambia soltanto il ritmo",
+    "explanation_ru": "Пауза не стирает путь — она лишь меняет его ритм"
   },
   {
     "key": "tagline.resumed.3",
@@ -340,7 +364,15 @@
     "phrase_ru": "Дорога может разделиться надвое; движение вперёд остаётся единым",
     "explanation": "间断改变了线条，没有改变前行",
     "explanation_ht": "間斷改變了線條，沒有改變前行",
-    "explanation_en": "The break changed the line, not the act of moving forward"
+    "explanation_en": "The break changed the line, not the act of moving forward",
+    "explanation_ja": "途切れは線を変えましたが、前に進むことまでは変えませんでした",
+    "explanation_ko": "끊김은 선을 바꾸었을 뿐, 나아가는 것까지 바꾸지는 않았습니다",
+    "explanation_fr": "L'interruption a changé la ligne, pas le fait d'avancer",
+    "explanation_de": "Die Unterbrechung veränderte die Linie — nicht das Weitergehen",
+    "explanation_es": "El corte cambió la línea, no el hecho de seguir adelante",
+    "explanation_pt": "A interrupção mudou a linha, não o ato de seguir em frente",
+    "explanation_it": "L'interruzione ha cambiato la linea, non il fatto di andare avanti",
+    "explanation_ru": "Разрыв изменил линию, но не само движение вперёд"
   },
   {
     "key": "tagline.streetlight.2",
@@ -357,7 +389,15 @@
     "phrase_ru": "Свет и тень сменяли друг друга; сияние у ног научилось дышать",
     "explanation": "亮度的变化成了这段路的呼吸",
     "explanation_ht": "亮度的變化成了這段路的呼吸",
-    "explanation_en": "Changes in brightness became the breathing of the walk"
+    "explanation_en": "Changes in brightness became the breathing of the walk",
+    "explanation_ja": "明るさの変化が、この道の呼吸になりました",
+    "explanation_ko": "밝기의 변화가 이 길의 호흡이 되었습니다",
+    "explanation_fr": "Les variations de lumière sont devenues le souffle de la marche",
+    "explanation_de": "Die Wechsel der Helligkeit wurden zum Atem dieses Wegs",
+    "explanation_es": "Los cambios de brillo se volvieron el respiro del paseo",
+    "explanation_pt": "As variações de brilho viraram a respiração da caminhada",
+    "explanation_it": "I cambi di luminosità sono diventati il respiro della camminata",
+    "explanation_ru": "Перемены яркости стали дыханием этой прогулки"
   },
   {
     "key": "tagline.streetlight.3",
@@ -374,7 +414,15 @@
     "phrase_ru": "Свет не всегда был ярким, но всегда знал, куда падать",
     "explanation": "足够的光不必始终相同，只需照见下一步",
     "explanation_ht": "足夠的光不必始終相同，只需照見下一步",
-    "explanation_en": "Enough light need not stay the same; it only needs to reveal the next step"
+    "explanation_en": "Enough light need not stay the same; it only needs to reveal the next step",
+    "explanation_ja": "十分な光は同じである必要はなく、次の一歩を照らせば足ります",
+    "explanation_ko": "충분한 빛은 늘 같을 필요가 없고, 다음 걸음을 비춰 주면 충분합니다",
+    "explanation_fr": "Une lumière suffisante n'a pas besoin d'être constante ; elle doit seulement éclairer le pas suivant",
+    "explanation_de": "Genug Licht muss nicht immer gleich bleiben — es muss nur den nächsten Schritt zeigen",
+    "explanation_es": "La luz suficiente no tiene que ser siempre igual; solo necesita revelar el siguiente paso",
+    "explanation_pt": "Luz suficiente não precisa ser sempre a mesma; só precisa revelar o próximo passo",
+    "explanation_it": "La luce sufficiente non deve restare sempre uguale; le basta rivelare il passo successivo",
+    "explanation_ru": "Достаточному свету не нужно быть постоянным — ему достаточно освещать следующий шаг"
   },
   {
     "key": "tagline.winding.2",
@@ -391,7 +439,15 @@
     "phrase_ru": "Каждый поворот добавлял ночи новый штрих",
     "explanation": "路线的转折把一次步行画成独有的形状",
     "explanation_ht": "路線的轉折把一次步行畫成獨有的形狀",
-    "explanation_en": "The turns drew this walk into a shape of its own"
+    "explanation_en": "The turns drew this walk into a shape of its own",
+    "explanation_ja": "道の折れ曲がりが、この歩きを独自の形に描きました",
+    "explanation_ko": "길의 굴곡이 이 걷기를 하나의 고유한 모양으로 그려냈습니다",
+    "explanation_fr": "Les détours ont donné à cette marche une forme qui lui est propre",
+    "explanation_de": "Die Kurven des Wegs zeichneten diesen Spaziergang in eine eigene Form",
+    "explanation_es": "Los giros del camino dibujaron este paseo con una forma propia",
+    "explanation_pt": "As curvas do traçado desenharam esta caminhada numa forma própria",
+    "explanation_it": "Le svolte del percorso hanno disegnato questa camminata in una forma unica",
+    "explanation_ru": "Повороты пути начертили этой прогулке её собственную форму"
   },
   {
     "key": "tagline.winding.3",
@@ -408,7 +464,15 @@
     "phrase_ru": "Направление менялось, но прибытие всё равно складывалось шаг за шагом",
     "explanation": "方向可以改变，持续前行本身就是抵达的一部分",
     "explanation_ht": "方向可以改變，持續前行本身就是抵達的一部分",
-    "explanation_en": "Direction may change; continuing is already part of arriving"
+    "explanation_en": "Direction may change; continuing is already part of arriving",
+    "explanation_ja": "方向は変わっても、歩き続けること自体が到着の一部です",
+    "explanation_ko": "방향은 바뀔 수 있어도, 계속 걷는 것 자체가 도착의 일부입니다",
+    "explanation_fr": "La direction peut changer ; continuer fait déjà partie d'arriver",
+    "explanation_de": "Die Richtung darf sich ändern — Weitergehen ist schon Teil der Ankunft",
+    "explanation_es": "La dirección puede cambiar; seguir adelante ya es parte de llegar",
+    "explanation_pt": "A direção pode mudar; continuar já faz parte de chegar",
+    "explanation_it": "La direzione può cambiare; continuare è già parte dell'arrivo",
+    "explanation_ru": "Направление может меняться — само движение вперёд уже часть прибытия"
   },
   {
     "key": "tagline.adaptation.2",
@@ -425,7 +489,15 @@
     "phrase_ru": "Если идти достаточно долго, даже незнакомая ночь становится привычной",
     "explanation": "时间没有缩短路，却让身体学会了与夜相处",
     "explanation_ht": "時間沒有縮短路，卻讓身體學會了與夜相處",
-    "explanation_en": "Time did not shorten the road; it taught the body how to move with the night"
+    "explanation_en": "Time did not shorten the road; it taught the body how to move with the night",
+    "explanation_ja": "時間は道を縮めませんでしたが、体に夜との付き合い方を教えました",
+    "explanation_ko": "시간은 길을 줄이지 않았지만, 몸이 밤과 함께 걷는 법을 가르쳤습니다",
+    "explanation_fr": "Le temps n'a pas raccourci la route ; il a appris au corps à composer avec la nuit",
+    "explanation_de": "Die Zeit hat den Weg nicht verkürzt — doch der Körper lernte, mit der Nacht zu gehen",
+    "explanation_es": "El tiempo no acortó el camino; enseñó al cuerpo a moverse con la noche",
+    "explanation_pt": "O tempo não encurtou o caminho; ensinou o corpo a andar junto com a noite",
+    "explanation_it": "Il tempo non ha accorciato la strada; ha insegnato al corpo a muoversi con la notte",
+    "explanation_ru": "Время не сократило дорогу — оно научило тело двигаться вместе с ночью"
   },
   {
     "key": "tagline.adaptation.3",
@@ -442,7 +514,15 @@
     "phrase_ru": "Дорога не торопила; время лишь дольше шло рядом",
     "explanation": "漫长不是迟缓，而是与时间同行得更久",
     "explanation_ht": "漫長不是遲緩，而是與時間同行得更久",
-    "explanation_en": "A long walk is not delay; it is more time spent moving together"
+    "explanation_en": "A long walk is not delay; it is more time spent moving together",
+    "explanation_ja": "道のりが長いのは遅れではなく、時間とともに歩く時間が長いだけです",
+    "explanation_ko": "긴 걸음은 느림이 아니라 시간과 함께 걷는 시간이 길었을 뿐입니다",
+    "explanation_fr": "Une longue marche n'est pas un retard ; c'est plus de temps passé à avancer ensemble",
+    "explanation_de": "Ein langer Weg ist keine Verspätung — nur mehr Zeit, gemeinsam unterwegs zu sein",
+    "explanation_es": "Un paseo largo no es retraso; es más tiempo moviéndose juntos",
+    "explanation_pt": "Uma caminhada longa não é atraso; é mais tempo caminhando junto ao tempo",
+    "explanation_it": "Una camminata lunga non è un ritardo; è più tempo trascorso muovendosi insieme",
+    "explanation_ru": "Долгая прогулка — не опоздание, а больше времени, проведённого в движении вместе"
   },
   {
     "key": "tagline.moon.2",
@@ -459,7 +539,15 @@
     "phrase_ru": "Луна оставалась вдали, а её свет ложился к ногам",
     "explanation": "遥远的光，也可以照见很近的一步",
     "explanation_ht": "遙遠的光，也可以照見很近的一步",
-    "explanation_en": "Even distant light can reveal the step nearest to you"
+    "explanation_en": "Even distant light can reveal the step nearest to you",
+    "explanation_ja": "遠くの光でも、いちばん近い一歩を照らすことはできます",
+    "explanation_ko": "아득한 빛도 가장 가까운 한 걸음을 비출 수 있습니다",
+    "explanation_fr": "Même une lumière lointaine peut éclairer le pas le plus proche",
+    "explanation_de": "Auch fernes Licht kann den nächsten Schritt zeigen",
+    "explanation_es": "Hasta la luz más lejana puede revelar el paso más cercano",
+    "explanation_pt": "Até a luz distante pode revelar o passo mais próximo",
+    "explanation_it": "Anche una luce lontana può rivelare il passo più vicino",
+    "explanation_ru": "Даже далёкий свет может осветить ближайший шаг"
   },
   {
     "key": "tagline.moon.3",
@@ -476,7 +564,15 @@
     "phrase_ru": "Ночи не обязательно быть яркой, чтобы показать следующий шаг",
     "explanation": "看清全部不是前行的条件，看见下一步已经足够",
     "explanation_ht": "看清全部不是前行的條件，看見下一步已經足夠",
-    "explanation_en": "Seeing everything is not required to move; seeing the next step is enough"
+    "explanation_en": "Seeing everything is not required to move; seeing the next step is enough",
+    "explanation_ja": "全部見通す必要はありません。次の一歩が見えていれば十分です",
+    "explanation_ko": "모든 것을 보아야 나아갈 수 있는 것이 아닙니다. 다음 걸음이 보이면 충분합니다",
+    "explanation_fr": "Tout voir n'est pas nécessaire pour avancer ; voir le pas suivant suffit",
+    "explanation_de": "Alles zu sehen ist keine Voraussetzung, um zu gehen — der nächste Schritt genügt",
+    "explanation_es": "No hace falta verlo todo para avanzar; con ver el siguiente paso basta",
+    "explanation_pt": "Não é preciso ver tudo para seguir em frente; basta ver o próximo passo",
+    "explanation_it": "Non serve vedere tutto per andare avanti; basta vedere il passo successivo",
+    "explanation_ru": "Чтобы идти, не нужно видеть всё — достаточно видеть следующий шаг"
   },
   {
     "key": "tagline.quiet.2",
@@ -493,7 +589,15 @@
     "phrase_ru": "Ничего особенного не случилось; вы просто спокойно прошли этот путь до конца",
     "explanation": "平常的一段路，也值得被完整地记住",
     "explanation_ht": "平常的一段路，也值得被完整地記住",
-    "explanation_en": "An ordinary stretch of road can still be worth remembering whole"
+    "explanation_en": "An ordinary stretch of road can still be worth remembering whole",
+    "explanation_ja": "いつも通りの一区間も、そのまま丸ごと覚えておく価値があります",
+    "explanation_ko": "평범한 한 구간도 온전히 기억할 가치가 있습니다",
+    "explanation_fr": "Même un tronçon ordinaire mérite d'être retenu en entier",
+    "explanation_de": "Auch ein ganz gewöhnliches Stück Weg ist es wert, als Ganzes erinnert zu werden",
+    "explanation_es": "Incluso un tramo cualquiera merece recordarse entero",
+    "explanation_pt": "Até um trecho comum merece ser lembrado por inteiro",
+    "explanation_it": "Anche un tratto qualunque merita di essere ricordato per intero",
+    "explanation_ru": "Даже обычный отрезок пути стоит помнить целиком"
   },
   {
     "key": "tagline.quiet.3",
@@ -510,6 +614,14 @@
     "phrase_ru": "Некоторым дорогам не нужно имя; достаточно того, что вы по ним прошли",
     "explanation": "纪念留下经过，不需要留下地点",
     "explanation_ht": "紀念留下經過，不需要留下地點",
-    "explanation_en": "A keepsake can preserve the passage without preserving the place"
+    "explanation_en": "A keepsake can preserve the passage without preserving the place",
+    "explanation_ja": "記念として残すのは通った事実であり、場所である必要はありません",
+    "explanation_ko": "기념은 지나간 사실을 남기지, 장소까지 남길 필요는 없습니다",
+    "explanation_fr": "Un souvenir peut garder le passage sans garder le lieu",
+    "explanation_de": "Ein Andenken bewahrt den Weg — nicht den Ort",
+    "explanation_es": "Un recuerdo puede conservar el paso sin conservar el lugar",
+    "explanation_pt": "Uma lembrança pode preservar a passagem sem preservar o lugar",
+    "explanation_it": "Un ricordo può conservare il passaggio senza conservare il luogo",
+    "explanation_ru": "Сувенир хранит сам факт пути — место ему хранить не нужно"
   }
 ]

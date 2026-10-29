@@ -2,7 +2,7 @@ import CoreData
 import Combine
 
 final class PersistenceController: ObservableObject {
-    static let shared = PersistenceController()
+    static let shared = PersistenceController(inMemory: FeatureFlags.promoWalk)
     let container: NSPersistentContainer
     @Published private(set) var loadFailed = false
 

@@ -64,6 +64,10 @@ final class SensorManager: ObservableObject {
     // MARK: - Start / Stop
 
     func start() {
+        if FeatureFlags.promoWalk {
+            stepCount = 0
+            return
+        }
         startAmbientLightSampling()
         startMotionUpdates()
         startPedometer()
@@ -71,6 +75,7 @@ final class SensorManager: ObservableObject {
     }
 
     func stop() {
+        if FeatureFlags.promoWalk { return }
         turnOffTorch()
         exposureRefreshTimer?.invalidate()
         exposureRefreshTimer = nil

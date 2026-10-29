@@ -109,6 +109,10 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         externalStepCount = 0
         authorizationStatus = manager.authorizationStatus
         isRecording = true
+        if FeatureFlags.promoWalk {
+            authorizationStatus = .authorizedWhenInUse
+            return
+        }
         manager.requestWhenInUseAuthorization()
         manager.startUpdatingLocation()
         if CLLocationManager.headingAvailable() {
@@ -121,6 +125,13 @@ final class LocationManager: NSObject, ObservableObject, @preconcurrency CLLocat
         manager.stopUpdatingHeading()
         isRecording = false
     }
+
+    #if DEBUG && targetEnvironment(simulator)
+    /// Feed synthetic GPS through the same step gate and distance calculation.
+    func receivePromoLocation(_ location: CLLocation) {
+        locationManager(manager, didUpdateLocations: [location])
+    }
+    #endif
 
     func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
         currentHeading = newHeading

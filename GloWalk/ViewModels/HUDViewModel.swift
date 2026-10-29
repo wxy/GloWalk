@@ -96,6 +96,34 @@ final class HUDViewModel: ObservableObject {
     var sensorTimer: Timer?
     private var hasStarted = false
 
+    #if DEBUG && targetEnvironment(simulator)
+    private var promoSample = 0
+    /// Fictional evening, for both the HUD backdrop and the exported poster.
+    private let promoStart = Calendar.current.date(bySettingHour: 21, minute: 14,
+                                                   second: 0, of: Date())!
+
+    private func advancePromoSensors() {
+        promoSample += 1
+        let phase = Double(promoSample) / 60
+        sensorManager.stepCount += 2
+        sensorManager.ambientLightLevel = 0.18 + 0.12 * sin(phase * 2.1)
+        sensorManager.devicePitch = 42 + 8 * sin(phase * 3)
+        sensorManager.deviceRoll = 3 * sin(phase * 4)
+        weatherService.currentCondition = "clear"
+        // A fictional meandering walk, sampled at approximately walking speed.
+        let east = 22 * sin(phase * 2.6) + 9 * phase
+        let north = 56 * phase + 7 * sin(phase * 4.8)
+        locationManager.externalStepCount = sensorManager.stepCount
+        locationManager.currentAmbientLight = sensorManager.ambientLightLevel
+        locationManager.currentTorchBrightness = brightness
+        locationManager.receivePromoLocation(CLLocation(
+            coordinate: CLLocationCoordinate2D(latitude: 30 + north / 111_320,
+                                                longitude: 120 + east / 96_406),
+            altitude: 0, horizontalAccuracy: 5, verticalAccuracy: 5,
+            timestamp: Date()))
+    }
+    #endif
+
     // MARK: - Start Walk
 
     func startWalk() {
@@ -142,14 +170,25 @@ final class HUDViewModel: ObservableObject {
 
         locationManager.startRecording(session: currentWalkSession!)
 
+        #if DEBUG && targetEnvironment(simulator)
+        if FeatureFlags.promoWalk {
+            currentWalkSession?.startTime = promoStart
+            let moon = MoonPhase.current(date: promoStart)
+            currentWalkSession?.moonPhase = moon.phase
+            currentMoonPhaseName = moon.phase
+        }
+        #endif
+
         // Weather fetch — try immediately, retry up to 2 more times with 5s delay
-        Task { [weak self] in
-            for i in 0..<3 {
-                guard let self = self, self.isActive else { return }
-                if i > 0 { try? await Task.sleep(nanoseconds: 5_000_000_000) }
-                if let loc = self.locationManager.currentLocation {
-                    await self.weatherService.fetch(at: loc)
-                    if self.weatherService.currentCondition != nil { break }
+        if !FeatureFlags.promoWalk {
+            Task { [weak self] in
+                for i in 0..<3 {
+                    guard let self = self, self.isActive else { return }
+                    if i > 0 { try? await Task.sleep(nanoseconds: 5_000_000_000) }
+                    if let loc = self.locationManager.currentLocation {
+                        await self.weatherService.fetch(at: loc)
+                        if self.weatherService.currentCondition != nil { break }
+                    }
                 }
             }
         }
@@ -183,6 +222,9 @@ final class HUDViewModel: ObservableObject {
 
     private func tick() {
         guard isActive, !isPaused else { return }
+        #if DEBUG && targetEnvironment(simulator)
+        if FeatureFlags.promoWalk { advancePromoSensors() }
+        #endif
         sensorTick += 1
         updateBatteryState()
 
@@ -221,7 +263,8 @@ final class HUDViewModel: ObservableObject {
         } else if !sensorManager.isOccluded && isTorchOccluded {
             isTorchOccluded = false
         }
-        cameraDeniedForAmbient = AVCaptureDevice.authorizationStatus(for: .video) == .denied
+        cameraDeniedForAmbient = !FeatureFlags.promoWalk
+            && AVCaptureDevice.authorizationStatus(for: .video) == .denied
         let gate = LoopGate(pitchDeg: sensorManager.devicePitch,
                             isOccluded: sensorManager.isOccluded,
                             isDaylight: isDaylight)
@@ -367,6 +410,7 @@ final class HUDViewModel: ObservableObject {
     /// 5-minute cadence is cheap (one request), and a nil condition would
     /// otherwise silently disable the weather factor for the whole walk.
     private func retryWeatherIfNeeded() {
+        if FeatureFlags.promoWalk { return }
         guard !isFetchingWeather,
               weatherService.currentCondition == nil,
               let loc = locationManager.currentLocation else { return }
@@ -530,6 +574,11 @@ final class HUDViewModel: ObservableObject {
         isActive = false
         guard let session = currentWalkSession else { return }
         session.endTime = Date()
+        #if DEBUG && targetEnvironment(simulator)
+        if FeatureFlags.promoWalk {
+            session.endTime = session.wrappedStartTime.addingTimeInterval(session.duration)
+        }
+        #endif
         guard !discard, session.isCompleteRecord else {
             PersistenceController.shared.container.viewContext.delete(session)
             PersistenceController.shared.save()
@@ -539,10 +588,12 @@ final class HUDViewModel: ObservableObject {
         session.endType = showPoster ? "completed" : "interrupted"
         session.healthSyncState = HealthSyncState.pending.rawValue
         PersistenceController.shared.save()
-        Task {
-            healthSyncStatus = HealthSyncState.pending.rawValue
-            await healthSyncService.sync(session: session)
-            healthSyncStatus = session.healthSyncState
+        if !FeatureFlags.promoWalk {
+            Task {
+                healthSyncStatus = HealthSyncState.pending.rawValue
+                await healthSyncService.sync(session: session)
+                healthSyncStatus = session.healthSyncState
+            }
         }
         showArrivalSummary = showPoster
     }

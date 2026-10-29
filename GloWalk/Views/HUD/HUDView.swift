@@ -57,6 +57,7 @@ struct HUDView: View {
 
     /// Moon phase decoration only appears at night (18:00–05:59).
     private var isNightTime: Bool {
+        if FeatureFlags.promoWalk { return true }
         let hour = Calendar.current.component(.hour, from: Date())
         return hour >= 18 || hour < 6
     }

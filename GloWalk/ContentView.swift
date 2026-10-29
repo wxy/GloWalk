@@ -72,7 +72,9 @@ struct ContentView: View {
         }
         .environment(\.locale, resolvedLocale)
         .onAppear {
-            if hasCompletedOnboarding {
+            if FeatureFlags.promoWalk {
+                screen = .splash
+            } else if hasCompletedOnboarding {
                 checkPermissionsThenProceed()
             }
         }
@@ -104,6 +106,7 @@ struct ContentView: View {
     }
 
     private func retryHealthSync() {
+        if FeatureFlags.promoWalk { return }
         let service = HealthSyncService(
             store: HealthKitStore(),
             context: PersistenceController.shared.container.viewContext)
